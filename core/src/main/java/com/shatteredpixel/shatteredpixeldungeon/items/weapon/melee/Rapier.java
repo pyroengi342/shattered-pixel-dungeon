@@ -138,7 +138,7 @@ public class Rapier extends MeleeWeapon {
 				}
 				hero.pos = dest;
 				Dungeon.level.occupyCell(hero);
-				Dungeon.observe();
+				Dungeon.observe( hero );
 
 				hero.belongings.abilityWeapon = wep; //set this early to we can check canAttack
 				if (enemy != null && hero.canAttack(enemy)) {

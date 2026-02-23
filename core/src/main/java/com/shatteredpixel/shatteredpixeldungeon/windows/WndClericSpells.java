@@ -107,7 +107,7 @@ public class WndClericSpells extends Window {
 			ArrayList<IconButton> spellBtns = new ArrayList<>();
 
 			for (ClericSpell spell : spells) {
-				IconButton spellBtn = new SpellButton(spell, tome, info);
+				IconButton spellBtn = new SpellButton(spell, tome, info, cleric);
 				add(spellBtn);
 				spellBtns.add(spellBtn);
 			}
@@ -134,19 +134,20 @@ public class WndClericSpells extends Window {
 		ClericSpell spell;
 		HolyTome tome;
 		boolean info;
-
+        Hero hero;
 		NinePatch bg;
 
-		public SpellButton(ClericSpell spell, HolyTome tome, boolean info){
+		public SpellButton(ClericSpell spell, HolyTome tome, boolean info, Hero hero){
 			super(new HeroIcon(spell));
 
 			this.spell = spell;
 			this.tome = tome;
 			this.info = info;
+            this.hero = hero;    // сохраняем героя
 
-			if (!tome.canCast(Dungeon.hero, spell)){
+			if (!tome.canCast(hero, spell)){
 				icon.alpha( 0.3f );
-			} else if (spell == GuidingLight.INSTANCE && spell.chargeUse(Dungeon.hero) == 0){
+			} else if (spell == GuidingLight.INSTANCE && spell.chargeUse(hero) == 0){
 				icon.brightness(3);
 			}
 
@@ -157,7 +158,7 @@ public class WndClericSpells extends Window {
 		@Override
 		protected void onPointerDown() {
 			super.onPointerDown();
-			if (spell == GuidingLight.INSTANCE && spell.chargeUse(Dungeon.hero) == 0){
+			if (spell == GuidingLight.INSTANCE && spell.chargeUse(hero) == 0){
 				icon.brightness(4);
 			}
 		}
@@ -165,9 +166,9 @@ public class WndClericSpells extends Window {
 		@Override
 		protected void onPointerUp() {
 			super.onPointerUp();
-			if (!tome.canCast(Dungeon.hero, spell)){
+			if (!tome.canCast(hero, spell)){
 				icon.alpha( 0.3f );
-			} else if (spell == GuidingLight.INSTANCE && spell.chargeUse(Dungeon.hero) == 0){
+			} else if (spell == GuidingLight.INSTANCE && spell.chargeUse(hero) == 0){
 				icon.brightness(3);
 			}
 		}
@@ -186,15 +187,15 @@ public class WndClericSpells extends Window {
 		@Override
 		protected void onClick() {
 			if (info){
-				GameScene.show(new WndTitledMessage(new HeroIcon(spell), Messages.titleCase(spell.name()), spell.desc()));
+				GameScene.show(new WndTitledMessage(new HeroIcon(spell), Messages.titleCase(spell.name()), spell.desc(hero)));
 			} else {
 				hide();
 
 
-				if(!tome.canCast(Dungeon.hero, spell)){
+				if(!tome.canCast(hero, spell)){
 					GLog.w(Messages.get(HolyTome.class, "no_spell"));
 				} else {
-					spell.onCast(tome, Dungeon.hero);
+					spell.onCast(tome, hero);
 
 					if (spell.targetingFlags() != -1 && Dungeon.quickslot.contains(tome)){
 						tome.targetingSpell = spell;
@@ -228,10 +229,10 @@ public class WndClericSpells extends Window {
 							break;
 						case 0:
 							hide();
-							if(!tome.canCast(Dungeon.hero, spell)){
+							if(!tome.canCast(hero, spell)){
 								GLog.w(Messages.get(HolyTome.class, "no_spell"));
 							} else {
-								spell.onCast(tome, Dungeon.hero);
+								spell.onCast(tome, hero);
 
 								if (spell.targetingFlags() != -1 && Dungeon.quickslot.contains(tome)){
 									tome.targetingSpell = spell;
@@ -240,7 +241,7 @@ public class WndClericSpells extends Window {
 							}
 							break;
 						case 1:
-							GameScene.show(new WndTitledMessage(new HeroIcon(spell), Messages.titleCase(spell.name()), spell.desc()));
+							GameScene.show(new WndTitledMessage(new HeroIcon(spell), Messages.titleCase(spell.name()), spell.desc(hero)));
 							break;
 						case 2:
 							hide();
@@ -258,7 +259,7 @@ public class WndClericSpells extends Window {
 
 		@Override
 		protected String hoverText() {
-			return "_" + Messages.titleCase(spell.name()) + "_\n" + spell.shortDesc();
+			return "_" + Messages.titleCase(spell.name()) + "_\n" + spell.shortDesc(hero);
 		}
 	}
 

@@ -21,6 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
+import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Ghost;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -37,6 +39,8 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.RedButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
+
+import network.Multiplayer;
 
 public class WndSadGhost extends Window {
 
@@ -117,8 +121,8 @@ public class WndSadGhost extends Window {
 		}
 		
 		reward.identify(false);
-		if (reward.doPickUp( Dungeon.hero )) {
-			GLog.i( Messages.capitalize(Messages.get(Dungeon.hero, "you_now_have", reward.name())) );
+		if (reward.doPickUp( Multiplayer.Players.get(getLocalPlayerId()).hero )) {
+			GLog.i( Messages.capitalize(Messages.get(Multiplayer.Players.get(getLocalPlayerId()).hero, "you_now_have", reward.name())) );
 		} else {
 			Dungeon.level.drop( reward, ghost.pos ).sprite.drop();
 		}

@@ -59,7 +59,7 @@ public class WaterOfHealth extends WellWater {
 		hero.buff( Hunger.class ).satisfy( Hunger.STARVING );
 
 		if (VialOfBlood.delayBurstHealing()){
-			Healing healing = Buff.affect(hero, Healing.class);
+			Healing healing = Buff.affect(hero, Healing.class, this);
 			healing.setHeal(hero.HT, 0, VialOfBlood.maxHealPerTurn());
 			healing.applyVialEffect();
 		} else {
@@ -70,7 +70,7 @@ public class WaterOfHealth extends WellWater {
 		
 		CellEmitter.get( hero.pos ).start( ShaftParticle.FACTORY, 0.2f, 3 );
 
-		Dungeon.hero.interrupt();
+        hero.interrupt();
 	
 		GLog.p( Messages.get(this, "procced") );
 		

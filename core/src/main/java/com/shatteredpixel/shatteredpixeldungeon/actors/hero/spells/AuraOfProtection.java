@@ -21,6 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.spells;
 
+import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
@@ -35,6 +37,8 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.noosa.particles.Emitter;
 
+import network.Multiplayer;
+
 public class AuraOfProtection extends ClericSpell {
 
 	public static AuraOfProtection INSTANCE = new AuraOfProtection();
@@ -45,10 +49,10 @@ public class AuraOfProtection extends ClericSpell {
 	}
 
 	@Override
-	public String desc() {
-		int dmgReduction = 10 + 10*Dungeon.hero.pointsInTalent(Talent.AURA_OF_PROTECTION);
-		int glyphPow = 25 + 25*Dungeon.hero.pointsInTalent(Talent.AURA_OF_PROTECTION);
-		return Messages.get(this, "desc", dmgReduction, glyphPow) + "\n\n" + Messages.get(this, "charge_cost", (int)chargeUse(Dungeon.hero));
+	public String desc(Hero hero) {
+		int dmgReduction = 10 + 10* hero.pointsInTalent(Talent.AURA_OF_PROTECTION);
+		int glyphPow = 25 + 25*hero.pointsInTalent(Talent.AURA_OF_PROTECTION);
+		return Messages.get(this, "desc", dmgReduction, glyphPow) + "\n\n" + Messages.get(this, "charge_cost", (int)chargeUse(hero));
 	}
 
 	@Override

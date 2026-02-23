@@ -21,6 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.spells;
 
+import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
@@ -38,6 +40,8 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
 
+import network.Multiplayer;
+
 public class LayOnHands extends TargetedClericSpell {
 
 	public static LayOnHands INSTANCE = new LayOnHands();
@@ -48,8 +52,8 @@ public class LayOnHands extends TargetedClericSpell {
 	}
 
 	@Override
-	public String desc() {
-		return Messages.get(this, "desc", 10 + 5*Dungeon.hero.pointsInTalent(Talent.LAY_ON_HANDS)) + "\n\n" + Messages.get(this, "charge_cost", (int)chargeUse(Dungeon.hero));
+public String desc(Hero hero){
+		return Messages.get(this, "desc", 10 + 5* hero.pointsInTalent(Talent.LAY_ON_HANDS)) + "\n\n" + Messages.get(this, "charge_cost", (int)chargeUse(hero));
 	}
 
 	@Override
@@ -108,11 +112,11 @@ public class LayOnHands extends TargetedClericSpell {
 		int totalHeal = 10 + 5*hero.pointsInTalent(Talent.LAY_ON_HANDS);
 		int totalBarrier = 0;
 		if (ch == hero){
-			Barrier barrier = Buff.affect(ch, Barrier.class);
+			Barrier barrier = Buff.affect(ch, Barrier.class, hero);
 			totalBarrier = totalHeal;
 			totalBarrier = Math.min(3*totalHeal - barrier.shielding(), totalBarrier);
 			totalBarrier = Math.max(0, totalBarrier);
-			Buff.affect(ch, Barrier.class).incShield(totalBarrier);
+			Buff.affect(ch, Barrier.class, hero).incShield(totalBarrier);
 			ch.sprite.showStatusWithIcon( CharSprite.POSITIVE, Integer.toString(totalBarrier), FloatingText.SHIELDING );
 		} else {
 			if (ch.HT - ch.HP < totalHeal){
@@ -122,7 +126,7 @@ public class LayOnHands extends TargetedClericSpell {
 					ch.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(totalHeal - totalBarrier), FloatingText.HEALING);
 				}
 				if (totalBarrier > 0) {
-					Barrier barrier = Buff.affect(ch, Barrier.class);
+					Barrier barrier = Buff.affect(ch, Barrier.class, hero);
 					totalBarrier = Math.min(3 * totalHeal - barrier.shielding(), totalBarrier);
 					totalBarrier = Math.max(0, totalBarrier);
 					if (totalBarrier > 0) {

@@ -142,10 +142,10 @@ public class SpiritBow extends Weapon {
 				Math.round(augment.damageFactor(max())),
 				STRReq());
 		
-		if (STRReq() > Dungeon.hero.STR()) {
+		if (STRReq() > curUser.STR()) {
 			info += " " + Messages.get(Weapon.class, "too_heavy");
-		} else if (Dungeon.hero.STR() > STRReq()){
-			info += " " + Messages.get(Weapon.class, "excess_str", Dungeon.hero.STR() - STRReq());
+		} else if (curUser.STR() > STRReq()){
+			info += " " + Messages.get(Weapon.class, "excess_str", curUser.STR() - STRReq());
 		}
 		
 		switch (augment) {
@@ -166,7 +166,7 @@ public class SpiritBow extends Weapon {
 			info += "\n\n" + Messages.get(Weapon.class, "hardened_no_enchant");
 		}
 		
-		if (cursed && isEquipped( Dungeon.hero )) {
+		if (cursed && isEquipped( curUser )) {
 			info += "\n\n" + Messages.get(Weapon.class, "cursed_worn");
 		} else if (cursedKnown && cursed) {
 			info += "\n\n" + Messages.get(Weapon.class, "cursed");
@@ -186,17 +186,17 @@ public class SpiritBow extends Weapon {
 	
 	@Override
 	public int min(int lvl) {
-		int dmg = 1 + Dungeon.hero.lvl/5
-				+ RingOfSharpshooting.levelDamageBonus(Dungeon.hero)
-				+ (curseInfusionBonus ? 1 + Dungeon.hero.lvl/30 : 0);
+		int dmg = 1 + curUser.lvl/5
+				+ RingOfSharpshooting.levelDamageBonus(curUser)
+				+ (curseInfusionBonus ? 1 + curUser.lvl/30 : 0);
 		return Math.max(0, dmg);
 	}
 	
 	@Override
 	public int max(int lvl) {
-		int dmg = 6 + (int)(Dungeon.hero.lvl/2.5f)
-				+ 2*RingOfSharpshooting.levelDamageBonus(Dungeon.hero)
-				+ (curseInfusionBonus ? 2 + Dungeon.hero.lvl/15 : 0);
+		int dmg = 6 + (int)(curUser.lvl/2.5f)
+				+ 2*RingOfSharpshooting.levelDamageBonus(curUser)
+				+ (curseInfusionBonus ? 2 + curUser.lvl/15 : 0);
 		return Math.max(0, dmg);
 	}
 
@@ -269,7 +269,7 @@ public class SpiritBow extends Weapon {
 
 	@Override
 	public int level() {
-		int level = Dungeon.hero == null ? 0 : Dungeon.hero.lvl/5;
+		int level = curUser == null ? 0 : curUser.lvl/5;
 		if (curseInfusionBonus) level += 1 + level/6;
 		return level;
 	}
@@ -306,7 +306,7 @@ public class SpiritBow extends Weapon {
 
 		@Override
 		public Emitter emitter() {
-			if (Dungeon.hero.buff(NaturesPower.naturesPowerTracker.class) != null && !sniperSpecial){
+			if (curUser.buff(NaturesPower.naturesPowerTracker.class) != null && !sniperSpecial){
 				Emitter e = new Emitter();
 				e.pos(5, 5);
 				e.fillTarget = false;

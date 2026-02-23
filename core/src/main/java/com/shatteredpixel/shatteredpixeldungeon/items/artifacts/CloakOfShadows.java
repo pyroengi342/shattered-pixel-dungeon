@@ -98,7 +98,7 @@ public class CloakOfShadows extends Artifact {
 					Sample.INSTANCE.play(Assets.Sounds.MELD);
 					activeBuff = activeBuff();
 					activeBuff.attachTo(hero);
-					Talent.onArtifactUsed(Dungeon.hero);
+					Talent.onArtifactUsed(curUser);
 					hero.sprite.operate(hero.pos);
 				}
 			} else {
@@ -237,8 +237,8 @@ public class CloakOfShadows extends Artifact {
 					float turnsToCharge = (45 - missing);
 					turnsToCharge /= RingOfEnergy.artifactChargeMultiplier(target);
 					float chargeToGain = (1f / turnsToCharge);
-					if (!isEquipped(Dungeon.hero)){
-						chargeToGain *= 0.75f*Dungeon.hero.pointsInTalent(Talent.LIGHT_CLOAK)/3f;
+					if (!isEquipped(curUser)){
+						chargeToGain *= 0.75f*curUser.pointsInTalent(Talent.LIGHT_CLOAK)/3f;
 					}
 					partialCharge += chargeToGain;
 				}

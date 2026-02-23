@@ -25,6 +25,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.watabou.noosa.Game;
@@ -78,8 +79,9 @@ public class Swap extends Actor {
 			Dungeon.level.occupyCell(ch1 );
 			Dungeon.level.occupyCell(ch2 );
 
-			if (ch1 == Dungeon.hero || ch2 == Dungeon.hero) {
-				Dungeon.observe();
+			if (ch1 instanceof Hero || ch2 instanceof Hero) {
+                // Whatever
+                Dungeon.observeAll();
 				GameScene.updateFog();
 			}
 		}

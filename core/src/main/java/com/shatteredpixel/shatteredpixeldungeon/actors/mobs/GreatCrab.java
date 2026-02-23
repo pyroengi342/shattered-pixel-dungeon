@@ -25,6 +25,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.spells.ClericSpell;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Ghost;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.MysteryMeat;
@@ -80,7 +81,7 @@ public class GreatCrab extends Crab {
 				&& state != SLEEPING
 				&& paralysed == 0
 				&& (src instanceof Wand || src instanceof ClericSpell)
-				&& enemy == Dungeon.hero
+				&& enemy instanceof Hero
 				&& enemy.invisible == 0){
 			GLog.n( Messages.get(this, "noticed") );
 			sprite.showStatus( CharSprite.NEUTRAL, Messages.get(this, "def_verb") );
@@ -103,7 +104,7 @@ public class GreatCrab extends Crab {
 				Sample.INSTANCE.play(Assets.Sounds.HIT_PARRY, 1, Random.Float(0.96f, 1.05f));
 				GLog.n( Messages.get(this, "noticed") );
 			}
-			if (enemy == Dungeon.hero){
+			if (enemy instanceof Hero){
 				Statistics.questScores[0] -= 50;
 			}
 			return INFINITE_EVASION;

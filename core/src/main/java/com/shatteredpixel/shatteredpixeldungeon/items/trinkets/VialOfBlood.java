@@ -73,7 +73,7 @@ public class VialOfBlood extends Trinket {
 	}
 
 	public static int maxHealPerTurn(int level){
-		int maxHP = Dungeon.hero == null ? 20 : Dungeon.hero.HT;
+		int maxHP = curUser == null ? 20 : curUser.HT;
 		if (level == -1){
 			return maxHP;
 		} else {

@@ -22,7 +22,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.effects;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bless;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ChampionEnemy;
@@ -64,6 +63,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+
+import network.Multiplayer;
 
 public class FloatingText extends RenderedTextBlock {
 
@@ -278,7 +279,7 @@ public class FloatingText extends RenderedTextBlock {
 				stacks.put(key, stack);
 			}
 			
-			if (stack.size() > 0) {
+			if (!stack.isEmpty()) {
 				FloatingText below = txt;
 				int aboveIndex = stack.size() - 1;
 				int numBelow = 0;
@@ -310,38 +311,34 @@ public class FloatingText extends RenderedTextBlock {
 	// This results in a lot of duplicated logic/numbers and awkward workarounds.
 	// It does work though... mostly.
 
-	public static int getHitReasonIcon(Char attacker, float accRoll, Char defender, float defRoll){
+	@SuppressWarnings("SuspiciousIndentation")
+    public static int getHitReasonIcon(Char attacker, float accRoll, Char defender, float defRoll){
 		HashMap<Integer, Float> hitReasons = new HashMap<>();
 
 		//go through some garunteed hit interactions first
 		if (defRoll == 0 && defender.buff(GuidingLight.Illuminated.class) != null){
-			return HIT_BLS;
-		}
+			return HIT_BLS;}
 		if (accRoll == Char.INFINITE_ACCURACY && attacker.invisible > 0){
-			return HIT_SUPR;
-		}
+			return HIT_SUPR;}
 		if (defRoll == 0 && defender instanceof Mob && ((Mob) defender).surprisedBy(attacker)){
-			return HIT_SUPR;
-		}
+			return HIT_SUPR;}
 		if (accRoll == Char.INFINITE_ACCURACY
 				&& attacker.buff(Talent.PreciseAssaultTracker.class) != null){
-			return HIT_PRES;
-		}
+			return HIT_PRES;}
 		if (accRoll == Char.INFINITE_ACCURACY
 				&& attacker.buff(Talent.LiquidAgilACCTracker.class) != null){
-			return HIT_LIQ;
-		}
+			return HIT_LIQ;}
 
 		KindOfWeapon wep = null;
 		if (attacker instanceof Hero) wep = ((Hero) attacker).belongings.attackingWeapon();
-		if (attacker instanceof MirrorImage) wep = Dungeon.hero.belongings.weapon();
+		if (attacker instanceof MirrorImage) wep = ((MirrorImage) defender).getOwner().belongings.weapon();
 		if (attacker instanceof Statue) wep = ((Statue)attacker).weapon();
 		if (attacker instanceof DriedRose.GhostHero) wep = ((DriedRose.GhostHero)attacker).weapon();
 
 		Armor arm = null;
 		if (defender instanceof Hero) arm = ((Hero) defender).belongings.armor();
-		if (defender instanceof PrismaticImage) arm = Dungeon.hero.belongings.armor();
-		if (defender instanceof ArmoredStatue) arm = ((ArmoredStatue)defender).armor();
+		if (defender instanceof PrismaticImage) arm = ((PrismaticImage) defender).getOwner().belongings.armor();
+		if (defender instanceof ArmoredStatue) arm = ((ArmoredStatue) defender).armor();
 		if (defender instanceof DriedRose.GhostHero) arm = ((DriedRose.GhostHero)defender).armor();
 
 		//one last check
@@ -359,21 +356,25 @@ public class FloatingText extends RenderedTextBlock {
 			blessBoost *= attacker.buff(ChampionEnemy.class).evasionAndAccuracyFactor();
 		}
 		if (attacker.buff(Bless.class) != null) blessBoost *= 1.25f;
-		if (Dungeon.hero.heroClass != HeroClass.CLERIC
-				&& Dungeon.hero.hasTalent(Talent.BLESS)
-				&& attacker.alignment == Char.Alignment.ALLY){
-			// + 3%/5%
-			blessBoost *= 1.01f + 0.02f*Dungeon.hero.pointsInTalent(Talent.BLESS);
-		}
+        // TODO remake
+        for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+            if (player.hero.heroClass != HeroClass.CLERIC
+                    && player.hero.hasTalent(Talent.BLESS)
+                    && attacker.alignment == Char.Alignment.ALLY){
+                // + 3%/5%
+                blessBoost *= 1.01f + 0.02f*player.hero.pointsInTalent(Talent.BLESS);
+                break;
+            }
+        }
 		if (blessBoost > 1f) hitReasons.put(HIT_BLS, blessBoost);
 		if (RingOfAccuracy.accuracyMultiplier(attacker) > 1)    hitReasons.put(HIT_ACC, RingOfAccuracy.accuracyMultiplier(attacker));
 		if (attacker.buff(Scimitar.SwordDance.class) != null)   hitReasons.put(HIT_DANCE, 1.5f);
 		if (!(wep instanceof MissileWeapon)) {
 			if (attacker instanceof Hero && ((Hero) attacker).hasTalent(Talent.PRECISE_ASSAULT) && ((Hero) attacker).heroClass != HeroClass.DUELIST){
-				hitReasons.put(HIT_PRES, 0.1f * Dungeon.hero.pointsInTalent(Talent.PRECISE_ASSAULT));
+				hitReasons.put(HIT_PRES, 0.1f * ((Hero) attacker).pointsInTalent(Talent.PRECISE_ASSAULT));
 			}
 			if (attacker.buff(Talent.PreciseAssaultTracker.class) != null){
-				hitReasons.put(HIT_PRES, Dungeon.hero.pointsInTalent(Talent.PRECISE_ASSAULT) == 2 ? 5f : 2f);
+				hitReasons.put(HIT_PRES, ((Hero) attacker).pointsInTalent(Talent.PRECISE_ASSAULT) == 2 ? 5f : 2f);
 			} else if (attacker.buff(Talent.LiquidAgilACCTracker.class) != null) {
 				hitReasons.put(HIT_LIQ, 3f);
 			}
@@ -436,13 +437,13 @@ public class FloatingText extends RenderedTextBlock {
 
 		KindOfWeapon wep = null;
 		if (attacker instanceof Hero) wep = ((Hero) attacker).belongings.attackingWeapon();
-		if (attacker instanceof MirrorImage) wep = Dungeon.hero.belongings.weapon();
+		if (attacker instanceof MirrorImage) wep = ((MirrorImage) defender).getOwner().belongings.weapon();
 		if (attacker instanceof Statue) wep = ((Statue)attacker).weapon();
 		if (attacker instanceof DriedRose.GhostHero) wep = ((DriedRose.GhostHero)attacker).weapon();
 
 		Armor arm = null;
 		if (defender instanceof Hero) arm = ((Hero) defender).belongings.armor();
-		if (defender instanceof PrismaticImage) arm = Dungeon.hero.belongings.armor();
+		if (defender instanceof PrismaticImage) arm = ((PrismaticImage) defender).getOwner().belongings.armor();
 		if (defender instanceof ArmoredStatue) arm = ((ArmoredStatue)defender).armor();
 		if (defender instanceof DriedRose.GhostHero) arm = ((DriedRose.GhostHero)defender).armor();
 
@@ -453,12 +454,16 @@ public class FloatingText extends RenderedTextBlock {
 			blessBoost *= defender.buff(ChampionEnemy.class).evasionAndAccuracyFactor();
 		}
 		if (defender.buff(Bless.class) != null) blessBoost *= 1.25f;
-		if (Dungeon.hero.heroClass != HeroClass.CLERIC
-				&& Dungeon.hero.hasTalent(Talent.BLESS)
-				&& defender.alignment == Char.Alignment.ALLY){
-			// + 3%/5%
-			blessBoost *= 1.01f + 0.02f*Dungeon.hero.pointsInTalent(Talent.BLESS);
-		}
+        // TODO remake
+        for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+            if (player.hero.heroClass != HeroClass.CLERIC
+                    && player.hero.hasTalent(Talent.BLESS)
+                    && defender.alignment == Char.Alignment.ALLY){
+                // + 3%/5%
+                blessBoost *= 1.01f + 0.02f*player.hero.pointsInTalent(Talent.BLESS);
+                break;
+            }
+        }
 		if (blessBoost > 1f)                                    missReasons.put(MISS_BLS, blessBoost);
 		if (FerretTuft.evasionMultiplier() > 1)                 missReasons.put(MISS_TUFT, FerretTuft.evasionMultiplier());
 		if (RingOfEvasion.evasionMultiplier(defender) > 1)      missReasons.put(MISS_EVA, RingOfEvasion.evasionMultiplier(defender));

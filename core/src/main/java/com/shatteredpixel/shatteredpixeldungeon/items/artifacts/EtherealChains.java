@@ -201,7 +201,8 @@ public class EtherealChains extends Artifact {
 						updateQuickslot();
 
 						Dungeon.level.occupyCell(enemy);
-						Dungeon.observe();
+                        // TODO need to change for every hero
+						Dungeon.observe(hero);
 						GameScene.updateFog();
 						hero.spendAndNext(1f);
 
@@ -269,8 +270,9 @@ public class EtherealChains extends Artifact {
 						updateQuickslot();
 
 						Dungeon.level.occupyCell(hero);
+                        // TODO need to change for every hero
 						hero.spendAndNext(1f);
-						Dungeon.observe();
+						Dungeon.observe(hero);
 						GameScene.updateFog();
 					}
 				}));
@@ -302,7 +304,7 @@ public class EtherealChains extends Artifact {
 	public String desc() {
 		String desc = super.desc();
 
-		if (isEquipped( Dungeon.hero )){
+		if (isEquipped( curUser )){
 			desc += "\n\n";
 			if (cursed)
 				desc += Messages.get(this, "desc_cursed");

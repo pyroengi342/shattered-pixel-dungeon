@@ -29,6 +29,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FlavourBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Paralysis;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Effects;
 import com.shatteredpixel.shatteredpixeldungeon.effects.MagicMissile;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Pushing;
@@ -168,7 +169,7 @@ public class WandOfBlastWave extends DamageWand {
 					ch.damage(Random.NormalIntRange(finalDist, 2*finalDist), new Knockback());
 					if (ch.isActive()) {
 						Paralysis.prolong(ch, Paralysis.class, 1 + finalDist/2f);
-					} else if (ch == Dungeon.hero){
+					} else if (ch instanceof Hero){
 						if (cause instanceof WandOfBlastWave){
 							Badges.validateDeathFromFriendlyMagic();
 						}
@@ -180,11 +181,12 @@ public class WandOfBlastWave extends DamageWand {
 					Door.leave(oldPos);
 				}
 				Dungeon.level.occupyCell(ch);
-				if (ch == Dungeon.hero){
-					Dungeon.observe();
+				if (ch instanceof Hero){
+					Dungeon.observe((Hero) ch);
 					GameScene.updateFog();
 				} else if (Dungeon.level.heroFOV[initialpos] != Dungeon.level.heroFOV[newPos]){
-					Dungeon.observe();
+                    // TODO dunno whats going on
+					Dungeon.observeAll();
 				}
 			}
 		}));
@@ -273,7 +275,7 @@ public class WandOfBlastWave extends DamageWand {
 		}
 
 		public static void blast(int pos, float radius) {
-			Group parent = Dungeon.hero.sprite.parent;
+			Group parent = curUser.sprite.parent;
 			BlastWave b = (BlastWave) parent.recycle(BlastWave.class);
 			parent.bringToFront(b);
 			b.reset(pos, radius);

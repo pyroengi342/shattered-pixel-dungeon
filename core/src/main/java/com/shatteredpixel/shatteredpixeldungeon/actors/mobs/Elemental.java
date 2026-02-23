@@ -34,6 +34,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Burning;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Chill;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Lightning;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Splash;
@@ -368,7 +369,7 @@ public abstract class Elemental extends Mob {
 						Char target = Actor.findChar(targetingPos + i);
 						if (target != null && target != this) {
 							Buff.affect(target, Burning.class).reignite(target);
-							if (target == Dungeon.hero){
+							if (target instanceof Hero){
 								Statistics.questScores[1] -= 200;
 							}
 						}
@@ -525,7 +526,7 @@ public abstract class Elemental extends Mob {
 			
 			for (Char ch : affected) {
 				ch.damage( Math.round( damage * 0.4f ), new Shocking() );
-				if (ch == Dungeon.hero && !ch.isAlive()){
+				if (ch instanceof Hero && !ch.isAlive()){
 					Dungeon.fail(this);
 					GLog.n( Messages.capitalize(Messages.get(Char.class, "kill", name())) );
 				}
@@ -545,7 +546,7 @@ public abstract class Elemental extends Mob {
 		@Override
 		protected void rangedProc( Char enemy ) {
 			Buff.affect( enemy, Blindness.class, Blindness.DURATION/2f );
-			if (enemy == Dungeon.hero) {
+			if (enemy instanceof Hero) {
 				GameScene.flash(0x80FFFFFF);
 			}
 		}

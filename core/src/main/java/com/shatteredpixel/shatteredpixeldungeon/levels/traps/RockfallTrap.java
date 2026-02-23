@@ -28,6 +28,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Paralysis;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
@@ -105,7 +106,7 @@ public class RockfallTrap extends Trap {
 
 				if (ch.isActive()) {
 					Buff.prolong(ch, Paralysis.class, Paralysis.DURATION);
-				} else if (!ch.isAlive() && ch == Dungeon.hero){
+				} else if (!ch.isAlive() && ch instanceof Hero){
 					Dungeon.fail( this );
 					GLog.n( Messages.get(this, "ondeath") );
 					if (reclaimed) Badges.validateDeathFromFriendlyMagic();

@@ -38,6 +38,8 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.PathFinder;
 
+import network.Multiplayer;
+
 public class DisarmingTrap extends Trap{
 
 	{
@@ -77,41 +79,43 @@ public class DisarmingTrap extends Trap{
 			CellEmitter.get(pos).burst(Speck.factory(Speck.LIGHT), 4);
 		}
 
-		if (Dungeon.hero.pos == pos && !Dungeon.hero.flying){
-			Hero hero = Dungeon.hero;
-			KindOfWeapon weapon = hero.belongings.weapon;
+        for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+            if (player.hero.pos == pos && !player.hero.flying){
+                Hero hero = player.hero;
+                KindOfWeapon weapon = hero.belongings.weapon;
 
-			if (weapon != null && !weapon.cursed) {
+                if (weapon != null && !weapon.cursed) {
 
-				int cell;
-				int tries = 50;
-				do {
-					cell = Dungeon.level.randomRespawnCell( null );
-					if (tries-- < 0 && cell != -1) break;
+                    int cell;
+                    int tries = 50;
+                    do {
+                        cell = Dungeon.level.randomRespawnCell( null );
+                        if (tries-- < 0 && cell != -1) break;
 
-					PathFinder.buildDistanceMap(pos, Dungeon.level.passable);
-				} while (cell == -1 || PathFinder.distance[cell] < 10 || PathFinder.distance[cell] > 20);
+                        PathFinder.buildDistanceMap(pos, Dungeon.level.passable);
+                    } while (cell == -1 || PathFinder.distance[cell] < 10 || PathFinder.distance[cell] > 20);
 
-				if (tries < 0){
-					return;
-				}
+                    if (tries < 0){
+                        return;
+                    }
 
-				hero.belongings.weapon = null;
-				Dungeon.quickslot.clearItem(weapon);
-				weapon.updateQuickslot();
+                    hero.belongings.weapon = null;
+                    Dungeon.quickslot.clearItem(weapon);
+                    weapon.updateQuickslot();
 
-				Dungeon.level.drop(weapon, cell).seen = true;
-				for (int i : PathFinder.NEIGHBOURS9) {
-					Dungeon.level.mapped[cell + i] = true;
-				}
-				GameScene.updateFog(cell, 1);
+                    Dungeon.level.drop(weapon, cell).seen = true;
+                    for (int i : PathFinder.NEIGHBOURS9) {
+                        Dungeon.level.mapped[cell + i] = true;
+                    }
+                    GameScene.updateFog(cell, 1);
 
-				GLog.w( Messages.get(this, "disarm") );
+                    GLog.w( Messages.get(this, "disarm") );
 
-				Sample.INSTANCE.play(Assets.Sounds.TELEPORT);
-				CellEmitter.get(pos).burst(Speck.factory(Speck.LIGHT), 4);
+                    Sample.INSTANCE.play(Assets.Sounds.TELEPORT);
+                    CellEmitter.get(pos).burst(Speck.factory(Speck.LIGHT), 4);
 
-			}
-		}
+                }
+            }
+        }
 	}
 }

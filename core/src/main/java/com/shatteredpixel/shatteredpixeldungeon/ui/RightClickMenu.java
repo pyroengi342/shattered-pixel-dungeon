@@ -21,6 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.ui;
 
+import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.Chrome;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -36,6 +38,8 @@ import com.watabou.noosa.ui.Component;
 
 import java.util.ArrayList;
 
+import network.Multiplayer;
+
 public class RightClickMenu extends Component {
 
 	private NinePatch bg;
@@ -50,7 +54,7 @@ public class RightClickMenu extends Component {
 	private Item item;
 
 	public RightClickMenu(Item item){
-		ArrayList<String> actions = item.actions(Dungeon.hero);
+		ArrayList<String> actions = item.actions(Multiplayer.Players.get(getLocalPlayerId()).hero);
 		if (actions.remove(item.defaultAction())) {
 			actions.add(0, item.defaultAction());
 		}
@@ -102,7 +106,7 @@ public class RightClickMenu extends Component {
 				protected void onClick() {
 					super.onClick();
 					if (item != null){
-						item.execute(Dungeon.hero, options[finalI]);
+						item.execute(Multiplayer.Players.get(getLocalPlayerId()).hero, options[finalI]);
 
 						if (options[finalI].equals(item.defaultAction()) && item.usesTargeting){
 							InventoryPane.useTargeting();
@@ -117,7 +121,7 @@ public class RightClickMenu extends Component {
 				if (options[i].equals(item.defaultAction())) {
 					buttons[i].textColor(Window.TITLE_COLOR);
 				}
-				buttons[i].text(item.actionName(options[i], Dungeon.hero));
+				buttons[i].text(item.actionName(options[i], Multiplayer.Players.get(getLocalPlayerId()).hero));
 			}
 			add(buttons[i]);
 		}

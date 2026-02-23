@@ -21,8 +21,12 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.ui;
 
+import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.watabou.noosa.Image;
+
+import network.Multiplayer;
 
 public class BusyIndicator extends Image {
 	
@@ -37,6 +41,6 @@ public class BusyIndicator extends Image {
 	@Override
 	public void update() {
 		super.update();
-		visible = Dungeon.hero.isAlive() && !Dungeon.hero.ready;
+		visible = Multiplayer.Players.get(getLocalPlayerId()).hero.isAlive() && !Multiplayer.Players.get(getLocalPlayerId()).hero.ready;
 	}
 }

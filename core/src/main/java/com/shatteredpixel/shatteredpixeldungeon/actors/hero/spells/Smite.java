@@ -21,6 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.spells;
 
+import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
@@ -41,6 +43,8 @@ import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Callback;
 import com.watabou.utils.Random;
 
+import network.Multiplayer;
+
 public class Smite extends TargetedClericSpell {
 
 	public static Smite INSTANCE = new Smite();
@@ -56,10 +60,10 @@ public class Smite extends TargetedClericSpell {
 	}
 
 	@Override
-	public String desc() {
-		int min = 5 + Dungeon.hero.lvl/2;
-		int max = 10 + Dungeon.hero.lvl;
-		return Messages.get(this, "desc", min, max) + "\n\n" + Messages.get(this, "charge_cost", (int)chargeUse(Dungeon.hero));
+public String desc(Hero hero){
+		int min = 5 + hero.lvl/2;
+		int max = 10 + hero.lvl;
+		return Messages.get(this, "desc", min, max) + "\n\n" + Messages.get(this, "charge_cost", (int)chargeUse(hero));
 	}
 
 	@Override
@@ -85,7 +89,7 @@ public class Smite extends TargetedClericSpell {
 		}
 
 		//we apply here because of projecting
-		SmiteTracker tracker = Buff.affect(hero, SmiteTracker.class);
+		SmiteTracker tracker = Buff.affect(hero, SmiteTracker.class, hero);
 		if (hero.isCharmedBy(enemy) || !Dungeon.level.heroFOV[target] || !hero.canAttack(enemy)) {
 			GLog.w(Messages.get(this, "invalid_enemy"));
 			tracker.detach();

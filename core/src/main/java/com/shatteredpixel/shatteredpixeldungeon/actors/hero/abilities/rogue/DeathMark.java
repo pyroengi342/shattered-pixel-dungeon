@@ -46,6 +46,8 @@ import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.PathFinder;
 
+import network.Multiplayer;
+
 public class DeathMark extends ArmorAbility {
 
 	{
@@ -53,7 +55,7 @@ public class DeathMark extends ArmorAbility {
 	}
 
 	@Override
-	public String targetingPrompt() {
+	public String targetingPrompt(Hero hero) {
 		return Messages.get(this, "prompt");
 	}
 
@@ -88,9 +90,11 @@ public class DeathMark extends ArmorAbility {
 			return;
 		}
 
-		if (ch != null){
-			Buff.affect(ch, DeathMarkTracker.class, DeathMarkTracker.DURATION).setInitialHP(ch.HP);
-		}
+        if (ch != null) {
+            DeathMarkTracker tracker = Buff.affect(ch, DeathMarkTracker.class, DeathMarkTracker.DURATION);
+            tracker.setInitialHP(ch.HP);
+            tracker.setOwnerId(hero.id()); // сохраняем источник
+        }
 
 		armor.charge -= chargeUse( hero );
 		armor.updateQuickslot();
@@ -106,33 +110,38 @@ public class DeathMark extends ArmorAbility {
 
 	}
 
-	public static void processFearTheReaper( Char ch ){
-		if (ch.HP > 0 || ch.buff(DeathMarkTracker.class) == null){
-			return;
-		}
+    public static void processFearTheReaper(Char ch) {
+        DeathMarkTracker tracker = ch.buff(DeathMarkTracker.class);
+        if (tracker == null) return;
+        Hero sourceHero = null;
+        for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+            if (player.hero.id() == tracker.getOwnerId()) sourceHero = player.hero;
+        }
 
-		if (Dungeon.hero.hasTalent(Talent.FEAR_THE_REAPER)) {
-			if (Dungeon.hero.pointsInTalent(Talent.FEAR_THE_REAPER) >= 2) {
-				Buff.prolong(ch, Terror.class, 5f).object = Dungeon.hero.id();
-			}
-			Buff.prolong(ch, Cripple.class, 5f);
+        if (sourceHero == null) return;
 
-			if (Dungeon.hero.pointsInTalent(Talent.FEAR_THE_REAPER) >= 3) {
-				boolean[] passable = BArray.not(Dungeon.level.solid, null);
-				PathFinder.buildDistanceMap(ch.pos, passable, 3);
+        if (sourceHero.hasTalent(Talent.FEAR_THE_REAPER)) {
+            if (sourceHero.pointsInTalent(Talent.FEAR_THE_REAPER) >= 2) {
+                Buff.prolong(ch, Terror.class, 5f, sourceHero).object = sourceHero.id();
+            }
+            Buff.prolong(ch, Cripple.class, 5f, sourceHero);
 
-				for (Char near : Actor.chars()) {
-					if (near != ch && near.alignment == Char.Alignment.ENEMY
-							&& PathFinder.distance[near.pos] != Integer.MAX_VALUE) {
-						if (Dungeon.hero.pointsInTalent(Talent.FEAR_THE_REAPER) == 4) {
-							Buff.prolong(near, Terror.class, 5f).object = Dungeon.hero.id();
-						}
-						Buff.prolong(near, Cripple.class, 5f);
-					}
-				}
-			}
-		}
-	}
+            if (sourceHero.pointsInTalent(Talent.FEAR_THE_REAPER) >= 3) {
+                boolean[] passable = BArray.not(Dungeon.level.solid, null);
+                PathFinder.buildDistanceMap(ch.pos, passable, 3);
+
+                for (Char near : Actor.chars()) {
+                    if (near != ch && near.alignment == Char.Alignment.ENEMY
+                            && PathFinder.distance[near.pos] != Integer.MAX_VALUE) {
+                        if (sourceHero.pointsInTalent(Talent.FEAR_THE_REAPER) == 4) {
+                            Buff.prolong(near, Terror.class, 5f, sourceHero).object = sourceHero.id();
+                        }
+                        Buff.prolong(near, Cripple.class, 5f, sourceHero);
+                    }
+                }
+            }
+        }
+    }
 
 	public static class DoubleMarkTracker extends FlavourBuff{};
 
@@ -149,7 +158,14 @@ public class DeathMark extends ArmorAbility {
 	public static class DeathMarkTracker extends FlavourBuff {
 
 		public static float DURATION = 5f;
+        private int ownerId = -1;
+        public void setOwnerId(int id) {
+            ownerId = id;
+        }
 
+        public int getOwnerId() {
+            return ownerId;
+        }
 		int initialHP = 0;
 
 		{
@@ -198,27 +214,33 @@ public class DeathMark extends ArmorAbility {
 				Sample.INSTANCE.play(Assets.Sounds.HIT_STAB);
 				Sample.INSTANCE.play(Assets.Sounds.HIT_STRONG);
 				target.die(this);
-				int shld = Math.round(initialHP * (0.125f*Dungeon.hero.pointsInTalent(Talent.DEATHLY_DURABILITY)));
+
+                Hero hero = (Hero) Actor.findById(ownerId);
+				int shld = Math.round(initialHP * (0.125f*hero.pointsInTalent(Talent.DEATHLY_DURABILITY)));
 				if (shld > 0 && target.alignment != Char.Alignment.ALLY){
-					Dungeon.hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(shld), FloatingText.SHIELDING);
-					Buff.affect(Dungeon.hero, Barrier.class).setShield(shld);
+                    hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(shld), FloatingText.SHIELDING);
+					Buff.affect(hero, Barrier.class, this).setShield(shld);
 				}
 			}
 		}
 
 		private static String INITIAL_HP = "initial_hp";
 
-		@Override
-		public void storeInBundle(Bundle bundle) {
-			super.storeInBundle(bundle);
-			bundle.put(INITIAL_HP, initialHP);
-		}
+        private static final String SOURCE_HERO_ID = "source_hero_id";
 
-		@Override
-		public void restoreFromBundle(Bundle bundle) {
-			super.restoreFromBundle(bundle);
-			initialHP = bundle.getInt(INITIAL_HP);
-		}
+        @Override
+        public void storeInBundle(Bundle bundle) {
+            super.storeInBundle(bundle);
+            bundle.put(INITIAL_HP, initialHP);
+            bundle.put(SOURCE_HERO_ID, ownerId);
+        }
+
+        @Override
+        public void restoreFromBundle(Bundle bundle) {
+            super.restoreFromBundle(bundle);
+            initialHP = bundle.getInt(INITIAL_HP);
+            ownerId = bundle.getInt(SOURCE_HERO_ID);
+        }
 	}
 
 }

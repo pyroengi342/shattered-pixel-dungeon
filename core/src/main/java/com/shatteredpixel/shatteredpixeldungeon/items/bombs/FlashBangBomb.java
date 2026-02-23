@@ -29,6 +29,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Electricity;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Paralysis;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Lightning;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SparkParticle;
@@ -75,11 +76,11 @@ public class FlashBangBomb extends Bomb {
 			if (ch.isAlive()) Buff.prolong(ch, Paralysis.class, Paralysis.DURATION);
 			arcs.add(new Lightning.Arc(DungeonTilemap.tileCenterToWorld(cell), ch.sprite.center()));
 
-			if (ch == Dungeon.hero){
+			if (ch instanceof Hero){
 				GameScene.flash(0x80FFFFFF);
 			}
 
-			if (ch == Dungeon.hero && !ch.isAlive()) {
+			if (ch instanceof Hero && !ch.isAlive()) {
 				Badges.validateDeathFromFriendlyMagic();
 				GLog.n(Messages.get(this, "ondeath"));
 				Dungeon.fail(this);
@@ -87,7 +88,7 @@ public class FlashBangBomb extends Bomb {
 		}
 
 		CellEmitter.center(cell).burst(SparkParticle.FACTORY, 20);
-		Dungeon.hero.sprite.parent.addToFront(new Lightning(arcs, null));
+		curUser.sprite.parent.addToFront(new Lightning(arcs, null));
 		Sample.INSTANCE.play( Assets.Sounds.LIGHTNING );
 	}
 	

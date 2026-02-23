@@ -25,6 +25,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Bestiary;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
@@ -79,8 +80,8 @@ public class Sheep extends NPC {
 	public boolean interact(Char c) {
 		Bestiary.setSeen(getClass());
 		sprite.showStatus( CharSprite.NEUTRAL, Messages.get(this, Random.element( LINE_KEYS )) );
-		if (c == Dungeon.hero) {
-			Dungeon.hero.spendAndNext(1f);
+		if (c instanceof Hero) {
+			((Hero) c).spendAndNext(1f);
 			Sample.INSTANCE.play(Assets.Sounds.SHEEP, 1, Random.Float(0.91f, 1.1f));
 			//sheep summoned by woolly bomb can be dispelled by interacting
 			if (lifespan >= 20){

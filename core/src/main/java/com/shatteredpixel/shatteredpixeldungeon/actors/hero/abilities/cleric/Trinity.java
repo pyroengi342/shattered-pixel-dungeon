@@ -92,7 +92,7 @@ public class Trinity extends ArmorAbility {
 		if (bodyForm == null && mindForm == null && spiritForm == null){
 			GLog.w(Messages.get(this, "no_imbue"));
 		} else {
-			GameScene.show(new WndUseTrinity(armor));
+			GameScene.show(new WndUseTrinity(armor, hero));
 		}
 
 	}
@@ -107,7 +107,7 @@ public class Trinity extends ArmorAbility {
 
 	public class WndUseTrinity extends WndTitledMessage {
 
-		public WndUseTrinity(ClassArmor armor) {
+		public WndUseTrinity(ClassArmor armor, Hero hero) {
 			super(new HeroIcon(Trinity.this),
 					Messages.titleCase(Trinity.this.name()),
 					Messages.get(WndUseTrinity.class, "text"));
@@ -120,68 +120,68 @@ public class Trinity extends ArmorAbility {
 
 					btnBody = new RedButton(Messages.get(WndUseTrinity.class, "body",
 							Messages.titleCase(((Weapon.Enchantment)bodyForm).name()))
-							+ " " + trinityItemUseText(bodyForm.getClass()), 6){
+							+ " " + trinityItemUseText(bodyForm.getClass(), hero), 6){
 						@Override
 						protected void onClick() {
-							if (Dungeon.hero.belongings.weapon() != null &&
-									((Weapon)Dungeon.hero.belongings.weapon()).enchantment != null &&
-									((Weapon)Dungeon.hero.belongings.weapon()).enchantment.getClass().equals(bodyForm.getClass())){
+							if (hero.belongings.weapon() != null &&
+									((Weapon)hero.belongings.weapon()).enchantment != null &&
+									((Weapon)hero.belongings.weapon()).enchantment.getClass().equals(bodyForm.getClass())){
 								GLog.w(Messages.get(Trinity.class, "no_duplicate"));
 								hide();
 							} else {
-								Buff.prolong(Dungeon.hero, BodyForm.BodyFormBuff.class, BodyForm.duration()).setEffect(bodyForm);
+								Buff.prolong(hero, BodyForm.BodyFormBuff.class, BodyForm.duration(hero), hero).setEffect(bodyForm);
 								Sample.INSTANCE.play(Assets.Sounds.TELEPORT);
 								Weapon w = new WornShortsword();
-								if (Dungeon.hero.belongings.weapon() != null) {
-									w.image = Dungeon.hero.belongings.weapon().image;
+								if (hero.belongings.weapon() != null) {
+									w.image = hero.belongings.weapon().image;
 								}
 								w.enchant((Weapon.Enchantment) bodyForm);
-								Enchanting.show(Dungeon.hero, w);
-								Dungeon.hero.sprite.operate(Dungeon.hero.pos);
-								Dungeon.hero.spendAndNext(1f);
-								armor.charge -= trinityChargeUsePerEffect(bodyForm.getClass());
+								Enchanting.show(hero, w);
+								hero.sprite.operate(hero.pos);
+								hero.spendAndNext(1f);
+								armor.charge -= trinityChargeUsePerEffect(bodyForm.getClass(), hero);
 								armor.updateQuickslot();
 								Invisibility.dispel();
 								hide();
 							}
 						}
 					};
-					if (Dungeon.hero.belongings.weapon() != null) {
-						btnBody.icon(new ItemSprite(Dungeon.hero.belongings.weapon().image, ((Weapon.Enchantment) bodyForm).glowing()));
+					if (hero.belongings.weapon() != null) {
+						btnBody.icon(new ItemSprite(hero.belongings.weapon().image, ((Weapon.Enchantment) bodyForm).glowing()));
 					} else {
 						btnBody.icon(new ItemSprite(ItemSpriteSheet.WORN_SHORTSWORD, ((Weapon.Enchantment) bodyForm).glowing()));
 					}
 				} else if (bodyForm instanceof Armor.Glyph){
 					btnBody = new RedButton(Messages.get(WndUseTrinity.class, "body",
 							Messages.titleCase(((Armor.Glyph)bodyForm).name()))
-							+ " " + trinityItemUseText(bodyForm.getClass()), 6){
+							+ " " + trinityItemUseText(bodyForm.getClass(), hero), 6){
 						@Override
 						protected void onClick() {
-							if (Dungeon.hero.belongings.armor() != null &&
-									Dungeon.hero.belongings.armor().glyph != null &&
-									(Dungeon.hero.belongings.armor()).glyph.getClass().equals(bodyForm.getClass())){
+							if (hero.belongings.armor() != null &&
+									hero.belongings.armor().glyph != null &&
+									(hero.belongings.armor()).glyph.getClass().equals(bodyForm.getClass())){
 								GLog.w(Messages.get(Trinity.class, "no_duplicate"));
 								hide();
 							} else {
-								Buff.prolong(Dungeon.hero, BodyForm.BodyFormBuff.class, BodyForm.duration()).setEffect(bodyForm);
+								Buff.prolong(hero, BodyForm.BodyFormBuff.class, BodyForm.duration(hero), hero).setEffect(bodyForm);
 								Sample.INSTANCE.play(Assets.Sounds.TELEPORT);
 								Armor a = new ClothArmor();
-								if (Dungeon.hero.belongings.armor() != null) {
-									a.image = Dungeon.hero.belongings.armor().image;
+								if (hero.belongings.armor() != null) {
+									a.image = hero.belongings.armor().image;
 								}
 								a.inscribe((Armor.Glyph) bodyForm);
-								Enchanting.show(Dungeon.hero, a);
-								Dungeon.hero.sprite.operate(Dungeon.hero.pos);
-								Dungeon.hero.spendAndNext(1f);
-								armor.charge -= trinityChargeUsePerEffect(bodyForm.getClass());
+								Enchanting.show(hero, a);
+								hero.sprite.operate(hero.pos);
+								hero.spendAndNext(1f);
+								armor.charge -= trinityChargeUsePerEffect(bodyForm.getClass(), hero);
 								armor.updateQuickslot();
 								Invisibility.dispel();
 								hide();
 							}
 						}
 					};
-					if (Dungeon.hero.belongings.armor() != null) {
-						btnBody.icon(new ItemSprite(Dungeon.hero.belongings.armor().image, ((Armor.Glyph) bodyForm).glowing()));
+					if (hero.belongings.armor() != null) {
+						btnBody.icon(new ItemSprite(hero.belongings.armor().image, ((Armor.Glyph) bodyForm).glowing()));
 					} else {
 						btnBody.icon(new ItemSprite(ItemSpriteSheet.ARMOR_CLOTH, ((Armor.Glyph) bodyForm).glowing()));
 					}
@@ -192,22 +192,22 @@ public class Trinity extends ArmorAbility {
 				add(btnBody);
 				top = (int)btnBody.bottom();
 
-				btnBody.enable(Dungeon.hero.buff(MagicImmune.class) == null && armor.charge >= trinityChargeUsePerEffect(bodyForm.getClass()));
+				btnBody.enable(hero.buff(MagicImmune.class) == null && armor.charge >= trinityChargeUsePerEffect(bodyForm.getClass(), hero));
 			}
 
 			if (mindForm != null){
 				RedButton btnMind = new RedButton(Messages.get(WndUseTrinity.class, "mind",
 						Messages.titleCase(((Item)mindForm).name()))
-						+ " " + trinityItemUseText(mindForm.getClass()), 6){
+						+ " " + trinityItemUseText(mindForm.getClass(), hero), 6){
 					@Override
 					protected void onClick() {
 						hide();
-						MindForm.targetSelector mindEffect = new MindForm.targetSelector();
+						MindForm.targetSelector mindEffect = new MindForm.targetSelector(hero);
 						mindEffect.setEffect(mindForm);
 						GameScene.selectCell(mindEffect);
 						Sample.INSTANCE.play(Assets.Sounds.TELEPORT);
-						Enchanting.show(Dungeon.hero, (Item)mindForm);
-						Dungeon.hero.sprite.operate(Dungeon.hero.pos);
+						Enchanting.show(hero, (Item)mindForm);
+						hero.sprite.operate(hero.pos);
 
 						if (((Item) mindForm).usesTargeting && Dungeon.quickslot.contains(armor)){
 							QuickSlotButton.useTargeting(Dungeon.quickslot.getSlot(armor));
@@ -221,8 +221,8 @@ public class Trinity extends ArmorAbility {
 				add(btnMind);
 				top = (int)btnMind.bottom();
 
-				btnMind.enable(armor.charge >= trinityChargeUsePerEffect(mindForm.getClass()));
-				if (mindForm instanceof Wand && Dungeon.hero.buff(MagicImmune.class) != null){
+				btnMind.enable(armor.charge >= trinityChargeUsePerEffect(mindForm.getClass(), hero));
+				if (mindForm instanceof Wand && hero.buff(MagicImmune.class) != null){
 					btnMind.enable(false);
 				}
 			}
@@ -230,12 +230,12 @@ public class Trinity extends ArmorAbility {
 			if (spiritForm != null){
 				RedButton btnSpirit = new RedButton(Messages.get(WndUseTrinity.class, "spirit",
 						Messages.titleCase(((Item)spiritForm).name()))
-						+ " " + trinityItemUseText(spiritForm.getClass()), 6){
+						+ " " + trinityItemUseText(spiritForm.getClass(), hero), 6){
 					@Override
 					protected void onClick() {
-						if ((Dungeon.hero.belongings.ring() != null && Dungeon.hero.belongings.ring().getClass().equals(spiritForm.getClass()))
-								|| (Dungeon.hero.belongings.misc() != null && Dungeon.hero.belongings.misc().getClass().equals(spiritForm.getClass()))
-								|| (Dungeon.hero.belongings.artifact() != null && Dungeon.hero.belongings.artifact().getClass().equals(spiritForm.getClass()))){
+						if ((hero.belongings.ring() != null && hero.belongings.ring().getClass().equals(spiritForm.getClass()))
+								|| (hero.belongings.misc() != null && hero.belongings.misc().getClass().equals(spiritForm.getClass()))
+								|| (hero.belongings.artifact() != null && hero.belongings.artifact().getClass().equals(spiritForm.getClass()))){
 							GLog.w(Messages.get(Trinity.class, "no_duplicate"));
 							hide();
 							return;
@@ -243,22 +243,22 @@ public class Trinity extends ArmorAbility {
 						Invisibility.dispel();
 						//Rings and the Chalice specifically get their passive effects for 20 turns
 						if (spiritForm instanceof Ring || spiritForm instanceof ChaliceOfBlood) {
-							Buff.prolong(Dungeon.hero, SpiritForm.SpiritFormBuff.class, SpiritForm.SpiritFormBuff.DURATION).setEffect(spiritForm);
-							Dungeon.hero.spendAndNext(1f);
+							Buff.prolong(hero, SpiritForm.SpiritFormBuff.class, SpiritForm.SpiritFormBuff.DURATION, hero).setEffect(spiritForm, hero);
+							hero.spendAndNext(1f);
 						} else {
-							SpiritForm.applyActiveArtifactEffect(armor, (Artifact) spiritForm);
+							SpiritForm.applyActiveArtifactEffect(armor, (Artifact) spiritForm, hero);
 							//turn spending is handled within the application of the artifact effect
 						}
 						Sample.INSTANCE.play(Assets.Sounds.TELEPORT);
-						Enchanting.show(Dungeon.hero, (Item) spiritForm);
-						Dungeon.hero.sprite.operate(Dungeon.hero.pos);
-						armor.charge -= trinityChargeUsePerEffect(spiritForm.getClass());
+						Enchanting.show(hero, (Item) spiritForm);
+						hero.sprite.operate(hero.pos);
+						armor.charge -= trinityChargeUsePerEffect(spiritForm.getClass(), hero);
 						armor.updateQuickslot();
 						hide();
 					}
 				};
 				if (spiritForm instanceof Artifact){
-					((Artifact) spiritForm).resetForTrinity(SpiritForm.artifactLevel());
+					((Artifact) spiritForm).resetForTrinity(SpiritForm.artifactLevel(hero));
 				}
 
 				btnSpirit.icon(new ItemSprite((Item)spiritForm));
@@ -268,7 +268,7 @@ public class Trinity extends ArmorAbility {
 				add(btnSpirit);
 				top = (int)btnSpirit.bottom();
 
-				btnSpirit.enable(Dungeon.hero.buff(MagicImmune.class) == null && armor.charge >= trinityChargeUsePerEffect(spiritForm.getClass()));
+				btnSpirit.enable(hero.buff(MagicImmune.class) == null && armor.charge >= trinityChargeUsePerEffect(spiritForm.getClass(), hero));
 			}
 
 			resize(width, top);
@@ -310,7 +310,7 @@ public class Trinity extends ArmorAbility {
 	public static class WndItemtypeSelect extends WndTitledMessage {
 
 		//probably want a callback here?
-		public WndItemtypeSelect(HolyTome tome, ClericSpell spell) {
+		public WndItemtypeSelect(HolyTome tome, ClericSpell spell, Hero hero) {
 			super(new HeroIcon(spell), Messages.titleCase(spell.name()), Messages.get(WndItemtypeSelect.class, "text"));
 
 			//start by filtering and sorting
@@ -367,8 +367,8 @@ public class Trinity extends ArmorAbility {
 							return enchantment.name();
 						}
 					};
-					if (Dungeon.hero.belongings.weapon() != null){
-						w.image = Dungeon.hero.belongings.weapon().image;
+					if (hero.belongings.weapon() != null){
+						w.image = hero.belongings.weapon().image;
 					}
 					w.enchant((Weapon.Enchantment) Reflection.newInstance(cls));
 					w.cursedKnown = true;
@@ -381,8 +381,8 @@ public class Trinity extends ArmorAbility {
 							return glyph.name();
 						}
 					};
-					if (Dungeon.hero.belongings.armor() != null){
-						a.image = Dungeon.hero.belongings.armor().image;
+					if (hero.belongings.armor() != null){
+						a.image = hero.belongings.armor().image;
 					}
 					a.inscribe((Armor.Glyph) Reflection.newInstance(cls));
 					a.cursedKnown = true;
@@ -399,7 +399,7 @@ public class Trinity extends ArmorAbility {
 				ItemButton btn = new ItemButton(){
 					@Override
 					protected void onClick() {
-						GameScene.show(new WndItemConfirm(WndItemtypeSelect.this, item, tome, spell));
+						GameScene.show(new WndItemConfirm(WndItemtypeSelect.this, item, tome, spell, hero));
 					}
 				};
 				btn.item(item);
@@ -427,8 +427,8 @@ public class Trinity extends ArmorAbility {
 
 	public static class WndItemConfirm extends WndTitledMessage {
 
-		public WndItemConfirm(Window parentWnd, Item item, HolyTome tome, ClericSpell spell){
-			super(new ItemSprite(item),  Messages.titleCase(getName(item)), getText(item));
+		public WndItemConfirm(Window parentWnd, Item item, HolyTome tome, ClericSpell spell, Hero hero){
+			super(new ItemSprite(item),  Messages.titleCase(getName(item)), getText(item, hero));
 
 			String text;
 			if (spell == BodyForm.INSTANCE){
@@ -446,18 +446,18 @@ public class Trinity extends ArmorAbility {
 					WndItemConfirm.this.hide();
 
 					if (item instanceof MeleeWeapon) {
-						((Trinity)Dungeon.hero.armorAbility).bodyForm = ((MeleeWeapon) item).enchantment;
+						((Trinity)hero.armorAbility).bodyForm = ((MeleeWeapon) item).enchantment;
 					} else if (item instanceof Armor) {
-						((Trinity)Dungeon.hero.armorAbility).bodyForm = ((Armor) item).glyph;
+						((Trinity)hero.armorAbility).bodyForm = ((Armor) item).glyph;
 					} else if (item instanceof Wand || item instanceof MissileWeapon){
-						((Trinity)Dungeon.hero.armorAbility).mindForm = item;
+						((Trinity)hero.armorAbility).mindForm = item;
 					} else {
-						((Trinity)Dungeon.hero.armorAbility).spiritForm = item;
+						((Trinity)hero.armorAbility).spiritForm = item;
 					}
-					spell.onSpellCast(tome, Dungeon.hero);
+					spell.onSpellCast(tome, hero);
 
-					Dungeon.hero.sprite.operate(Dungeon.hero.pos);
-					Enchanting.show(Dungeon.hero, item);
+					hero.sprite.operate(hero.pos);
+					Enchanting.show(hero, item);
 					Sample.INSTANCE.play(Assets.Sounds.TELEPORT);
 				}
 			};
@@ -477,54 +477,57 @@ public class Trinity extends ArmorAbility {
 			return item.name();
 		}
 
-		private static String getText(Item item){
-			if (item instanceof MeleeWeapon){
-				return ((MeleeWeapon) item).enchantment.desc() + "\n\n" + trinityItemUseText(((MeleeWeapon) item).enchantment.getClass());
-			} else if (item instanceof Armor){
-				return ((Armor) item).glyph.desc() + "\n\n" + trinityItemUseText(((Armor) item).glyph.getClass());
-			} else {
-				return item.desc() + "\n\n" + trinityItemUseText(item.getClass());
-			}
-		}
+        private static String getText(Item item, Hero hero){
+            if (item instanceof MeleeWeapon){
+                return ((MeleeWeapon) item).enchantment.desc() + "\n\n" +
+                        trinityItemUseText(((MeleeWeapon) item).enchantment.getClass(), hero);
+            } else if (item instanceof Armor){
+                return ((Armor) item).glyph.desc() + "\n\n" +
+                        trinityItemUseText(((Armor) item).glyph.getClass(), hero);
+            } else {
+                return item.desc() + "\n\n" +
+                        trinityItemUseText(item.getClass(), hero);
+            }
+        }
 
 	}
 
-	public static String trinityItemUseText(Class<?> cls ){
-		float chargeUse = trinityChargeUsePerEffect(cls);
+    public static String trinityItemUseText(Class<?> cls, Hero hero){
+        float chargeUse = trinityChargeUsePerEffect(cls, hero);
 		if (Weapon.Enchantment.class.isAssignableFrom(cls) || Armor.Glyph.class.isAssignableFrom(cls)) {
 			for (Class ench : Weapon.Enchantment.rare) {
 				if (ench.equals(cls)) {
-					return Messages.get(Trinity.class, "rare_ench_glyph_use", BodyForm.duration(), Messages.decimalFormat("#.##", chargeUse));
+					return Messages.get(Trinity.class, "rare_ench_glyph_use", BodyForm.duration( hero ), Messages.decimalFormat("#.##", chargeUse));
 				}
 			}
 			for (Class glyph : Armor.Glyph.rare){
 				if (glyph.equals(cls)){
-					return Messages.get(Trinity.class, "rare_ench_glyph_use", BodyForm.duration(), Messages.decimalFormat("#.##", chargeUse));
+					return Messages.get(Trinity.class, "rare_ench_glyph_use", BodyForm.duration( hero ), Messages.decimalFormat("#.##", chargeUse));
 				}
 			}
-			return Messages.get(Trinity.class, "ench_glyph_use", BodyForm.duration(), Messages.decimalFormat("#.##", chargeUse));
+			return Messages.get(Trinity.class, "ench_glyph_use", BodyForm.duration( hero ), Messages.decimalFormat("#.##", chargeUse));
 		}
 		if (MissileWeapon.class.isAssignableFrom(cls)){
-			return Messages.get(Trinity.class, "thrown_use", MindForm.itemLevel(), Messages.decimalFormat("#.##", chargeUse));
+			return Messages.get(Trinity.class, "thrown_use", MindForm.itemLevel( hero ), Messages.decimalFormat("#.##", chargeUse));
 		}
 		if (Wand.class.isAssignableFrom(cls)){
 			if (cls.equals(WandOfFireblast.class) || cls.equals(WandOfRegrowth.class)){
-				return Messages.get(Trinity.class, "wand_multi_use", MindForm.itemLevel(), Messages.decimalFormat("#.##", chargeUse));
+				return Messages.get(Trinity.class, "wand_multi_use", MindForm.itemLevel(hero), Messages.decimalFormat("#.##", chargeUse));
 			}
-			return Messages.get(Trinity.class, "wand_use", MindForm.itemLevel(), Messages.decimalFormat("#.##", chargeUse));
+			return Messages.get(Trinity.class, "wand_use", MindForm.itemLevel( hero ), Messages.decimalFormat("#.##", chargeUse));
 		}
 		if (Ring.class.isAssignableFrom(cls)){
-			return Messages.get(Trinity.class, "ring_use", SpiritForm.ringLevel(), Messages.decimalFormat("#.##", chargeUse));
+			return Messages.get(Trinity.class, "ring_use", SpiritForm.ringLevel( hero ), Messages.decimalFormat("#.##", chargeUse));
 		}
 		if (Artifact.class.isAssignableFrom(cls)){
-			return Messages.get(Trinity.class, cls.getSimpleName() + "_use", SpiritForm.artifactLevel(), Messages.decimalFormat("#.##", chargeUse));
+			return Messages.get(Trinity.class, cls.getSimpleName() + "_use", SpiritForm.artifactLevel( hero ), Messages.decimalFormat("#.##", chargeUse));
 		}
 		return "error!";
 
 	}
 
-	public static float trinityChargeUsePerEffect(Class<?> cls){
-		float chargeUse = Dungeon.hero.armorAbility.chargeUse(Dungeon.hero);
+	public static float trinityChargeUsePerEffect(Class<?> cls, Hero hero){
+        float chargeUse = hero.armorAbility.chargeUse(hero);
 		if (Weapon.Enchantment.class.isAssignableFrom(cls) || Armor.Glyph.class.isAssignableFrom(cls)) {
 			for (Class ench : Weapon.Enchantment.rare) {
 				if (ench.equals(cls)) {

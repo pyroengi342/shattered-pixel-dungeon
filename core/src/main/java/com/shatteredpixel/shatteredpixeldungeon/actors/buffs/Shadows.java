@@ -24,6 +24,7 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.buffs;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
@@ -66,7 +67,10 @@ public class Shadows extends Invisibility {
 		if (super.attachTo( target )) {
 			if (Dungeon.level != null) {
 				Sample.INSTANCE.play( Assets.Sounds.MELD );
-				Dungeon.observe();
+                if (target instanceof Hero)
+                {
+                    Dungeon.observe( (Hero) target);
+                }
 			}
 			return true;
 		} else {
@@ -77,7 +81,10 @@ public class Shadows extends Invisibility {
 	@Override
 	public void detach() {
 		super.detach();
-		Dungeon.observe();
+        if (target instanceof Hero)
+        {
+            Dungeon.observe( (Hero) target);
+        }
 	}
 	
 	@Override

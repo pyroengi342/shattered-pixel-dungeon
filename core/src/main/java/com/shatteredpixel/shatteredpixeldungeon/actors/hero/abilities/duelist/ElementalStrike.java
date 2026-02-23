@@ -21,6 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.duelist;
 
+import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
@@ -98,6 +100,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+
+import network.Multiplayer;
 
 public class ElementalStrike extends ArmorAbility {
 
@@ -210,7 +214,7 @@ public class ElementalStrike extends ArmorAbility {
 					}
 				}
 
-				perCellEffect(cone, finalEnchantment);
+				perCellEffect(cone, finalEnchantment, hero);
 
 				perCharEffect(cone, hero, enemy, finalEnchantment);
 
@@ -239,7 +243,7 @@ public class ElementalStrike extends ArmorAbility {
 			Buff.affect(hero, DirectedPowerTracker.class, 0f).enchBoost = enchBoost;
 		}
 
-		float powerMulti = 1f + 0.30f*Dungeon.hero.pointsInTalent(Talent.STRIKING_FORCE);
+		float powerMulti = 1f + 0.30f*hero.pointsInTalent(Talent.STRIKING_FORCE);
 
 		//*** Kinetic ***
 		if (ench instanceof Kinetic){
@@ -284,7 +288,7 @@ public class ElementalStrike extends ArmorAbility {
 	public static class ElementalStrikeFurrowCounter extends CounterBuff{{revivePersists = true;}};
 
 	//effects that affect the cells of the environment themselves
-	private void perCellEffect(ConeAOE cone, Weapon.Enchantment ench){
+	private void perCellEffect(ConeAOE cone, Weapon.Enchantment ench, Hero hero){
 
 		int targetsHit = 0;
 		for (Char ch : Actor.chars()){
@@ -293,7 +297,7 @@ public class ElementalStrike extends ArmorAbility {
 			}
 		}
 
-		float powerMulti = 1f + 0.30f*Dungeon.hero.pointsInTalent(Talent.STRIKING_FORCE);
+		float powerMulti = 1f + 0.30f*hero.pointsInTalent(Talent.STRIKING_FORCE);
 
 		//*** Blazing ***
 		if (ench instanceof Blazing){
@@ -323,13 +327,13 @@ public class ElementalStrike extends ArmorAbility {
 			// each hero level is worth 20 normal uses, but just 5 if no enemies are present
 			// cap of 40/10 uses
 			int highGrassType = Terrain.HIGH_GRASS;
-			if (Buff.affect(Dungeon.hero, ElementalStrikeFurrowCounter.class).count() >= 40){
+			if (Buff.affect(hero, ElementalStrikeFurrowCounter.class).count() >= 40){
 				highGrassType = Terrain.FURROWED_GRASS;
 			} else {
-				if (Dungeon.hero.visibleEnemies() == 0 && targetsHit == 0) {
-					Buff.count(Dungeon.hero, ElementalStrikeFurrowCounter.class, 4f);
+				if (hero.visibleEnemies() == 0 && targetsHit == 0) {
+					Buff.count(hero, ElementalStrikeFurrowCounter.class, 4f);
 				} else {
-					Buff.count(Dungeon.hero, ElementalStrikeFurrowCounter.class, 1f);
+					Buff.count(hero, ElementalStrikeFurrowCounter.class, 1f);
 				}
 			}
 
@@ -348,7 +352,7 @@ public class ElementalStrike extends ArmorAbility {
 					GameScene.updateMap( cell );
 				}
 			}
-			Dungeon.observe();
+			Dungeon.observe( hero );
 		}
 	}
 
@@ -357,7 +361,7 @@ public class ElementalStrike extends ArmorAbility {
 	//effects that affect the characters within the cone AOE
 	private void perCharEffect(ConeAOE cone, Hero hero, Char primaryTarget, Weapon.Enchantment ench) {
 
-		float powerMulti = 1f + 0.30f * Dungeon.hero.pointsInTalent(Talent.STRIKING_FORCE);
+		float powerMulti = 1f + 0.30f * hero.pointsInTalent(Talent.STRIKING_FORCE);
 
 		ArrayList<Char> affected = new ArrayList<>();
 
@@ -557,7 +561,7 @@ public class ElementalStrike extends ArmorAbility {
 	public String desc() {
 		String desc = Messages.get(this, "desc");
 		if (Game.scene() instanceof GameScene){
-			KindOfWeapon w = Dungeon.hero.belongings.weapon();
+			KindOfWeapon w = Multiplayer.Players.get(getLocalPlayerId()).hero.belongings.weapon();
 			if (w instanceof MeleeWeapon && ((MeleeWeapon) w).enchantment != null){
 				desc += "\n\n" + Messages.get(((MeleeWeapon) w).enchantment, "elestrike_desc");
 			} else {

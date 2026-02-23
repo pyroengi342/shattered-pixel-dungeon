@@ -53,9 +53,9 @@ public class ScrollOfPrismaticImage extends ExoticScroll {
 		}
 
 		if (!found){
-			if (Stasis.getStasisAlly() instanceof PrismaticImage){
+			if (Stasis.getStasisAlly(hero) instanceof PrismaticImage){
 				found = true;
-				Stasis.getStasisAlly().HP = Stasis.getStasisAlly().HT;
+				Stasis.getStasisAlly(hero).HP = Stasis.getStasisAlly(hero).HT;
 			}
 		}
 		

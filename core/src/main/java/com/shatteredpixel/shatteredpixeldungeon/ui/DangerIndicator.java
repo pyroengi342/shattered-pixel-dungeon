@@ -21,6 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.ui;
 
+import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.SPDAction;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
@@ -31,6 +33,8 @@ import com.watabou.input.GameAction;
 import com.watabou.noosa.BitmapText;
 import com.watabou.noosa.Camera;
 import com.watabou.noosa.Image;
+
+import network.Multiplayer;
 
 public class DangerIndicator extends Tag {
 	
@@ -88,8 +92,8 @@ public class DangerIndicator extends Tag {
 	@Override
 	public void update() {
 		
-		if (Dungeon.hero.isAlive()) {
-			int v =  Dungeon.hero.visibleEnemies();
+		if (Multiplayer.Players.get(getLocalPlayerId()).hero.isAlive()) {
+			int v =  Multiplayer.Players.get(getLocalPlayerId()).hero.visibleEnemies();
 			if (v != lastNumber) {
 				lastNumber = v;
 				if (visible = lastNumber > 0) {
@@ -110,14 +114,14 @@ public class DangerIndicator extends Tag {
 	@Override
 	protected void onClick() {
 		super.onClick();
-		if (Dungeon.hero.visibleEnemies() > 0) {
+		if (Multiplayer.Players.get(getLocalPlayerId()).hero.visibleEnemies() > 0) {
 
-			Mob target = Dungeon.hero.visibleEnemy(++enemyIndex);
+			Mob target = Multiplayer.Players.get(getLocalPlayerId()).hero.visibleEnemy(++enemyIndex);
 
 			QuickSlotButton.target(target);
-			if (Dungeon.hero.canAttack(target)) AttackIndicator.target(target);
+			if (Multiplayer.Players.get(getLocalPlayerId()).hero.canAttack(target)) AttackIndicator.target(target);
 
-			if (Dungeon.hero.curAction == null && target.sprite != null) {
+			if (Multiplayer.Players.get(getLocalPlayerId()).hero.curAction == null && target.sprite != null) {
 				Camera.main.panFollow(target.sprite, 5f);
 			}
 		}

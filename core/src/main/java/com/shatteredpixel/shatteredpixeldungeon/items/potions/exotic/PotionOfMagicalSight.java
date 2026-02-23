@@ -39,7 +39,7 @@ public class PotionOfMagicalSight extends ExoticPotion {
 		identify();
 		Buff.prolong(hero, MagicalSight.class, MagicalSight.DURATION);
 		SpellSprite.show(hero, SpellSprite.VISION);
-		Dungeon.observe();
+		Dungeon.observe( hero );
 		
 	}
 	

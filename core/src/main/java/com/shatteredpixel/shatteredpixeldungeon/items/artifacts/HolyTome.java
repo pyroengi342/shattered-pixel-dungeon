@@ -144,7 +144,7 @@ public class HolyTome extends Artifact {
 	}
 
 	public boolean canCast( Hero hero, ClericSpell spell ){
-		return (isEquipped(hero) || (Dungeon.hero.hasTalent(Talent.LIGHT_READING) && hero.belongings.contains(this)))
+		return (isEquipped(hero) || (curUser.hasTalent(Talent.LIGHT_READING) && hero.belongings.contains(this)))
 				&& hero.buff(MagicImmune.class) == null
 				&& charge >= spell.chargeUse(hero)
 				&& spell.canCast(hero);
@@ -158,7 +158,7 @@ public class HolyTome extends Artifact {
 		}
 
 		//target hero level is 1 + 2*tome level
-		int lvlDiffFromTarget = Dungeon.hero.lvl - (1+level()*2);
+		int lvlDiffFromTarget = curUser.lvl - (1+level()*2);
 		//plus an extra one for each level after 6
 		if (level() >= 7){
 			lvlDiffFromTarget -= level()-6;
@@ -293,8 +293,8 @@ public class HolyTome extends Artifact {
 					float turnsToCharge = (45 - missing);
 					turnsToCharge /= RingOfEnergy.artifactChargeMultiplier(target);
 					float chargeToGain = (1f / turnsToCharge);
-					if (!isEquipped(Dungeon.hero)){
-						chargeToGain *= 0.75f*Dungeon.hero.pointsInTalent(Talent.LIGHT_READING)/3f;
+					if (!isEquipped(curUser)){
+						chargeToGain *= 0.75f*curUser.pointsInTalent(Talent.LIGHT_READING)/3f;
 					}
 					partialCharge += chargeToGain;
 				}
@@ -330,7 +330,7 @@ public class HolyTome extends Artifact {
 
 		@Override
 		public int indicatorColor() {
-			if (quickSpell == GuidingLight.INSTANCE && quickSpell.chargeUse(Dungeon.hero) == 0){
+			if (quickSpell == GuidingLight.INSTANCE && quickSpell.chargeUse(curUser) == 0){
 				return 0x0063ff;
 			} else {
 				return 0x002157;
@@ -344,7 +344,7 @@ public class HolyTome extends Artifact {
 				return;
 			}
 
-			if (!canCast(Dungeon.hero, quickSpell)){
+			if (!canCast(curUser, quickSpell)){
 				GLog.w(Messages.get(HolyTome.this, "no_spell"));
 				return;
 			}
@@ -361,7 +361,7 @@ public class HolyTome extends Artifact {
 					GameScene.handleCell( QuickSlotButton.lastTarget.pos );
 				}
 			} else {
-				quickSpell.onCast(HolyTome.this, Dungeon.hero);
+				quickSpell.onCast(HolyTome.this, curUser);
 
 				if (quickSpell.targetingFlags() != -1 && Dungeon.quickslot.contains(HolyTome.this)){
 					targetingSpell = quickSpell;

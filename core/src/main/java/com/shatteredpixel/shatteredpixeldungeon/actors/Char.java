@@ -234,7 +234,7 @@ public abstract class Char extends Actor {
 		} else if (c instanceof Hero
 				&& alignment == Alignment.ALLY
 				&& !hasProp(this, Property.IMMOVABLE)
-				&& Dungeon.level.distance(pos, c.pos) <= 2*Dungeon.hero.pointsInTalent(Talent.ALLY_WARP)){
+				&& Dungeon.level.distance(pos, c.pos) <= 2*((Hero) c).pointsInTalent(Talent.ALLY_WARP)){
 			return true;
 		} else {
 			return false;
@@ -267,7 +267,7 @@ public abstract class Char extends Actor {
 		}
 
 		//warp instantly with allies in this case
-		if (c == Dungeon.hero && Dungeon.hero.hasTalent(Talent.ALLY_WARP)){
+		if (c instanceof Hero && ((Hero) c).hasTalent(Talent.ALLY_WARP)){
 			PathFinder.buildDistanceMap(c.pos, BArray.or(Dungeon.level.passable, Dungeon.level.avoid, null));
 			if (PathFinder.distance[pos] == Integer.MAX_VALUE){
 				return true;
@@ -276,7 +276,7 @@ public abstract class Char extends Actor {
 			c.pos = oldPos;
 			ScrollOfTeleportation.appear(this, newPos);
 			ScrollOfTeleportation.appear(c, oldPos);
-			Dungeon.observe();
+			Dungeon.observe((Hero) c);
 			GameScene.updateFog();
 			return true;
 		}
@@ -297,12 +297,12 @@ public abstract class Char extends Actor {
 		
 		c.spend( 1 / c.speed() );
 
-		if (c == Dungeon.hero){
-			if (Dungeon.hero.subClass == HeroSubClass.FREERUNNER){
-				Buff.affect(Dungeon.hero, Momentum.class).gainStack();
+		if (c instanceof Hero){
+			if (((Hero) c).subClass == HeroSubClass.FREERUNNER){
+				Buff.affect((Hero) c, Momentum.class, c).gainStack();
 			}
 
-			Dungeon.hero.busy();
+            ((Hero) c).busy();
 		}
 		
 		return true;
@@ -404,8 +404,8 @@ public abstract class Char extends Actor {
 			Preparation prep = buff(Preparation.class);
 			if (prep != null){
 				dmg = prep.damageRoll(this);
-				if (this == Dungeon.hero && Dungeon.hero.hasTalent(Talent.BOUNTY_HUNTER)) {
-					Buff.affect(Dungeon.hero, Talent.BountyHunterTracker.class, 0.0f);
+				if (this instanceof Hero && ((Hero) this).hasTalent(Talent.BOUNTY_HUNTER)) {
+					Buff.affect(((Hero) this), Talent.BountyHunterTracker.class, 0.0f);
 				}
 			} else {
 				dmg = damageRoll();
@@ -418,11 +418,11 @@ public abstract class Char extends Actor {
 
 			if (enemy.buff(GuidingLight.Illuminated.class) != null){
 				enemy.buff(GuidingLight.Illuminated.class).detach();
-				if (this == Dungeon.hero && Dungeon.hero.hasTalent(Talent.SEARING_LIGHT)){
-					dmg += 1 + 2*Dungeon.hero.pointsInTalent(Talent.SEARING_LIGHT);
+				if (this instanceof Hero && ((Hero) this).hasTalent(Talent.SEARING_LIGHT)){
+					dmg += 1 + 2*((Hero) this).pointsInTalent(Talent.SEARING_LIGHT);
 				}
-				if (this != Dungeon.hero && Dungeon.hero.subClass == HeroSubClass.PRIEST){
-					enemy.damage(5+Dungeon.hero.lvl, GuidingLight.INSTANCE);
+				if (((Hero) this).subClass == HeroSubClass.PRIEST){
+					enemy.damage(5+((Hero) this).lvl, GuidingLight.INSTANCE);
 				}
 			}
 
@@ -436,7 +436,7 @@ public abstract class Char extends Actor {
 			if (buff( PowerOfMany.PowerBuff.class) != null){
 				if (buff( BeamingRay.BeamingRayBoost.class) != null
 					&& buff( BeamingRay.BeamingRayBoost.class).object == enemy.id()){
-					dmg *= 1.3f + 0.05f*Dungeon.hero.pointsInTalent(Talent.BEAMING_RAY);
+					dmg *= 1.3f + 0.05f*((Hero) this).pointsInTalent(Talent.BEAMING_RAY);
 				} else {
 					dmg *= 1.25f;
 				}
@@ -462,10 +462,10 @@ public abstract class Char extends Actor {
 				dmg *= 0.67f;
 			}
 
-			if (Dungeon.hero.alignment == enemy.alignment
-					&& Dungeon.hero.buff(AuraOfProtection.AuraBuff.class) != null
-					&& (Dungeon.level.distance(enemy.pos, Dungeon.hero.pos) <= 2 || enemy.buff(LifeLinkSpell.LifeLinkSpellBuff.class) != null)){
-				dmg *= 0.9f - 0.1f*Dungeon.hero.pointsInTalent(Talent.AURA_OF_PROTECTION);
+			if (((Hero) this).alignment == enemy.alignment
+					&& ((Hero) this).buff(AuraOfProtection.AuraBuff.class) != null
+					&& (Dungeon.level.distance(enemy.pos, ((Hero) this).pos) <= 2 || enemy.buff(LifeLinkSpell.LifeLinkSpellBuff.class) != null)){
+				dmg *= 0.9f - 0.1f*((Hero) this).pointsInTalent(Talent.AURA_OF_PROTECTION);
 			}
 
 			if (enemy.buff(MonkEnergy.MonkAbility.Meditate.MeditateResistance.class) != null){
@@ -567,9 +567,9 @@ public abstract class Char extends Actor {
 			}
 
 			if (!enemy.isAlive() && visibleFight) {
-				if (enemy == Dungeon.hero) {
+				if (enemy instanceof Hero) {
 					
-					if (this == Dungeon.hero) {
+					if (this instanceof Hero) {
 						return true;
 					}
 
@@ -580,7 +580,7 @@ public abstract class Char extends Actor {
 					Dungeon.fail( this );
 					GLog.n( Messages.capitalize(Messages.get(Char.class, "kill", name())) );
 					
-				} else if (this == Dungeon.hero) {
+				} else if (this instanceof Hero) {
 					GLog.i( Messages.capitalize(Messages.get(Char.class, "defeat", enemy.name())) );
 				}
 			}
@@ -737,12 +737,12 @@ public abstract class Char extends Actor {
 			int min = 1 + Dungeon.hero.pointsInTalent(Talent.SHIELD_OF_LIGHT);
 			damage -= Random.NormalIntRange(min, 2*min);
 			damage = Math.max(damage, 0);
-		} else if (this == Dungeon.hero
-				&& Dungeon.hero.heroClass != HeroClass.CLERIC
-				&& Dungeon.hero.hasTalent(Talent.SHIELD_OF_LIGHT)
+		} else if (this instanceof Hero
+				&& ((Hero) this).heroClass != HeroClass.CLERIC
+				&& ((Hero) this).hasTalent(Talent.SHIELD_OF_LIGHT)
 				&& TargetHealthIndicator.instance.target() == enemy){
 			//33/50%
-			if (Random.Int(6) < 1+Dungeon.hero.pointsInTalent(Talent.SHIELD_OF_LIGHT)){
+			if (Random.Int(6) < 1+((Hero) this).pointsInTalent(Talent.SHIELD_OF_LIGHT)){
 				damage -= 1;
 			}
 		}
@@ -835,7 +835,7 @@ public abstract class Char extends Actor {
 					ch.damage(dmg, link);
 					if (!ch.isAlive()) {
 						link.detach();
-						if (ch == Dungeon.hero){
+						if (ch instanceof Hero){
 							Badges.validateDeathFromFriendlyMagic();
 							Dungeon.fail(src);
 							GLog.n( Messages.get(LifeLink.class, "ondeath") );
@@ -973,7 +973,7 @@ public abstract class Char extends Actor {
 				dmgToAdd -= ((Char) src).buff(Kinetic.KineticTracker.class).conservedDamage;
 				dmgToAdd = Math.round(dmgToAdd * Weapon.Enchantment.genericProcChanceMultiplier((Char) src));
 				if (dmgToAdd > 0) {
-					Buff.affect((Char) src, Kinetic.ConservedDamage.class).setBonus(dmgToAdd);
+					Buff.affect((Char) src, Kinetic.ConservedDamage.class, src).setBonus(dmgToAdd);
 				}
 				((Char) src).buff(Kinetic.KineticTracker.class).detach();
 			}
@@ -987,7 +987,7 @@ public abstract class Char extends Actor {
 			if (src instanceof Pickaxe)                                 icon = FloatingText.PICK_DMG;
 
 			//special case for sniper when using ranged attacks
-			if (src == Dungeon.hero
+			if (src instanceof Hero
 					&& Dungeon.hero.subClass == HeroSubClass.SNIPER
 					&& !Dungeon.level.adjacent(Dungeon.hero.pos, pos)
 					&& Dungeon.hero.belongings.attackingWeapon() instanceof MissileWeapon){
@@ -995,7 +995,7 @@ public abstract class Char extends Actor {
 			}
 
 			//special case for monk using unarmed abilities
-			if (src == Dungeon.hero
+			if (src instanceof Hero
 					&& Dungeon.hero.buff(MonkEnergy.MonkAbility.UnarmedAbilityTracker.class) != null){
 				icon = FloatingText.PHYS_DMG_NO_BLOCK;
 			}

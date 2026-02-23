@@ -28,6 +28,8 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.Ratmogrify
 import com.shatteredpixel.shatteredpixeldungeon.utils.Holiday;
 import com.watabou.noosa.TextureFilm;
 
+import network.Multiplayer;
+
 public class RatKingSprite extends MobSprite {
 
 	public boolean festive;
@@ -53,10 +55,10 @@ public class RatKingSprite extends MobSprite {
 				break;
 		}
 
-		if (Dungeon.hero != null && Dungeon.hero.armorAbility instanceof Ratmogrify){
-			c = 24;
-			if (parent != null) aura(0xFFFF00, 5);
-		}
+        if (isAnyHeroUsing()){
+            c = 24;
+            if (parent != null) aura(0xFFFF00, 5);
+        }
 
 		texture( Assets.Sprites.RATKING );
 
@@ -78,12 +80,20 @@ public class RatKingSprite extends MobSprite {
 
 	}
 
+    public static boolean isAnyHeroUsing() {
+        for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+            if (player.hero != null && player.hero.armorAbility instanceof Ratmogrify) {
+                return true;
+            }
+        }
+        return false;
+    }
 
 	@Override
 	public void link(Char ch) {
 		super.link(ch);
-		if (Dungeon.hero != null && Dungeon.hero.armorAbility instanceof Ratmogrify){
-			aura(0xFFFF00, 5);
-		}
+        if (isAnyHeroUsing()){
+            aura(0xFFFF00, 5);
+        }
 	}
 }

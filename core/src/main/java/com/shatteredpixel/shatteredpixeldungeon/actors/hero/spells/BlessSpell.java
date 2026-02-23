@@ -21,6 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.spells;
 
+import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
@@ -40,6 +42,8 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
+
+import network.Multiplayer;
 
 public class BlessSpell extends TargetedClericSpell {
 
@@ -100,11 +104,11 @@ public class BlessSpell extends TargetedClericSpell {
 	private void affectChar(Hero hero, Char ch){
 		new Flare(6, 32).color(0xFFFF00, true).show(ch.sprite, 2f);
 		if (ch == hero){
-			Buff.prolong(ch, Bless.class, 2f + 4*hero.pointsInTalent(Talent.BLESS));
-			Buff.affect(ch, Barrier.class).setShield(5 + 5*hero.pointsInTalent(Talent.BLESS));
+			Buff.prolong(ch, Bless.class, 2f + 4*hero.pointsInTalent(Talent.BLESS), hero);
+			Buff.affect(ch, Barrier.class, hero).setShield(5 + 5*hero.pointsInTalent(Talent.BLESS));
 			ch.sprite.showStatusWithIcon( CharSprite.POSITIVE, Integer.toString(5 + 5*hero.pointsInTalent(Talent.BLESS)), FloatingText.SHIELDING );
 		} else {
-			Buff.prolong(ch, Bless.class, 5f + 5*hero.pointsInTalent(Talent.BLESS));
+			Buff.prolong(ch, Bless.class, 5f + 5*hero.pointsInTalent(Talent.BLESS), hero);
 			int totalHeal = 5 + 5*hero.pointsInTalent(Talent.BLESS);
 			if (ch.HT - ch.HP < totalHeal){
 				int barrier = totalHeal - (ch.HT - ch.HP);
@@ -114,7 +118,7 @@ public class BlessSpell extends TargetedClericSpell {
 					ch.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(totalHeal - barrier), FloatingText.HEALING);
 				}
 				if (barrier > 0) {
-					Buff.affect(ch, Barrier.class).setShield(barrier);
+					Buff.affect(ch, Barrier.class, hero).setShield(barrier);
 					ch.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(barrier), FloatingText.SHIELDING);
 				}
 			} else {
@@ -124,13 +128,13 @@ public class BlessSpell extends TargetedClericSpell {
 		}
 
 		if (ch.alignment != Char.Alignment.ALLY && hero.subClass == HeroSubClass.PRIEST){
-			Buff.affect(ch, GuidingLight.Illuminated.class);
+			Buff.affect(ch, GuidingLight.Illuminated.class, hero);
 		}
 	}
 
-	public String desc(){
-		int talentLvl = Dungeon.hero.pointsInTalent(Talent.BLESS);
-		return Messages.get(this, "desc", 2+4*talentLvl, 5+5*talentLvl, 5+5*talentLvl, 5+5*talentLvl) + "\n\n" + Messages.get(this, "charge_cost", (int)chargeUse(Dungeon.hero));
+	public String desc(Hero hero){
+		int talentLvl = hero.pointsInTalent(Talent.BLESS);
+		return Messages.get(this, "desc", 2+4*talentLvl, 5+5*talentLvl, 5+5*talentLvl, 5+5*talentLvl) + "\n\n" + Messages.get(this, "charge_cost", (int)chargeUse(hero));
 	}
 
 }

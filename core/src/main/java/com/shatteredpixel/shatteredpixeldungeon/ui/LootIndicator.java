@@ -21,11 +21,15 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.ui;
 
+import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.SPDAction;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.watabou.input.GameAction;
+
+import network.Multiplayer;
 
 public class LootIndicator extends Tag {
 	
@@ -49,8 +53,8 @@ public class LootIndicator extends Tag {
 		slot = new ItemSlot() {
 			protected void onClick() {
 				LootIndicator.this.onClick();
-				if (Dungeon.hero.ready && Dungeon.hero.handle(Dungeon.hero.pos)){
-					Dungeon.hero.next();
+				if (Multiplayer.Players.get(getLocalPlayerId()).hero.ready && Multiplayer.Players.get(getLocalPlayerId()).hero.handle(Multiplayer.Players.get(getLocalPlayerId()).hero.pos)){
+					Multiplayer.Players.get(getLocalPlayerId()).hero.next();
 				}
 
 			}
@@ -86,8 +90,8 @@ public class LootIndicator extends Tag {
 	@Override
 	public void update() {
 		
-		if (Dungeon.hero.ready) {
-			Heap heap = Dungeon.level.heaps.get( Dungeon.hero.pos );
+		if (Multiplayer.Players.get(getLocalPlayerId()).hero.ready) {
+			Heap heap = Dungeon.level.heaps.get( Multiplayer.Players.get(getLocalPlayerId()).hero.pos );
 			if (heap != null) {
 				
 				Item item =
@@ -115,7 +119,7 @@ public class LootIndicator extends Tag {
 			}
 		}
 		
-		slot.enable( visible && Dungeon.hero.ready );
+		slot.enable( visible && Multiplayer.Players.get(getLocalPlayerId()).hero.ready );
 		
 		super.update();
 	}

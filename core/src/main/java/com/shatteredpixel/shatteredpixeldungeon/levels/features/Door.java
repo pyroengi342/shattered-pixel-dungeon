@@ -37,7 +37,7 @@ public class Door {
 		GameScene.updateMap( pos );
 
 		if (Dungeon.level.heroFOV[pos]) {
-			Dungeon.observe();
+			Dungeon.observeAll();
 			Sample.INSTANCE.play( Assets.Sounds.OPEN );
 		}
 	}
@@ -54,7 +54,7 @@ public class Door {
 			Level.set( pos, Terrain.DOOR );
 			GameScene.updateMap( pos );
 			if (Dungeon.level.heroFOV[pos])
-				Dungeon.observe();
+				Dungeon.observeAll();
 		}
 	}
 }

@@ -108,38 +108,38 @@ public class ScrollOfTransmutation extends InventoryScroll {
 		} else {
 			if (result != item) {
 				int slot = Dungeon.quickslot.getSlot(item);
-				if (item.isEquipped(Dungeon.hero)) {
+				if (item.isEquipped(curUser)) {
 					item.cursed = false; //to allow it to be unequipped
 					if (item instanceof Artifact && result instanceof Ring){
 						//if we turned an equipped artifact into a ring, ring goes into inventory
-						((EquipableItem) item).doUnequip(Dungeon.hero, false);
+						((EquipableItem) item).doUnequip(curUser, false);
 						if (!result.collect()){
 							Dungeon.level.drop(result, curUser.pos).sprite.drop();
 						}
-					} else if (item instanceof KindOfWeapon && Dungeon.hero.belongings.secondWep() == item){
-						((EquipableItem) item).doUnequip(Dungeon.hero, false);
-						((KindOfWeapon) result).equipSecondary(Dungeon.hero);
+					} else if (item instanceof KindOfWeapon && curUser.belongings.secondWep() == item){
+						((EquipableItem) item).doUnequip(curUser, false);
+						((KindOfWeapon) result).equipSecondary(curUser);
 					} else {
-						((EquipableItem) item).doUnequip(Dungeon.hero, false);
-						((EquipableItem) result).doEquip(Dungeon.hero);
+						((EquipableItem) item).doUnequip(curUser, false);
+						((EquipableItem) result).doEquip(curUser);
 					}
-					Dungeon.hero.spend(-Dungeon.hero.cooldown()); //cancel equip/unequip time
+					curUser.spend(-curUser.cooldown()); //cancel equip/unequip time
 				} else {
 					if (item instanceof MissileWeapon && !(item instanceof TippedDart)){
-						item.detachAll(Dungeon.hero.belongings.backpack);
+						item.detachAll(curUser.belongings.backpack);
 					} else {
-						item.detach(Dungeon.hero.belongings.backpack);
+						item.detach(curUser.belongings.backpack);
 					}
 					if (!result.collect()) {
 						Dungeon.level.drop(result, curUser.pos).sprite.drop();
-					} else if (result.stackable && Dungeon.hero.belongings.getSimilar(result) != null){
-						result = Dungeon.hero.belongings.getSimilar(result);
+					} else if (result.stackable && curUser.belongings.getSimilar(result) != null){
+						result = curUser.belongings.getSimilar(result);
 					}
 				}
 				if (slot != -1
 						&& result.defaultAction() != null
 						&& !Dungeon.quickslot.isNonePlaceholder(slot)
-						&& Dungeon.hero.belongings.contains(result)){
+						&& curUser.belongings.contains(result)){
 					Dungeon.quickslot.setSlot(slot, result);
 				}
 			}
@@ -261,7 +261,7 @@ public class ScrollOfTransmutation extends InventoryScroll {
 
 		//technically a new set, ensure old one is destroyed (except for darts)
 		if (w instanceof MissileWeapon && w.isUpgradable()){
-			Buff.affect(Dungeon.hero, MissileWeapon.UpgradedSetTracker.class).levelThresholds.put(((MissileWeapon) w).setID, Integer.MAX_VALUE);
+			Buff.affect(curUser, MissileWeapon.UpgradedSetTracker.class).levelThresholds.put(((MissileWeapon) w).setID, Integer.MAX_VALUE);
 			//also extra missile weapon properties
 			((MissileWeapon) n).damage(100 - ((MissileWeapon)w).durabilityLeft());
 		}
@@ -302,10 +302,10 @@ public class ScrollOfTransmutation extends InventoryScroll {
 
 			if (a instanceof DriedRose){
 				if (((DriedRose) a).ghostWeapon() != null){
-					Dungeon.level.drop(((DriedRose) a).ghostWeapon(), Dungeon.hero.pos);
+					Dungeon.level.drop(((DriedRose) a).ghostWeapon(), curUser.pos);
 				}
 				if (((DriedRose) a).ghostArmor() != null){
-					Dungeon.level.drop(((DriedRose) a).ghostArmor(), Dungeon.hero.pos);
+					Dungeon.level.drop(((DriedRose) a).ghostArmor(), curUser.pos);
 				}
 			}
 

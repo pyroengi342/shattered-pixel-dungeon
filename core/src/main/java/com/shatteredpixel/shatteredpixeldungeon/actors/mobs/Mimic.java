@@ -27,6 +27,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
@@ -153,21 +154,21 @@ public class Mimic extends Mob {
 
 	@Override
 	public boolean interact(Char c) {
-		if (alignment != Alignment.NEUTRAL || c != Dungeon.hero){
+		if (alignment != Alignment.NEUTRAL || c instanceof Hero){
 			return super.interact(c);
 		}
 		stopHiding();
-
-		Dungeon.hero.busy();
-		Dungeon.hero.sprite.operate(pos);
-		if (Dungeon.hero.invisible <= 0
-				&& Dungeon.hero.buff(Swiftthistle.TimeBubble.class) == null
-				&& Dungeon.hero.buff(TimekeepersHourglass.timeFreeze.class) == null){
-			return doAttack(Dungeon.hero);
+        Hero hero = (Hero) c;
+        hero.busy();
+		hero.sprite.operate(pos);
+		if (hero.invisible <= 0
+				&& hero.buff(Swiftthistle.TimeBubble.class) == null
+				&& hero.buff(TimekeepersHourglass.timeFreeze.class) == null){
+			return doAttack(hero);
 		} else {
 			sprite.idle();
 			alignment = Alignment.ENEMY;
-			Dungeon.hero.spendAndNext(1f);
+			hero.spendAndNext(1f);
 			return true;
 		}
 	}
@@ -177,7 +178,9 @@ public class Mimic extends Mob {
 		super.onAttackComplete();
 		if (alignment == Alignment.NEUTRAL){
 			alignment = Alignment.ENEMY;
-			Dungeon.hero.spendAndNext(1f);
+            if (enemy instanceof Hero) {
+                ((Hero) enemy).spendAndNext(1f);
+            }
 			enemySeen = true;
 		}
 	}
@@ -212,9 +215,13 @@ public class Mimic extends Mob {
 	public void stopHiding(){
 		state = HUNTING;
 		if (sprite != null) sprite.idle();
+
+        // TODO remake logic
 		if (Actor.chars().contains(this) && Dungeon.level.heroFOV[pos]) {
 			enemy = Dungeon.hero;
 			target = Dungeon.hero.pos;
+
+            // TODO Only if visible for local player
 			GLog.w(Messages.get(this, "reveal") );
 			CellEmitter.get(pos).burst(Speck.factory(Speck.STAR), 10);
 			Sample.INSTANCE.play(Assets.Sounds.MIMIC);

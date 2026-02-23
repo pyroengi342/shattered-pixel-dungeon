@@ -160,7 +160,7 @@ public class UnstableSpellbook extends Artifact {
 		if (charge > 0 && !scrolls.contains(scroll.getClass())) {
 			final Scroll fScroll = scroll;
 
-			final ExploitHandler handler = Buff.affect(hero, ExploitHandler.class);
+			final ExploitHandler handler = Buff.affect(hero, ExploitHandler.class, hero);
 			handler.scroll = scroll;
 
 			GameScene.show(new WndOptions(new ItemSprite(this),
@@ -179,11 +179,11 @@ public class UnstableSpellbook extends Artifact {
 						scroll.talentChance = 0;
 						checkForArtifactProc(curUser, scroll);
 						scroll.doRead();
-						Talent.onArtifactUsed(Dungeon.hero);
+						Talent.onArtifactUsed(curUser);
 					} else {
 						checkForArtifactProc(curUser, fScroll);
 						fScroll.doRead();
-						Talent.onArtifactUsed(Dungeon.hero);
+						Talent.onArtifactUsed(curUser);
 					}
 					updateQuickslot();
 				}
@@ -196,7 +196,7 @@ public class UnstableSpellbook extends Artifact {
 		} else {
 			checkForArtifactProc(curUser, scroll);
 			scroll.doRead();
-			Talent.onArtifactUsed(Dungeon.hero);
+			Talent.onArtifactUsed(curUser);
 		}
 
 		updateQuickslot();
@@ -227,7 +227,7 @@ public class UnstableSpellbook extends Artifact {
 
 		@Override
 		public boolean act() {
-			curUser = Dungeon.hero;
+			curUser = curUser;
 			curItem = scroll;
 			scroll.anonymize();
 			scroll.talentChance = 0;
@@ -300,7 +300,7 @@ public class UnstableSpellbook extends Artifact {
 	public String desc() {
 		String desc = super.desc();
 
-		if (isEquipped(Dungeon.hero)) {
+		if (isEquipped(curUser)) {
 			if (cursed) {
 				desc += "\n\n" + Messages.get(this, "desc_cursed");
 			}
@@ -389,7 +389,7 @@ public class UnstableSpellbook extends Artifact {
 		@Override
 		public void onSelect(Item item) {
 			if (item != null && item instanceof Scroll && item.isIdentified()){
-				Hero hero = Dungeon.hero;
+				Hero hero = curUser;
 				for (int i = 0; ( i <= 1 && i < scrolls.size() ); i++){
 					if (scrolls.get(i).equals(item.getClass())){
 						hero.sprite.operate( hero.pos );

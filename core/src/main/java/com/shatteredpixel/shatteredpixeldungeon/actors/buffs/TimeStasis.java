@@ -23,6 +23,7 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.buffs;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 
 //this is largely a copy-paste from timekeeper's hourglass with the artifact-specific code removed
@@ -42,8 +43,8 @@ public class TimeStasis extends FlavourBuff {
 			target.paralysed++;
 			target.next();
 
-			if (Dungeon.hero != null) {
-				Dungeon.observe();
+			if (target instanceof Hero) {
+				Dungeon.observe( (Hero) target );
 			}
 
 			return true;
@@ -68,7 +69,9 @@ public class TimeStasis extends FlavourBuff {
 		if (target.invisible > 0) target.invisible--;
 		if (target.paralysed > 0) target.paralysed--;
 		super.detach();
-		Dungeon.observe();
+        if (target instanceof Hero) {
+            Dungeon.observe( (Hero) target );
+        }
 	}
 
 	@Override

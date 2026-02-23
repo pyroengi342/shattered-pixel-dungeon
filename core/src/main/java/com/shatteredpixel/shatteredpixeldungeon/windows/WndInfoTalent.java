@@ -21,6 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
+import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -31,6 +33,8 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.shatteredpixel.shatteredpixeldungeon.ui.TalentIcon;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.watabou.utils.Callback;
+
+import network.Multiplayer;
 
 public class WndInfoTalent extends Window {
 
@@ -56,7 +60,7 @@ public class WndInfoTalent extends Window {
 		add( titlebar );
 
 		boolean metaDesc = (buttonCallback != null && buttonCallback.metamorphDesc()) ||
-				(Dungeon.hero != null && Dungeon.hero.metamorphedTalents.containsValue(talent));
+				(Multiplayer.Players.get(getLocalPlayerId()).hero != null && Multiplayer.Players.get(getLocalPlayerId()).hero.metamorphedTalents.containsValue(talent));
 
 		RenderedTextBlock txtInfo = PixelScene.renderTextBlock(talent.desc(metaDesc), 6);
 		txtInfo.maxWidth(width);

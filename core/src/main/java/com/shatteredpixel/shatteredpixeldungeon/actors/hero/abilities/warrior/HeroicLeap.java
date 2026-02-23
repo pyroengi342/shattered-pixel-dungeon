@@ -92,7 +92,7 @@ public class HeroicLeap extends ArmorAbility {
 				public void call() {
 					hero.move(dest);
 					Dungeon.level.occupyCell(hero);
-					Dungeon.observe();
+					Dungeon.observe(hero);
 					GameScene.updateFog();
 
 					for (int i : PathFinder.NEIGHBOURS8) {

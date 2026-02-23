@@ -1,6 +1,9 @@
+// ios
 buildscript {
     repositories {
         mavenCentral()
+        google()
+        maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
     }
     dependencies {
         classpath "com.mobidevelop.robovm:robovm-gradle-plugin:$robovmVersion"
@@ -9,6 +12,17 @@ buildscript {
 
 apply plugin: "java"
 apply plugin: "robovm"
+
+repositories {
+    mavenCentral() // Ищет стабильные релизы (здесь kryo 5.6.2)
+    google() // Для Android-зависимостей
+    //maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' } // УДАЛИТЕ или закомментируйте, если не требуется
+    //maven { url 'https://central.sonatype.com/repository/maven-snapshots/' } // УДАЛИТЕ или закомментируйте, если не требуется
+    maven {
+        url = uri("https://repo1.maven.org/maven2/") // Явный URL Maven Central
+    }
+    google()
+}
 
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 java.sourceCompatibility = java.targetCompatibility = appJavaCompatibility
@@ -40,6 +54,9 @@ createIPA.dependsOn build
 
 dependencies {
     implementation project(':core')
+    implementation(project(':core')) {
+        exclude group: 'io.netty', module: 'netty-all'
+    }
     implementation project(':services:updates:debugUpdates')
     implementation project(':services:news:shatteredNews')
 

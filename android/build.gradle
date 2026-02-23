@@ -51,13 +51,20 @@ android {
             jniLibs.srcDirs = ['libs']
         }
     }
+
+    packagingOptions {
+        exclude 'META-INF/INDEX.LIST'
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/io.netty.versions.properties'
+    }
 }
 
 configurations { natives }
 
 dependencies {
-    implementation project(':core')
-
+    implementation(project(':core')) {
+        exclude group: 'io.netty', module: 'netty-all' // Исключаем netty-all из core для Android
+    }
     implementation "com.badlogicgames.gdx:gdx-backend-android:$gdxVersion"
     natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-armeabi-v7a"
     natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-x86"
@@ -69,6 +76,12 @@ dependencies {
     natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-x86"
     natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-x86_64"
     implementation "com.badlogicgames.gdx-controllers:gdx-controllers-android:$gdxControllersVersion"
+
+    implementation "io.netty:netty-buffer:$nettyVersion"
+    implementation "io.netty:netty-transport:$nettyVersion"
+    implementation "io.netty:netty-handler:$nettyVersion"
+    implementation "io.netty:netty-codec:$nettyVersion" // Может потребоваться
+    implementation "com.esotericsoftware:kryo:$kryoVersion"
 }
 
 // called every time gradle gets executed, takes the native dependencies of

@@ -59,12 +59,12 @@ public class HolyWard extends ClericSpell {
 	}
 
 	@Override
-	public String desc(){
+	public String desc(Hero hero){
 		String desc = Messages.get(this, "desc");
-		if (Dungeon.hero.subClass == HeroSubClass.PALADIN){
+		if (hero.subClass == HeroSubClass.PALADIN){
 			desc += "\n\n" + Messages.get(this, "desc_paladin");
 		}
-		return desc + "\n\n" + Messages.get(this, "charge_cost", (int)chargeUse(Dungeon.hero));
+		return desc + "\n\n" + Messages.get(this, "charge_cost", (int)chargeUse(hero));
 	}
 
 	public static class HolyArmBuff extends FlavourBuff {
@@ -86,8 +86,8 @@ public class HolyWard extends ClericSpell {
 		}
 
 		@Override
-		public String desc() {
-			if (Dungeon.hero.subClass == HeroSubClass.PALADIN){
+	    public String desc(){
+			if (((Hero)target).subClass == HeroSubClass.PALADIN){
 				return Messages.get(this, "desc_paladin", dispTurns());
 			} else {
 				return Messages.get(this, "desc", dispTurns());

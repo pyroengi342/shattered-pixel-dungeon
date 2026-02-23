@@ -68,7 +68,8 @@ public class Regrowth extends Blob {
 					}
 				}
 			}
-			Dungeon.observe();
+            // TODO I dont know
+			Dungeon.observeAll();
 		}
 	}
 	

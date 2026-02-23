@@ -196,7 +196,7 @@ public class Bomb extends Item {
 					ch.damage(dmg, this);
 				}
 				
-				if (ch == Dungeon.hero && !ch.isAlive()) {
+				if (ch instanceof Hero && !ch.isAlive()) {
 					if (this instanceof ConjuredBomb){
 						Badges.validateDeathFromFriendlyMagic();
 					}
@@ -206,7 +206,7 @@ public class Bomb extends Item {
 			}
 			
 			if (terrainAffected) {
-				Dungeon.observe();
+				Dungeon.observeAll();
 			}
 		}
 	}
@@ -243,7 +243,7 @@ public class Bomb extends Item {
 	
 	@Override
 	public String desc() {
-		int depth = Dungeon.hero == null ? 1 : Dungeon.scalingDepth();
+		int depth = curUser == null ? 1 : Dungeon.scalingDepth();
 		String desc = Messages.get(this, "desc", 4+depth, 12+3*depth);
 		if (fuse == null) {
 			return desc + "\n\n" + Messages.get(this, "desc_fuse");

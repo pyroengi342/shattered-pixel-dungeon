@@ -21,12 +21,16 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero;
 
+import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MagesStaff;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
 import com.watabou.noosa.Game;
+
+import network.Multiplayer;
 
 public enum HeroSubClass {
 
@@ -69,7 +73,7 @@ public enum HeroSubClass {
 		if (this == BATTLEMAGE){
 			String desc = Messages.get(this, name() + "_desc");
 			if (Game.scene() instanceof GameScene){
-				MagesStaff staff = Dungeon.hero.belongings.getItem(MagesStaff.class);
+				MagesStaff staff = Multiplayer.Players.get(getLocalPlayerId()).hero.belongings.getItem(MagesStaff.class);
 				if (staff != null && staff.wandClass() != null){
 					desc += "\n\n" + Messages.get(staff.wandClass(), "bmage_desc");
 					desc = desc.replaceAll("_", "");

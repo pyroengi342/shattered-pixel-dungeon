@@ -21,6 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.spells;
 
+import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
@@ -67,6 +69,8 @@ import com.watabou.utils.Random;
 
 import java.util.ArrayList;
 
+import network.Multiplayer;
+
 public class SpiritForm extends ClericSpell {
 
 	public static SpiritForm INSTANCE = new SpiritForm();
@@ -76,10 +80,11 @@ public class SpiritForm extends ClericSpell {
 		return HeroIcon.SPIRIT_FORM;
 	}
 
-	@Override
-	public String desc() {
-		return Messages.get(this, "desc", ringLevel(), artifactLevel()) + "\n\n" + Messages.get(this, "charge_cost", (int)chargeUse(Dungeon.hero));
-	}
+    @Override
+    public String desc(Hero hero){
+        return Messages.get(this, "desc", ringLevel(hero), artifactLevel(hero))
+                + "\n\n" + Messages.get(this, "charge_cost", (int)chargeUse(hero));
+    }
 
 	@Override
 	public float chargeUse(Hero hero) {
@@ -93,17 +98,15 @@ public class SpiritForm extends ClericSpell {
 
 	@Override
 	public void onCast(HolyTome tome, Hero hero) {
-
-		GameScene.show(new Trinity.WndItemtypeSelect(tome, this));
-
+		GameScene.show(new Trinity.WndItemtypeSelect(tome, this, hero));
 	}
 
-	public static int ringLevel(){
-		return Dungeon.hero.pointsInTalent(Talent.SPIRIT_FORM);
+	public static int ringLevel( Hero hero ){
+		return hero.pointsInTalent(Talent.SPIRIT_FORM);
 	}
 
-	public static int artifactLevel(){
-		return 2 + 2*Dungeon.hero.pointsInTalent(Talent.SPIRIT_FORM);
+	public static int artifactLevel( Hero hero ){
+		return 2 + 2*hero.pointsInTalent(Talent.SPIRIT_FORM);
 	}
 
 	public static class SpiritFormBuff extends FlavourBuff{
@@ -131,11 +134,11 @@ public class SpiritForm extends ClericSpell {
 			return Math.max(0, (DURATION - visualcooldown()) / DURATION);
 		}
 
-		public void setEffect(Bundlable effect){
+		public void setEffect(Bundlable effect, Hero hero){
 			this.effect = effect;
 			if (effect instanceof RingOfMight){
-				((Ring) effect).level(ringLevel());
-				Dungeon.hero.updateHT( false );
+				((Ring) effect).level(ringLevel(hero));
+                hero.updateHT( false );
 			}
 		}
 
@@ -143,30 +146,32 @@ public class SpiritForm extends ClericSpell {
 		public void detach() {
 			super.detach();
 			if (effect instanceof RingOfMight){
-				Dungeon.hero.updateHT( false );
+                if (target instanceof Hero) {
+                    ((Hero) target).updateHT( false );
+                }
 			}
 		}
 
-		public Ring ring(){
-			if (effect instanceof Ring){
-				((Ring) effect).level(ringLevel());
-				return (Ring) effect;
-			}
-			return null;
-		}
+        public Ring ring(){
+            if (effect instanceof Ring){
+                ((Ring) effect).level(ringLevel((Hero) target)); // используем target
+                return (Ring) effect;
+            }
+            return null;
+        }
 
-		public Artifact artifact(){
-			if (effect instanceof Artifact){
-				if (((Artifact) effect).visiblyUpgraded() < artifactLevel()){
-					((Artifact) effect).transferUpgrade(artifactLevel() - ((Artifact) effect).visiblyUpgraded());
-				}
-				return (Artifact) effect;
-			}
-			return null;
-		}
+        public Artifact artifact(){
+            if (effect instanceof Artifact){
+                if (((Artifact) effect).visiblyUpgraded() < artifactLevel((Hero) target)) {
+                    ((Artifact) effect).transferUpgrade(artifactLevel((Hero) target) - ((Artifact) effect).visiblyUpgraded());
+                }
+                return (Artifact) effect;
+            }
+            return null;
+        }
 
-		@Override
-		public String desc() {
+	@Override
+	public String desc(){
 			if (ring() != null){
 				return Messages.get(this, "desc", Messages.titleCase(ring().name()), dispTurns());
 			} else if (artifact() != null){
@@ -191,16 +196,16 @@ public class SpiritForm extends ClericSpell {
 
 	}
 
-	public static void applyActiveArtifactEffect(ClassArmor armor, Artifact effect){
+	public static void applyActiveArtifactEffect(ClassArmor armor, Artifact effect, Hero hero){
 		if (effect instanceof AlchemistsToolkit){
-			Talent.onArtifactUsed(Dungeon.hero);
+			Talent.onArtifactUsed(hero);
 			AlchemyScene.assignToolkit((AlchemistsToolkit) effect);
 			Game.switchScene(AlchemyScene.class);
 
 		} else if (effect instanceof DriedRose){
 			ArrayList<Integer> spawnPoints = new ArrayList<>();
 			for (int i = 0; i < PathFinder.NEIGHBOURS8.length; i++) {
-				int p = Dungeon.hero.pos + PathFinder.NEIGHBOURS8[i];
+				int p = hero.pos + PathFinder.NEIGHBOURS8[i];
 				if (Actor.findChar(p) == null && !Dungeon.level.solid[p]) {
 					spawnPoints.add(p);
 				}
@@ -208,11 +213,11 @@ public class SpiritForm extends ClericSpell {
 			if (!spawnPoints.isEmpty()) {
 				Wraith w = Wraith.spawnAt(Random.element(spawnPoints), Wraith.class);
 
-				w.HP = w.HT = 20 + 8*artifactLevel();
-				Buff.affect(w, Corruption.class);
+				w.HP = w.HT = 20 + 8*artifactLevel(hero);
+				Buff.affect(w, Corruption.class, hero);
 			}
-			Talent.onArtifactUsed(Dungeon.hero);
-			Dungeon.hero.spendAndNext(1f);
+			Talent.onArtifactUsed(hero);
+            hero.spendAndNext(1f);
 
 		} else if (effect instanceof EtherealChains){
 			GameScene.selectCell(((EtherealChains) effect).caster);
@@ -221,7 +226,7 @@ public class SpiritForm extends ClericSpell {
 			}
 
 		} else if (effect instanceof HornOfPlenty){
-			((HornOfPlenty) effect).doEatEffect(Dungeon.hero, 1);
+			((HornOfPlenty) effect).doEatEffect(hero, 1);
 
 		} else if (effect instanceof MasterThievesArmband){
 			GameScene.selectCell(((MasterThievesArmband) effect).targeter);
@@ -244,11 +249,11 @@ public class SpiritForm extends ClericSpell {
 			GameScene.selectCell(((TalismanOfForesight) effect).scry);
 
 		} else if (effect instanceof TimekeepersHourglass){
-			Buff.affect(Dungeon.hero, Swiftthistle.TimeBubble.class).reset(artifactLevel());
-			Dungeon.hero.spendAndNext(1f);
+			Buff.affect(hero, Swiftthistle.TimeBubble.class, hero).reset(artifactLevel(hero));
+            hero.spendAndNext(1f);
 
 		} else if (effect instanceof UnstableSpellbook){
-			((UnstableSpellbook) effect).doReadEffect(Dungeon.hero);
+			((UnstableSpellbook) effect).doReadEffect(hero);
 
 		} else if (effect instanceof SkeletonKey){
 			GameScene.selectCell(((SkeletonKey) effect).targeter);

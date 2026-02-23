@@ -162,7 +162,7 @@ public class SkeletonKey extends Artifact {
 								GameScene.updateMap(target);
 								charge -= 1;
 								gainExp(2 + 1);
-								Talent.onArtifactUsed(Dungeon.hero);
+								Talent.onArtifactUsed(curUser);
 								curUser.spendAndNext(Actor.TICK);
 								curUser.sprite.idle();
 							}
@@ -200,7 +200,7 @@ public class SkeletonKey extends Artifact {
 								GameScene.updateMap(target);
 								charge -= 5;
 								gainExp(2 + 5);
-								Talent.onArtifactUsed(Dungeon.hero);
+								Talent.onArtifactUsed(curUser);
 								Sample.INSTANCE.play(Assets.Sounds.TELEPORT);
 								CellEmitter.get( target ).start( Speck.factory( Speck.DISCOVER ), 0.025f, 20 );
 								curUser.spendAndNext(Actor.TICK);
@@ -254,7 +254,7 @@ public class SkeletonKey extends Artifact {
 								GameScene.updateMap(target);
 								charge -= 2;
 								gainExp(2);
-								Talent.onArtifactUsed(Dungeon.hero);
+								Talent.onArtifactUsed(curUser);
 								curUser.spendAndNext(Actor.TICK);
 								curUser.sprite.idle();
 
@@ -291,7 +291,7 @@ public class SkeletonKey extends Artifact {
 								Dungeon.level.heaps.get(target).open(curUser);
 								charge -= 2;
 								gainExp(2 + 2);
-								Talent.onArtifactUsed(Dungeon.hero);
+								Talent.onArtifactUsed(curUser);
 								curUser.spendAndNext(Actor.TICK);
 								curUser.sprite.idle();
 							}
@@ -312,7 +312,7 @@ public class SkeletonKey extends Artifact {
 								Dungeon.level.heaps.get(target).open(curUser);
 								charge -= 5;
 								gainExp(2 + 5);
-								Talent.onArtifactUsed(Dungeon.hero);
+								Talent.onArtifactUsed(curUser);
 								curUser.spendAndNext(Actor.TICK);
 								curUser.sprite.idle();
 							}
@@ -364,11 +364,12 @@ public class SkeletonKey extends Artifact {
 						charge -= 2;
 						gainExp(2);
 
-						Dungeon.observe();
+                        // Affects all
+						Dungeon.observeAll();
 						GameScene.updateFog();
 						Sample.INSTANCE.play(Assets.Sounds.TELEPORT);
 
-						Talent.onArtifactUsed(Dungeon.hero);
+						Talent.onArtifactUsed(curUser);
 						curUser.spendAndNext(Actor.TICK);
 						curUser.sprite.idle();
 					}
@@ -409,7 +410,7 @@ public class SkeletonKey extends Artifact {
 	public String desc() {
 		String desc = super.desc();
 
-		if ( isEquipped (Dungeon.hero) ){
+		if ( isEquipped (curUser) ){
 			if (cursed){
 				desc += "\n\n" + Messages.get(this, "desc_cursed");
 			} else {
@@ -504,7 +505,8 @@ public class SkeletonKey extends Artifact {
 			}
 
 			if (cellEnded){
-				Dungeon.observe();
+                // Affects All
+				Dungeon.observeAll();
 			}
 		}
 

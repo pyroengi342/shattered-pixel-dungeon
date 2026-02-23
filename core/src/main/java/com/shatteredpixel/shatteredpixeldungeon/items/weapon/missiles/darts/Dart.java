@@ -83,7 +83,7 @@ public class Dart extends MissileWeapon {
 	@Override
 	public int min(int lvl) {
 		if (bow != null){
-			if (!(this instanceof TippedDart) && Dungeon.hero.buff(Crossbow.ChargedShot.class) != null){
+			if (!(this instanceof TippedDart) && curUser.buff(Crossbow.ChargedShot.class) != null){
 				return bow.dartMin()            //crossbow dart damage
 						+ 4 + bow.buffedLvl()   //ability increases base dmg by 50%, scaling by 50%
 						+ lvl;                  //another +1 per level (ring of sharpshooting)
@@ -100,7 +100,7 @@ public class Dart extends MissileWeapon {
 	@Override
 	public int max(int lvl) {
 		if (bow != null){
-			if (!(this instanceof TippedDart) && Dungeon.hero.buff(Crossbow.ChargedShot.class) != null){
+			if (!(this instanceof TippedDart) && curUser.buff(Crossbow.ChargedShot.class) != null){
 				return bow.dartMax()            //crossbow dart damage
 						+ 4 + bow.buffedLvl()   //ability increases base dmg by 50%, scaling by 50%
 						+ 2*lvl;                //another +2 per level (ring of sharpshooting)
@@ -117,13 +117,13 @@ public class Dart extends MissileWeapon {
 	protected static Crossbow bow;
 	
 	private void updateCrossbow(){
-		if (Dungeon.hero == null) {
+		if (curUser == null) {
 			bow = null;
-		} else if (Dungeon.hero.belongings.weapon() instanceof Crossbow){
-			bow = (Crossbow) Dungeon.hero.belongings.weapon();
-		} else if (Dungeon.hero.belongings.secondWep() instanceof Crossbow) {
+		} else if (curUser.belongings.weapon() instanceof Crossbow){
+			bow = (Crossbow) curUser.belongings.weapon();
+		} else if (curUser.belongings.secondWep() instanceof Crossbow) {
 			//player can instant swap anyway, so this is just QoL
-			bow = (Crossbow) Dungeon.hero.belongings.secondWep();
+			bow = (Crossbow) curUser.belongings.secondWep();
 		} else {
 			bow = null;
 		}
@@ -184,7 +184,7 @@ public class Dart extends MissileWeapon {
 	protected void processChargedShot( Char target, int dmg ){
 		//don't update xbow here, as dart may be the active weapon atm
 		processingChargedShot = true;
-		if (chargedShotPos != -1 && bow != null && Dungeon.hero.buff(Crossbow.ChargedShot.class) != null) {
+		if (chargedShotPos != -1 && bow != null && curUser.buff(Crossbow.ChargedShot.class) != null) {
 			PathFinder.buildDistanceMap(chargedShotPos, Dungeon.level.passable, 3);
 			//necessary to clone as some on-hit effects use Pathfinder
 			int[] distance = PathFinder.distance.clone();
@@ -195,14 +195,14 @@ public class Dart extends MissileWeapon {
 						@Override
 						protected boolean act() {
 							if (!ch.isAlive()){
-								bow.onAbilityKill(Dungeon.hero, ch);
+								bow.onAbilityKill(curUser, ch);
 							}
 							Actor.remove(this);
 							return true;
 						}
 					});
 				} else if (distance[ch.pos] != Integer.MAX_VALUE){
-					proc(Dungeon.hero, ch, dmg);
+					proc(curUser, ch, dmg);
 				}
 			}
 		}
@@ -213,8 +213,8 @@ public class Dart extends MissileWeapon {
 	@Override
 	protected void decrementDurability() {
 		super.decrementDurability();
-		if (Dungeon.hero.buff(Crossbow.ChargedShot.class) != null) {
-			Dungeon.hero.buff(Crossbow.ChargedShot.class).detach();
+		if (curUser.buff(Crossbow.ChargedShot.class) != null) {
+			curUser.buff(Crossbow.ChargedShot.class).detach();
 		}
 	}
 

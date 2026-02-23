@@ -25,6 +25,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.TalismanOfForesight;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTeleportation;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -95,8 +96,8 @@ public class DisplacingDart extends TippedDart {
 			if (chosenPos != -1){
 				ScrollOfTeleportation.appear( defender, chosenPos );
 				Dungeon.level.occupyCell(defender );
-				if (defender == Dungeon.hero){
-					Dungeon.observe();
+				if (defender instanceof Hero){
+					Dungeon.observe((Hero) defender);
 					GameScene.updateFog();
 				} else if (!Dungeon.level.heroFOV[chosenPos]){
 					Buff.append(attacker, TalismanOfForesight.CharAwareness.class, 5f).charID = defender.id();

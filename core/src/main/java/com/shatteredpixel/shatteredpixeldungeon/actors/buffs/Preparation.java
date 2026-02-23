@@ -25,6 +25,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroAction;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.NPC;
@@ -135,7 +136,7 @@ public class Preparation extends Buff implements ActionIndicator.Action {
 	public boolean act() {
 		if (target.invisible > 0){
 			turnsInvis++;
-			if (AttackLevel.getLvl(turnsInvis).blinkDistance() > 0 && target == Dungeon.hero){
+			if (AttackLevel.getLvl(turnsInvis).blinkDistance() > 0 && target instanceof Hero){
 				ActionIndicator.setAction(this);
 			}
 			spend(TICK);
@@ -272,7 +273,7 @@ public class Preparation extends Buff implements ActionIndicator.Action {
 		public void onSelect(Integer cell) {
 			if (cell == null) return;
 			final Char enemy = Actor.findChar( cell );
-			if (enemy == null || Dungeon.hero.isCharmedBy(enemy) || enemy instanceof NPC || !Dungeon.level.heroFOV[cell] || enemy == Dungeon.hero){
+			if (enemy == null || Dungeon.hero.isCharmedBy(enemy) || enemy instanceof NPC || !Dungeon.level.heroFOV[cell] || enemy instanceof Hero){
 				GLog.w(Messages.get(Preparation.class, "no_target"));
 			} else {
 
@@ -314,7 +315,11 @@ public class Preparation extends Buff implements ActionIndicator.Action {
 				Dungeon.hero.pos = dest;
 				Dungeon.level.occupyCell(Dungeon.hero);
 				//prevents the hero from being interrupted by seeing new enemies
-				Dungeon.observe();
+                if (target instanceof Hero)
+                {
+                    // TODO entire methods needs to be rebuilt
+                    Dungeon.observe( (Hero) target);
+                }
 				GameScene.updateFog();
 				Dungeon.hero.checkVisibleMobs();
 				

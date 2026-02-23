@@ -59,6 +59,8 @@ import com.watabou.utils.Random;
 
 import java.util.ArrayList;
 
+import network.Multiplayer;
+
 public class HallsBossLevel extends Level {
 
 	{
@@ -242,7 +244,7 @@ public class HallsBossLevel extends Level {
 	@Override
 	public void occupyCell( Char ch ) {
 		if (map[entrance()] == Terrain.ENTRANCE && map[exit()] != Terrain.EXIT
-				&& ch == Dungeon.hero && Dungeon.level.distance(ch.pos, entrance()) >= 2) {
+				&& ch instanceof Hero && Dungeon.level.distance(ch.pos, entrance()) >= 2) {
 			seal();
 		}
 
@@ -258,7 +260,9 @@ public class HallsBossLevel extends Level {
 		GameScene.updateMap( entrance );
 		CellEmitter.get( entrance ).start( FlameParticle.FACTORY, 0.1f, 10 );
 
-		Dungeon.observe();
+            for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+                Dungeon.observe(player.hero);
+            }
 
 		YogDzewa boss = new YogDzewa();
 		boss.pos = exit() + width*3;
@@ -306,7 +310,11 @@ public class HallsBossLevel extends Level {
 			}
 		}
 
-		Dungeon.observe();
+        if (Multiplayer.isMultiplayer) {
+            for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+                Dungeon.observe(player.hero);
+            }
+        }
 
 		Game.runOnRenderThread(new Callback() {
 			@Override

@@ -79,7 +79,7 @@ public class Inferno extends Blob {
 		}
 		
 		if (observe) {
-			Dungeon.observe();
+			Dungeon.observeAll();
 		}
 	}
 	

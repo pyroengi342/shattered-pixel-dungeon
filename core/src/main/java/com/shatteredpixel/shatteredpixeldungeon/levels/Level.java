@@ -120,6 +120,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import network.Multiplayer;
+
 public abstract class Level implements Bundlable {
 	
 	public static enum Feeling {
@@ -617,16 +619,21 @@ public abstract class Level implements Bundlable {
 	public void seal(){
 		if (!locked) {
 			locked = true;
-			Buff.affect(Dungeon.hero, LockedFloor.class);
-		}
-	}
+                for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+                    Buff.affect(player.hero, LockedFloor.class, null);
+                }
+    	}
+    }
 
 	public void unseal(){
 		if (locked) {
 			locked = false;
-			if (Dungeon.hero.buff(LockedFloor.class) != null){
-				Dungeon.hero.buff(LockedFloor.class).detach();
-			}
+                for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+                    if(player.hero.buff(LockedFloor.class) != null)
+                    {
+                        player.hero.buff(LockedFloor.class).detach();
+                    }
+                }
 		}
 	}
 
@@ -1126,7 +1133,7 @@ public abstract class Level implements Bundlable {
 			if (Dungeon.level.heroFOV[ch.pos]) {
 				CellEmitter.get(ch.pos).burst( SacrificialParticle.FACTORY, 5 );
 			}
-			Buff.prolong( ch, SacrificialFire.Marked.class, SacrificialFire.Marked.DURATION );
+			Buff.prolong( ch, SacrificialFire.Marked.class, SacrificialFire.Marked.DURATION, ch);
 		}
 
 		if (!ch.flying){
@@ -1142,7 +1149,7 @@ public abstract class Level implements Bundlable {
 			}
 
 			if ( (map[ch.pos] == Terrain.GRASS || map[ch.pos] == Terrain.EMBERS)
-					&& ch == Dungeon.hero && Dungeon.hero.hasTalent(Talent.REJUVENATING_STEPS)
+					&& ch instanceof Hero && Dungeon.hero.hasTalent(Talent.REJUVENATING_STEPS)
 					&& ch.buff(Talent.RejuvenatingStepsCooldown.class) == null){
 
 				if (!Regeneration.regenOn()){
@@ -1151,15 +1158,15 @@ public abstract class Level implements Bundlable {
 					set(ch.pos, Terrain.FURROWED_GRASS);
 				} else {
 					set(ch.pos, Terrain.HIGH_GRASS);
-					Buff.count(ch, Talent.RejuvenatingStepsFurrow.class, 3 - Dungeon.hero.pointsInTalent(Talent.REJUVENATING_STEPS));
+					Buff.count(ch, Talent.RejuvenatingStepsFurrow.class, 3 - Dungeon.hero.pointsInTalent(Talent.REJUVENATING_STEPS), ch);
 				}
 				GameScene.updateMap(ch.pos);
 				Buff.affect(ch, Talent.RejuvenatingStepsCooldown.class, 15f - 5f*Dungeon.hero.pointsInTalent(Talent.REJUVENATING_STEPS));
 			}
 			
 			if (pit[ch.pos]){
-				if (ch == Dungeon.hero) {
-					Chasm.heroFall(ch.pos);
+				if (ch instanceof Hero) {
+					Chasm.heroFall(ch.pos, (Hero) ch);
 				} else if (ch instanceof Mob) {
 					Chasm.mobFall( (Mob)ch );
 				}
@@ -1331,7 +1338,7 @@ public abstract class Level implements Bundlable {
 		
 		int sense = 1;
 		//Currently only the hero can get mind vision
-		if (c.isAlive() && c == Dungeon.hero) {
+		if (c.isAlive() && c instanceof Hero) {
 			for (Buff b : c.buffs( MindVision.class )) {
 				sense = Math.max( ((MindVision)b).distance, sense );
 			}
@@ -1377,7 +1384,7 @@ public abstract class Level implements Bundlable {
 		}
 
 		//Currently only the hero can get mind vision or awareness
-		if (c.isAlive() && c == Dungeon.hero) {
+		if (c.isAlive() && c instanceof Hero) {
 
 			if (heroMindFov == null || heroMindFov.length != length()){
 				heroMindFov = new boolean[length];
@@ -1385,7 +1392,7 @@ public abstract class Level implements Bundlable {
 				BArray.setFalse(heroMindFov);
 			}
 
-			Dungeon.hero.mindVisionEnemies.clear();
+			((Hero) c).mindVisionEnemies.clear();
 			if (c.buff( MindVision.class ) != null) {
 				for (Mob mob : mobs) {
 					if (mob instanceof Mimic && mob.alignment == Char.Alignment.NEUTRAL&& ((Mimic) mob).stealthy()){
@@ -1470,10 +1477,10 @@ public abstract class Level implements Bundlable {
 				for (int i : PathFinder.NEIGHBOURS9) heroMindFov[a.pos+i] = true;
 			}
 
-			//set mind vision chars
+			//TODO for all players
 			for (Mob mob : mobs) {
 				if (heroMindFov[mob.pos] && !fieldOfView[mob.pos]){
-					Dungeon.hero.mindVisionEnemies.add(mob);
+                    ((Hero) c).mindVisionEnemies.add(mob);
 				}
 			}
 
@@ -1481,7 +1488,7 @@ public abstract class Level implements Bundlable {
 
 		}
 
-		if (c == Dungeon.hero) {
+		if (c instanceof Hero) {
 			for (Heap heap : heaps.valueList())
 				if (!heap.seen && fieldOfView[heap.pos])
 					heap.seen = true;

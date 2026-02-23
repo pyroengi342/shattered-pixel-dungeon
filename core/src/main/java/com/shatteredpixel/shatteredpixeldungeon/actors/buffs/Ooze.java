@@ -22,6 +22,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.buffs;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
@@ -102,7 +103,7 @@ public class Ooze extends Buff {
 				target.damage(1, this); //0.5 dmg per turn in sewers
 			}
 
-			if (!target.isAlive() && target == Dungeon.hero) {
+			if (!target.isAlive() && target instanceof Hero) {
 				Dungeon.fail( this );
 				GLog.n( Messages.get(this, "ondeath") );
 			}

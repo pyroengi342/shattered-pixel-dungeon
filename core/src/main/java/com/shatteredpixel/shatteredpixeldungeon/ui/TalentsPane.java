@@ -21,6 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.ui;
 
+import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
@@ -39,6 +41,8 @@ import com.watabou.utils.Random;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
+import network.Multiplayer;
+
 public class TalentsPane extends ScrollPane {
 
 	ArrayList<TalentTierPane> panes = new ArrayList<>();
@@ -49,13 +53,13 @@ public class TalentsPane extends ScrollPane {
 	RenderedTextBlock blockText;
 
 	public TalentsPane( TalentButton.Mode mode ) {
-		this( mode, Dungeon.hero.talents );
+		this( mode, Multiplayer.Players.get(getLocalPlayerId()).hero.talents );
 	}
 
 	public TalentsPane( TalentButton.Mode mode, ArrayList<LinkedHashMap<Talent, Integer>> talents ) {
 		super(new Component());
 
-		Ratmogrify.useRatroicEnergy = Dungeon.hero != null && Dungeon.hero.armorAbility instanceof Ratmogrify;
+		Ratmogrify.useRatroicEnergy = Multiplayer.Players.get(getLocalPlayerId()).hero != null && Multiplayer.Players.get(getLocalPlayerId()).hero.armorAbility instanceof Ratmogrify;
 
 		int tiersAvailable = 1;
 
@@ -71,12 +75,12 @@ public class TalentsPane extends ScrollPane {
 			}
 		} else {
 			while (tiersAvailable < Talent.MAX_TALENT_TIERS
-					&& Dungeon.hero.lvl+1 >= Talent.tierLevelThresholds[tiersAvailable+1]){
+					&& Multiplayer.Players.get(getLocalPlayerId()).hero.lvl+1 >= Talent.tierLevelThresholds[tiersAvailable+1]){
 				tiersAvailable++;
 			}
-			if (tiersAvailable > 2 && Dungeon.hero.subClass == HeroSubClass.NONE){
+			if (tiersAvailable > 2 && Multiplayer.Players.get(getLocalPlayerId()).hero.subClass == HeroSubClass.NONE){
 				tiersAvailable = 2;
-			} else if (tiersAvailable > 3 && Dungeon.hero.armorAbility == null){
+			} else if (tiersAvailable > 3 && Multiplayer.Players.get(getLocalPlayerId()).hero.armorAbility == null){
 				tiersAvailable = 3;
 			}
 		}
@@ -178,7 +182,7 @@ public class TalentsPane extends ScrollPane {
 
 			if (mode == TalentButton.Mode.UPGRADE) {
 				setupStars();
-				if (Dungeon.hero.talentPointsAvailable(tier) > 0){
+				if (Multiplayer.Players.get(getLocalPlayerId()).hero.talentPointsAvailable(tier) > 0){
 
 					random = new IconButton(Icons.SHUFFLE.get()){
 						@Override
@@ -199,9 +203,9 @@ public class TalentsPane extends ScrollPane {
 										return;
 									}
 									if (index == 0 || index == 1){
-										while (Dungeon.hero.talentPointsAvailable(tier) > 0){
+										while (Multiplayer.Players.get(getLocalPlayerId()).hero.talentPointsAvailable(tier) > 0){
 											TalentButton button = Random.element(buttons);
-											if (Dungeon.hero.pointsInTalent(button.talent) < button.talent.maxPoints()){
+											if (Multiplayer.Players.get(getLocalPlayerId()).hero.pointsInTalent(button.talent) < button.talent.maxPoints()){
 												button.upgradeTalent();
 												if (index == 1){
 													break;
@@ -245,9 +249,9 @@ public class TalentsPane extends ScrollPane {
 				stars.clear();
 			}
 
-			int totStars = Talent.tierLevelThresholds[tier+1] - Talent.tierLevelThresholds[tier] + Dungeon.hero.bonusTalentPoints(tier);
-			int openStars = Dungeon.hero.talentPointsAvailable(tier);
-			int usedStars = Dungeon.hero.talentPointsSpent(tier);
+			int totStars = Talent.tierLevelThresholds[tier+1] - Talent.tierLevelThresholds[tier] + Multiplayer.Players.get(getLocalPlayerId()).hero.bonusTalentPoints(tier);
+			int openStars = Multiplayer.Players.get(getLocalPlayerId()).hero.talentPointsAvailable(tier);
+			int usedStars = Multiplayer.Players.get(getLocalPlayerId()).hero.talentPointsSpent(tier);
 			for (int i = 0; i < totStars; i++){
 				Image im = new Speck().image(Speck.STAR);
 				stars.add(im);

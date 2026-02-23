@@ -97,8 +97,8 @@ abstract public class MissileWeapon extends Weapon {
 	
 	@Override
 	public int min() {
-		if (Dungeon.hero != null){
-			return Math.max(0, min(buffedLvl() + RingOfSharpshooting.levelDamageBonus(Dungeon.hero)));
+		if (curUser != null){
+			return Math.max(0, min(buffedLvl() + RingOfSharpshooting.levelDamageBonus(curUser)));
 		} else {
 			return Math.max(0 , min( buffedLvl() ));
 		}
@@ -112,8 +112,8 @@ abstract public class MissileWeapon extends Weapon {
 	
 	@Override
 	public int max() {
-		if (Dungeon.hero != null){
-			return Math.max(0, max( buffedLvl() + RingOfSharpshooting.levelDamageBonus(Dungeon.hero) ));
+		if (curUser != null){
+			return Math.max(0, max( buffedLvl() + RingOfSharpshooting.levelDamageBonus(curUser) ));
 		} else {
 			return Math.max(0 , max( buffedLvl() ));
 		}
@@ -147,7 +147,7 @@ abstract public class MissileWeapon extends Weapon {
 			durability = MAX_DURABILITY;
 			extraThrownLeft = false;
 			quantity = defaultQuantity();
-			Buff.affect(Dungeon.hero, UpgradedSetTracker.class).levelThresholds.put(setID, trueLevel()+1);
+			Buff.affect(curUser, UpgradedSetTracker.class).levelThresholds.put(setID, trueLevel()+1);
 		}
 		//thrown weapons don't get curse weakened
 		boolean wasCursed = cursed;
@@ -164,7 +164,7 @@ abstract public class MissileWeapon extends Weapon {
 			durability = MAX_DURABILITY;
 			extraThrownLeft = false;
 			quantity = defaultQuantity();
-			Buff.affect(Dungeon.hero, UpgradedSetTracker.class).levelThresholds.put(setID, trueLevel()+1);
+			Buff.affect(curUser, UpgradedSetTracker.class).levelThresholds.put(setID, trueLevel()+1);
 		}
 		return super.upgrade();
 	}
@@ -194,7 +194,7 @@ abstract public class MissileWeapon extends Weapon {
 			projecting += 4;
 		}
 		if ((!(this instanceof SpiritBow.SpiritArrow) && Random.Int(3) < user.pointsInTalent(Talent.SHARED_ENCHANTMENT))){
-			SpiritBow bow = Dungeon.hero.belongings.getItem(SpiritBow.class);
+			SpiritBow bow = curUser.belongings.getItem(SpiritBow.class);
 			if (bow != null && bow.hasEnchant(Projecting.class, user)) {
 				projecting += 4;
 			}
@@ -294,9 +294,9 @@ abstract public class MissileWeapon extends Weapon {
 
 	@Override
 	public int proc(Char attacker, Char defender, int damage) {
-		if (attacker == Dungeon.hero && Random.Int(3) < Dungeon.hero.pointsInTalent(Talent.SHARED_ENCHANTMENT)){
-			SpiritBow bow = Dungeon.hero.belongings.getItem(SpiritBow.class);
-			if (bow != null && bow.enchantment != null && Dungeon.hero.buff(MagicImmune.class) == null) {
+		if (attacker instanceof Hero && Random.Int(3) < curUser.pointsInTalent(Talent.SHARED_ENCHANTMENT)){
+			SpiritBow bow = curUser.belongings.getItem(SpiritBow.class);
+			if (bow != null && bow.enchantment != null && curUser.buff(MagicImmune.class) == null) {
 				damage = bow.enchantment.proc(this, attacker, defender, damage);
 			}
 		}
@@ -308,7 +308,7 @@ abstract public class MissileWeapon extends Weapon {
 		if (parent != null) parent.cursedKnown = true;
 
 		//instant ID with the right talent
-		if (attacker == Dungeon.hero && Dungeon.hero.pointsInTalent(Talent.SURVIVALISTS_INTUITION) == 2){
+		if (attacker instanceof Hero && curUser.pointsInTalent(Talent.SURVIVALISTS_INTUITION) == 2){
 			usesLeftToID = Math.min(usesLeftToID, 0);
 			availableUsesToID =  Math.max(usesLeftToID, 0);
 		}
@@ -444,8 +444,8 @@ abstract public class MissileWeapon extends Weapon {
 		float usages = baseUses * (float)(Math.pow(1.5f, level));
 
 		//+50%/75% durability
-		if (Dungeon.hero != null && Dungeon.hero.hasTalent(Talent.DURABLE_PROJECTILES)){
-			usages *= 1.25f + (0.25f*Dungeon.hero.pointsInTalent(Talent.DURABLE_PROJECTILES));
+		if (curUser != null && curUser.hasTalent(Talent.DURABLE_PROJECTILES)){
+			usages *= 1.25f + (0.25f*curUser.pointsInTalent(Talent.DURABLE_PROJECTILES));
 		}
 		if (holster) {
 			usages *= MagicalHolster.HOLSTER_DURABILITY_FACTOR;
@@ -454,7 +454,7 @@ abstract public class MissileWeapon extends Weapon {
 		//+50% durability on speed aug, -33% durability on damage aug
 		usages /= augment.delayFactor(1f);
 
-		if (Dungeon.hero != null) usages *= RingOfSharpshooting.durabilityMultiplier( Dungeon.hero );
+		if (curUser != null) usages *= RingOfSharpshooting.durabilityMultiplier( curUser );
 
 		//at 100 uses, items just last forever.
 		if (usages >= 100f) return 0;
@@ -624,16 +624,16 @@ abstract public class MissileWeapon extends Weapon {
 
 		if (levelKnown) {
 			info += "\n\n" + Messages.get(MissileWeapon.class, "stats_known", tier, augment.damageFactor(min()), augment.damageFactor(max()), STRReq());
-			if (Dungeon.hero != null) {
-				if (STRReq() > Dungeon.hero.STR()) {
+			if (curUser != null) {
+				if (STRReq() > curUser.STR()) {
 					info += " " + Messages.get(Weapon.class, "too_heavy");
-				} else if (Dungeon.hero.STR() > STRReq()) {
-					info += " " + Messages.get(Weapon.class, "excess_str", Dungeon.hero.STR() - STRReq());
+				} else if (curUser.STR() > STRReq()) {
+					info += " " + Messages.get(Weapon.class, "excess_str", curUser.STR() - STRReq());
 				}
 			}
 		} else {
 			info += "\n\n" + Messages.get(MissileWeapon.class, "stats_unknown", tier, min(0), max(0), STRReq(0));
-			if (Dungeon.hero != null && STRReq(0) > Dungeon.hero.STR()) {
+			if (curUser != null && STRReq(0) > curUser.STR()) {
 				info += " " + Messages.get(MissileWeapon.class, "probably_too_heavy");
 			}
 		}

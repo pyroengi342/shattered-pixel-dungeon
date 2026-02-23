@@ -35,6 +35,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Degrade;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Doom;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.LifeLink;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.LockedFloor;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.spells.ClericSpell;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Sheep;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Beam;
@@ -76,6 +77,8 @@ import com.watabou.utils.Reflection;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+
+import network.Multiplayer;
 
 public class DwarfKing extends Mob {
 
@@ -454,7 +457,7 @@ public class DwarfKing extends Mob {
 	@Override
 	public void damage(int dmg, Object src) {
 		//hero counts as unarmed if they aren't attacking with a weapon and aren't benefiting from force
-		if (src == Dungeon.hero && (!RingOfForce.fightingUnarmed(Dungeon.hero) || Dungeon.hero.buff(RingOfForce.Force.class) != null)){
+		if (src instanceof Hero && (!RingOfForce.fightingUnarmed((Hero) src) || ((Hero) src).buff(RingOfForce.Force.class) != null)){
 			Statistics.qualifiedForBossChallengeBadge = false;
 		//Corrosion, corruption, and regrowth do no direct damage and so have their own custom logic
 		//Transfusion damages DK and so doesn't need custom logic
@@ -471,7 +474,7 @@ public class DwarfKing extends Mob {
 			return;
 		} else if (phase == 3 && !(src instanceof Viscosity.DeferedDamage)){
 			if (dmg >= 0) {
-				Viscosity.DeferedDamage deferred = Buff.affect( this, Viscosity.DeferedDamage.class );
+				Viscosity.DeferedDamage deferred = Buff.affect( this, Viscosity.DeferedDamage.class, src );
 				deferred.extend( dmg );
 
 				sprite.showStatus( CharSprite.WARNING, Messages.get(Viscosity.class, "deferred", dmg) );
@@ -481,7 +484,7 @@ public class DwarfKing extends Mob {
 		int preHP = HP;
 		super.damage(dmg, src);
 
-		LockedFloor lock = Dungeon.hero.buff(LockedFloor.class);
+		LockedFloor lock = ((Hero) src).buff(LockedFloor.class);
 		if (lock != null && !isImmune(src.getClass()) && !isInvulnerable(src.getClass())){
 			if (Dungeon.isChallenged(Challenges.STRONGER_BOSSES))   lock.addTime(dmg/5f);
 			else                                                    lock.addTime(dmg/3f);
@@ -499,7 +502,7 @@ public class DwarfKing extends Mob {
 				phase = 2;
 				summonsMade = 0;
 				sprite.idle();
-				Buff.affect(this, DKBarrior.class).setShield(HT);
+				Buff.affect(this, DKBarrior.class, src).setShield(HT);
 				for (Summoning s : buffs(Summoning.class)) {
 					s.detach();
 				}
@@ -520,7 +523,7 @@ public class DwarfKing extends Mob {
 			summonsMade = 1; //monk/warlock on 3rd summon
 			sprite.centerEmitter().start( Speck.factory( Speck.SCREAM ), 0.4f, 2 );
 			Sample.INSTANCE.play( Assets.Sounds.CHALLENGE );
-			yell(  Messages.get(this, "enraged", Dungeon.hero.name()) );
+			yell(  Messages.get(this, "enraged", ((Hero) src).name()) );
 			BossHealthBar.bleed(true);
 			Game.runOnRenderThread(new Callback() {
 				@Override
@@ -578,15 +581,17 @@ public class DwarfKing extends Mob {
 		}
 		Bestiary.skipCountingEncounters = false;
 
-		LloydsBeacon beacon = Dungeon.hero.belongings.getItem(LloydsBeacon.class);
-		if (beacon != null) {
-			beacon.upgrade();
-		}
+        for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+            LloydsBeacon beacon = player.hero.belongings.getItem(LloydsBeacon.class);
+            if (beacon != null) {
+                beacon.upgrade();
+            }
 
-		//cleanses degrade that may have been applied by a DK warlock, mainly for convenience
-		if (Dungeon.hero.buff(Degrade.class) != null){
-			Dungeon.hero.buff(Degrade.class).detach();
-		}
+            //cleanses degrade that may have been applied by a DK warlock, mainly for convenience
+            if (player.hero.buff(Degrade.class) != null){
+                player.hero.buff(Degrade.class).detach();
+            }
+        }
 
 		yell( Messages.get(this, "defeated") );
 	}
@@ -628,7 +633,7 @@ public class DwarfKing extends Mob {
 
 		@Override
 		protected void zap() {
-			if (enemy == Dungeon.hero){
+			if (enemy instanceof Hero){
 				Statistics.bossScores[3] -= 400;
 			}
 			super.zap();
@@ -700,7 +705,7 @@ public class DwarfKing extends Mob {
 					Dungeon.level.occupyCell(m);
 					m.state = m.HUNTING;
 					if (((DwarfKing)target).phase == 2){
-						Buff.affect(m, KingDamager.class);
+						Buff.affect(m, KingDamager.class, this);
 					}
 				} else {
 					Char ch = Actor.findChar(pos);
@@ -712,7 +717,7 @@ public class DwarfKing extends Mob {
 							target.damage(target.HT/12, new KingDamager());
 						}
 					}
-					if (!ch.isAlive() && ch == Dungeon.hero) {
+					if (!ch.isAlive() && ch instanceof Hero) {
 						Dungeon.fail(DwarfKing.class);
 						GLog.n( Messages.capitalize(Messages.get(Char.class, "kill", Messages.get(DwarfKing.class, "name"))));
 					}

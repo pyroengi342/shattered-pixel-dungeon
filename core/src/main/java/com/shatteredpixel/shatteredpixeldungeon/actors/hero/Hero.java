@@ -728,7 +728,7 @@ public class Hero extends Char {
 			speed *= (2f + 0.25f*pointsInTalent(Talent.GROWING_POWER));
 		}
 
-		speed = AscensionChallenge.modifyHeroSpeed(speed);
+		speed = AscensionChallenge.modifyHeroSpeed(speed, (Hero) this);
 		
 		return speed;
 		
@@ -755,7 +755,7 @@ public class Hero extends Char {
 			return true;
 		}
 
-		KindOfWeapon wep = Dungeon.hero.belongings.attackingWeapon();
+		KindOfWeapon wep = this.belongings.attackingWeapon();
 
 		if (wep != null){
 			return wep.canReach(this, enemy.pos);
@@ -840,7 +840,7 @@ public class Hero extends Char {
 		if (!ready) {
 			//do a full observe (including fog update) if not resting.
 			if (!resting || buff(MindVision.class) != null || buff(Awareness.class) != null) {
-				Dungeon.observe();
+				Dungeon.observe( Hero.this );
 			} else {
 				//otherwise just directly re-calculate FOV
 				Dungeon.level.updateFieldOfView(this, fieldOfView);
@@ -1027,7 +1027,7 @@ public class Hero extends Char {
 				Game.runOnRenderThread(new Callback() {
 					@Override
 					public void call() {
-						GameScene.show( new WndTradeItem( heap ) );
+						GameScene.show( new WndTradeItem( heap, Hero.this ) );
 					}
 				});
 			}
@@ -1283,8 +1283,8 @@ public class Hero extends Char {
 						//1 hunger spent total
 						if (Dungeon.level.map[action.dst] == Terrain.WALL_DECO){
 							DarkGold gold = new DarkGold();
-							if (gold.doPickUp( Dungeon.hero )) {
-								DarkGold existing = Dungeon.hero.belongings.getItem(DarkGold.class);
+							if (gold.doPickUp(Hero.this)) {
+								DarkGold existing = Hero.this.belongings.getItem(DarkGold.class);
 								if (existing != null && existing.quantity()%5 == 0){
 									if (existing.quantity() >= 40) {
 										GLog.p(Messages.get(DarkGold.class, "you_now_have", existing.quantity()));
@@ -1360,7 +1360,7 @@ public class Hero extends Char {
 							ready();
 						}
 
-						Dungeon.observe();
+						Dungeon.observe( Hero.this );
 					}
 				});
 			} else {
@@ -1459,7 +1459,7 @@ public class Hero extends Char {
 			Buff.affect(this, HoldFast.class).pos = pos;
 		}
 		if (hasTalent(Talent.PATIENT_STRIKE)){
-			Buff.affect(Dungeon.hero, Talent.PatientStrikeTracker.class).pos = Dungeon.hero.pos;
+			Buff.affect(this, Talent.PatientStrikeTracker.class).pos = this.pos;
 		}
 		if (!fullRest) {
 			if (sprite != null) {
@@ -1709,7 +1709,7 @@ public class Hero extends Char {
 		
 		if (newMob) {
 			if (resting){
-				Dungeon.observe();
+				Dungeon.observe( this );
 			}
 			interrupt();
 		}
@@ -1838,7 +1838,7 @@ public class Hero extends Char {
 				} else {
 					flying = false;
 					remove(buff(Levitation.class)); //directly remove to prevent cell pressing
-					Chasm.heroFall(target);
+					Chasm.heroFall(target, this);
 				}
 				canSelfTrample = false;
 				return false;
@@ -2190,7 +2190,7 @@ public class Hero extends Char {
 		reallyDie( cause );
 	}
 	
-	public static void reallyDie( Object cause ) {
+	public void reallyDie(Object cause) {
 		
 		int length = Dungeon.level.length();
 		int[] map = Dungeon.level.map;
@@ -2210,14 +2210,14 @@ public class Hero extends Char {
 			}
 		}
 		
-		Bones.leave();
+		Bones.leave( Hero.this );
 		
-		Dungeon.observe();
+		Dungeon.observe( Hero.this );
 		GameScene.updateFog();
-				
-		Dungeon.hero.belongings.identify();
 
-		int pos = Dungeon.hero.pos;
+        this.belongings.identify();
+
+		int pos = this.pos;
 
 		ArrayList<Integer> passable = new ArrayList<>();
 		for (Integer ofs : PathFinder.NEIGHBOURS8) {
@@ -2228,7 +2228,7 @@ public class Hero extends Char {
 		}
 		Collections.shuffle( passable );
 
-		ArrayList<Item> items = new ArrayList<>(Dungeon.hero.belongings.backpack.items);
+		ArrayList<Item> items = new ArrayList<>(this.belongings.backpack.items);
 		for (Integer cell : passable) {
 			if (items.isEmpty()) {
 				break;

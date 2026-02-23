@@ -43,6 +43,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Sleep;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Slow;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Terror;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Vertigo;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.spells.WallOfLight;
 import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
 import com.shatteredpixel.shatteredpixeldungeon.effects.TargetedCell;
@@ -54,6 +55,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfBlastWave;
 import com.shatteredpixel.shatteredpixeldungeon.levels.CavesBossLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
+import com.shatteredpixel.shatteredpixeldungeon.levels.traps.Trap;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.ConeAOE;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -75,6 +77,8 @@ import com.watabou.utils.Random;
 import com.watabou.utils.Rect;
 
 import java.util.ArrayList;
+
+import network.Multiplayer;
 
 public class DM300 extends Mob {
 
@@ -175,29 +179,43 @@ public class DM300 extends Mob {
 
 			//determine if DM can reach its enemy
 			boolean canReach;
-			if (enemy == null || !enemy.isAlive()){
-				if (Dungeon.level.adjacent(pos, Dungeon.hero.pos)){
-					canReach = true;
-				} else {
-					canReach = (Dungeon.findStep(this, Dungeon.hero.pos, Dungeon.level.openSpace, fieldOfView, true) != -1);
-				}
-			} else {
-				if (Dungeon.level.adjacent(pos, enemy.pos)){
-					canReach = true;
-				} else {
-					canReach = (Dungeon.findStep(this, enemy.pos, Dungeon.level.openSpace, fieldOfView, true) != -1);
-				}
-			}
+            if (enemy == null || !enemy.isAlive()){
+                canReach = false;
+                // finding suitable hero
+                for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+                    if (Dungeon.level.adjacent(pos, player.hero.pos)){
+                        canReach = true;
+                        break;
+                    } else {
+                        canReach = (Dungeon.findStep(this, player.hero.pos, Dungeon.level.openSpace, fieldOfView, true) != -1);
+                        if (canReach) break;
+                    }
+                }
 
-			if (state != HUNTING){
-				if (Dungeon.hero.invisible <= 0 && canReach){
-					beckon(Dungeon.hero.pos);
-				}
-			} else {
+            } else {
+                if (Dungeon.level.adjacent(pos, enemy.pos)){
+                    canReach = true;
+                } else {
+                    canReach = (Dungeon.findStep(this, enemy.pos, Dungeon.level.openSpace, fieldOfView, true) != -1);
+                }
+            }
 
-				if ((enemy == null || !enemy.isAlive()) && Dungeon.hero.invisible <= 0) {
-					enemy = Dungeon.hero;
-				}
+
+            if (state != HUNTING){
+                if (enemy != null && enemy.isAlive() && enemy.invisible <= 0 && canReach){
+                    beckon(enemy.pos);
+                }
+            } else {
+
+                if ((enemy == null || !enemy.isAlive())) {
+                    // Ищем нового врага среди живых героев
+                    for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+                        if (player.hero.isAlive() && player.hero.invisible <= 0) {
+                            enemy = player.hero;
+                            break;
+                        }
+                    }
+                }
 
 				//more aggressive ability usage when DM can't reach its target
 				if (enemy != null && enemy.isAlive() && !canReach){
@@ -290,11 +308,20 @@ public class DM300 extends Mob {
 				chargeAnnounced = true;
 			}
 
-			if (Dungeon.hero.invisible <= 0){
-				beckon(Dungeon.hero.pos);
-				state = HUNTING;
-				enemy = Dungeon.hero;
-			}
+            // Ищем цель для суперзаряженного состояния
+            if (enemy == null || !enemy.isAlive() || enemy.invisible > 0) {
+                for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+                    if (player.hero.isAlive() && player.hero.invisible <= 0) {
+                        enemy = player.hero;
+                        break;
+                    }
+                }
+            }
+
+            if (enemy != null && enemy.isAlive() && enemy.invisible <= 0){
+                beckon(enemy.pos);
+                state = HUNTING;
+            }
 
 		}
 
@@ -303,7 +330,7 @@ public class DM300 extends Mob {
 
 	@Override
 	public boolean attack(Char enemy, float dmgMulti, float dmgBonus, float accMulti) {
-		if (enemy == Dungeon.hero && supercharged){
+		if (enemy instanceof Hero && supercharged){
 			Statistics.qualifiedForBossChallengeBadge = false;
 		}
 		return super.attack(enemy, dmgMulti, dmgBonus, accMulti);
@@ -313,7 +340,10 @@ public class DM300 extends Mob {
 	protected Char chooseEnemy() {
 		Char enemy = super.chooseEnemy();
 		if (supercharged && enemy == null){
-			enemy = Dungeon.hero;
+            // TODO Choose the closest one!
+            for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+                enemy = player.hero;
+            }
 		}
 		return enemy;
 	}
@@ -340,7 +370,8 @@ public class DM300 extends Mob {
 				sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(30 + (HT - HP)/10), FloatingText.SHIELDING);
 			}
 
-			Buff.affect(this, Barrier.class).setShield( 30 + (HT - HP)/10);
+            // TODO should be the trap!
+			Buff.affect(this, Barrier.class, null).setShield( 30 + (HT - HP)/10);
 
 		}
 	}
@@ -371,7 +402,9 @@ public class DM300 extends Mob {
 	}
 
 	public void ventGas( Char target ){
-		Dungeon.hero.interrupt();
+        for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+            player.hero.interrupt();
+        }
 
 		Ballistica trajectory = new Ballistica(pos, target.pos, Ballistica.STOP_TARGET);
 
@@ -407,8 +440,9 @@ public class DM300 extends Mob {
 	}
 
 	public void dropRocks( Char target ) {
+        for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+            player.hero.interrupt();}
 
-		Dungeon.hero.interrupt();
 		final int rockCenter;
 
 		//knock back 2 tiles if adjacent
@@ -416,9 +450,8 @@ public class DM300 extends Mob {
 			int oppositeAdjacent = target.pos + (target.pos - pos);
 			Ballistica trajectory = new Ballistica(target.pos, oppositeAdjacent, Ballistica.MAGIC_BOLT);
 			WandOfBlastWave.throwChar(target, trajectory, 2, false, false, this);
-			if (target == Dungeon.hero){
-				Dungeon.hero.interrupt();
-			}
+			if (target instanceof Hero){
+				((Hero) target).interrupt();}
 			rockCenter = trajectory.path.get(Math.min(trajectory.dist, 2));
 
 		//knock back 1 tile if there's 1 tile of space
@@ -426,9 +459,8 @@ public class DM300 extends Mob {
 			int oppositeAdjacent = target.pos + (target.pos - pos);
 			Ballistica trajectory = new Ballistica(target.pos, oppositeAdjacent, Ballistica.MAGIC_BOLT);
 			WandOfBlastWave.throwChar(target, trajectory, 1, false, false, this);
-			if (target == Dungeon.hero){
-				Dungeon.hero.interrupt();
-			}
+			if (target instanceof Hero){
+                ((Hero) target).interrupt();}
 			rockCenter = trajectory.path.get(Math.min(trajectory.dist, 1));
 
 		//otherwise no knockback
@@ -485,11 +517,14 @@ public class DM300 extends Mob {
 
 		int dmgTaken = preHP - HP;
 		if (dmgTaken > 0) {
-			LockedFloor lock = Dungeon.hero.buff(LockedFloor.class);
-			if (lock != null && !isImmune(src.getClass()) && !isInvulnerable(src.getClass())){
-				if (Dungeon.isChallenged(Challenges.STRONGER_BOSSES))   lock.addTime(dmgTaken/2f);
-				else                                                    lock.addTime(dmgTaken);
-			}
+            for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+                LockedFloor lock = player.hero.buff(LockedFloor.class);
+                if (lock != null && !isImmune(src.getClass()) && !isInvulnerable(src.getClass())){
+                    if (Dungeon.isChallenged(Challenges.STRONGER_BOSSES))   lock.addTime(dmgTaken/2f);
+                    else                                                    lock.addTime(dmgTaken);
+                    break;
+                }
+            }
 		}
 
 		int threshold;
@@ -588,14 +623,15 @@ public class DM300 extends Mob {
 
 		Badges.validateBossSlain();
 		if (Statistics.qualifiedForBossChallengeBadge){
-			Badges.validateBossChallengeCompleted();
-		}
+			Badges.validateBossChallengeCompleted();}
 		Statistics.bossScores[2] += 3000;
 
-		LloydsBeacon beacon = Dungeon.hero.belongings.getItem(LloydsBeacon.class);
-		if (beacon != null) {
-			beacon.upgrade();
-		}
+        for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+            LloydsBeacon beacon = player.hero.belongings.getItem(LloydsBeacon.class);
+            if (beacon != null) {
+                beacon.upgrade();
+            }
+        }
 
 		yell( Messages.get(this, "defeated") );
 	}
@@ -638,7 +674,7 @@ public class DM300 extends Mob {
 					}
 				}
 				Dungeon.level.cleanWalls();
-				Dungeon.observe();
+				Dungeon.observeAll();
 				spend(Dungeon.isChallenged(Challenges.STRONGER_BOSSES) ? 2f : 3f);
 
 				bestpos = pos;
@@ -694,8 +730,9 @@ public class DM300 extends Mob {
 					ch.damage(Random.NormalIntRange(6, 12), this);
 				}
 				if (ch.isAlive()) {
-					Buff.prolong(ch, Paralysis.class, Dungeon.isChallenged(Challenges.STRONGER_BOSSES) ? 5 : 3);
-				} else if (ch == Dungeon.hero){
+                    // TODO Change source
+					Buff.prolong(ch, Paralysis.class, Dungeon.isChallenged(Challenges.STRONGER_BOSSES) ? 5 : 3, "SETTING");
+				} else if (ch instanceof Hero){
 					Dungeon.fail( target );
 					GLog.n( Messages.get( GnollGeomancer.class, "rockfall_kill") );
 				}

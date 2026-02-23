@@ -61,12 +61,12 @@ public class WarpBeacon extends ArmorAbility {
 	}
 
 	@Override
-	public String targetingPrompt() {
-		if (Dungeon.hero.buff(WarpBeaconTracker.class) == null
-				&& Dungeon.hero.hasTalent(Talent.REMOTE_BEACON)){
+	public String targetingPrompt(Hero hero) {
+		if (hero.buff(WarpBeaconTracker.class) == null
+				&& hero.hasTalent(Talent.REMOTE_BEACON)){
 			return Messages.get(this, "prompt");
 		}
-		return super.targetingPrompt();
+		return super.targetingPrompt(hero);
 	}
 
 	@Override
@@ -103,7 +103,7 @@ public class WarpBeacon extends ArmorAbility {
 						float chargeNeeded = chargeUse(hero);
 
 						if (tracker.depth != Dungeon.depth){
-							chargeNeeded *= 1.833f - 0.333f*Dungeon.hero.pointsInTalent(Talent.LONGRANGE_WARP);
+							chargeNeeded *= 1.833f - 0.333f*hero.pointsInTalent(Talent.LONGRANGE_WARP);
 						}
 
 						if (armor.charge < chargeNeeded){
@@ -163,14 +163,14 @@ public class WarpBeacon extends ArmorAbility {
 							}
 
 							Invisibility.dispel();
-							Dungeon.observe();
+							Dungeon.observe(hero);
 							GameScene.updateFog();
 							hero.checkVisibleMobs();
 							AttackIndicator.updateState();
 
 						} else {
 
-							if (!Dungeon.interfloorTeleportAllowed()){
+							if (!Dungeon.interfloorTeleportAllowed( hero )){
 								GLog.w( Messages.get(ScrollOfTeleportation.class, "no_tele") );
 								return;
 							}

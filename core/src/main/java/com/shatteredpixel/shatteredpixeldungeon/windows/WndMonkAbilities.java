@@ -21,6 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
+import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MonkEnergy;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -30,6 +32,8 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RedButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
+
+import network.Multiplayer;
 
 public class WndMonkAbilities extends Window {
 
@@ -86,7 +90,7 @@ public class WndMonkAbilities extends Window {
 
 		@Override
 		public void onSelect(Integer cell) {
-			abilityBeingUsed.doAbility(Dungeon.hero, cell);
+			abilityBeingUsed.doAbility(Multiplayer.Players.get(getLocalPlayerId()).hero, cell);
 		}
 
 		@Override

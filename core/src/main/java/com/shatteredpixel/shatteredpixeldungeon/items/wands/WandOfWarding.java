@@ -87,8 +87,8 @@ public class WandOfWarding extends Wand {
 			}
 		}
 
-		if (Stasis.getStasisAlly() instanceof Ward){
-			currentWardEnergy += ((Ward) Stasis.getStasisAlly()).tier;
+		if (Stasis.getStasisAlly(hero) instanceof Ward){
+			currentWardEnergy += ((Ward) Stasis.getStasisAlly(hero)).tier;
 		}
 		
 		int maxWardEnergy = 0;
@@ -379,7 +379,7 @@ public class WandOfWarding extends Wand {
 				Wand.wandProc(enemy, wandLevel, 1);
 			}
 
-			if (!enemy.isAlive() && enemy == Dungeon.hero) {
+			if (!enemy.isAlive() && enemy instanceof Hero) {
 				Badges.validateDeathFromFriendlyMagic();
 				GLog.n(Messages.capitalize(Messages.get( this, "kill", name() )));
 				Dungeon.fail( WandOfWarding.class );
@@ -436,7 +436,7 @@ public class WandOfWarding extends Wand {
 		@Override
 		public void destroy() {
 			super.destroy();
-			Dungeon.observe();
+			Dungeon.observe( curUser );
 			GameScene.updateFog(pos, viewDistance+1);
 		}
 		
@@ -447,7 +447,7 @@ public class WandOfWarding extends Wand {
 
 		@Override
 		public boolean interact( Char c ) {
-			if (c != Dungeon.hero){
+			if (c != curUser){
 				return true;
 			}
 			Game.runOnRenderThread(new Callback() {

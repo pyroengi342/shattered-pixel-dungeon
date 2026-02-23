@@ -83,8 +83,8 @@ public class WandOfLivingEarth extends DamageWand {
 			}
 		}
 
-		if (Stasis.getStasisAlly() instanceof EarthGuardian){
-			guardian = (EarthGuardian)Stasis.getStasisAlly();
+		if (Stasis.getStasisAlly(hero) instanceof EarthGuardian){
+			guardian = (EarthGuardian)Stasis.getStasisAlly(hero);
 		}
 
 		RockArmor buff = curUser.buff(RockArmor.class);
@@ -235,7 +235,7 @@ public class WandOfLivingEarth extends DamageWand {
 
 		if (guardian != null){
 			guardian.sprite.centerEmitter().burst(MagicMissile.EarthParticle.ATTRACT, 8 + buffedLvl() / 2);
-			guardian.setInfo(Dungeon.hero, buffedLvl(), armor);
+			guardian.setInfo(curUser, buffedLvl(), armor);
 		} else {
 			attacker.sprite.centerEmitter().burst(MagicMissile.EarthParticle.ATTRACT, 8 + buffedLvl() / 2);
 			Buff.affect(attacker, RockArmor.class).addArmor( buffedLvl(), armor);
@@ -465,11 +465,11 @@ public class WandOfLivingEarth extends DamageWand {
 			@Override
 			public boolean act(boolean enemyInFOV, boolean justAlerted) {
 				if (!enemyInFOV){
-					Buff.affect(Dungeon.hero, RockArmor.class).addArmor(wandLevel, HP);
+					Buff.affect(curUser, RockArmor.class).addArmor(wandLevel, HP);
 					if (buff(PowerOfMany.PowerBuff.class) != null){
-						Buff.affect(Dungeon.hero, RockArmor.class).powerOfManyTurns = buff(PowerOfMany.PowerBuff.class).cooldown()+1;
+						Buff.affect(curUser, RockArmor.class).powerOfManyTurns = buff(PowerOfMany.PowerBuff.class).cooldown()+1;
 					}
-					Dungeon.hero.sprite.centerEmitter().burst(MagicMissile.EarthParticle.ATTRACT, 8 + wandLevel/2);
+					curUser.sprite.centerEmitter().burst(MagicMissile.EarthParticle.ATTRACT, 8 + wandLevel/2);
 					destroy();
 					sprite.die();
 					return true;

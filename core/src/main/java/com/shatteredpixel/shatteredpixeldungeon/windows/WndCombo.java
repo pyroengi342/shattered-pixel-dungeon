@@ -23,6 +23,7 @@ package com.shatteredpixel.shatteredpixeldungeon.windows;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Combo;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
@@ -40,7 +41,7 @@ public class WndCombo extends Window {
 
 	private static final int MARGIN  = 2;
 
-	public WndCombo( Combo combo ){
+    public WndCombo(Hero hero, Combo combo ) {
 		super();
 
 		int width = PixelScene.landscape() ? WIDTH_L : WIDTH_P;
@@ -55,15 +56,15 @@ public class WndCombo extends Window {
 		pos = title.bottom() + 3*MARGIN;
 
 		Image icon;
-		if (Dungeon.hero.belongings.weapon() != null){
-			icon = new ItemSprite(Dungeon.hero.belongings.weapon().image, null);
+		if (hero.belongings.weapon() != null){
+			icon = new ItemSprite(hero.belongings.weapon().image, null);
 		} else {
 			icon = new ItemSprite(new Item(){ {image = ItemSpriteSheet.WEAPON_HOLDER; }});
 		}
 
 		for (Combo.ComboMove move : Combo.ComboMove.values()) {
 
-			String text = "_" + Messages.titleCase(move.title()) + " " + Messages.get(this, "combo_req", move.comboReq) + ":_ " + move.desc(combo.getComboCount());
+			String text = "_" + Messages.titleCase(move.title()) + " " + Messages.get(this, "combo_req", move.comboReq) + ":_ " + move.desc(combo.getComboCount(), hero);
 			RedButton moveBtn = new RedButton(text, 6){
 				@Override
 				protected void onClick() {

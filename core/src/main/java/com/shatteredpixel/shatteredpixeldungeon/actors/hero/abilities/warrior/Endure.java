@@ -54,7 +54,7 @@ public class Endure extends ArmorAbility {
 		if (hero.buff(EndureTracker.class) != null){
 			hero.buff(EndureTracker.class).detach();
 		}
-		Buff.prolong(hero, EndureTracker.class, 12f);
+		Buff.prolong(hero, EndureTracker.class, 12f, hero);
 
 		Combo combo = hero.buff(Combo.class);
 		if (combo != null){
@@ -104,9 +104,10 @@ public class Endure extends ArmorAbility {
 				damageBonus += damage/2;
 
 				float damageMulti = 0.5f;
-				if (Dungeon.hero.hasTalent(Talent.SHRUG_IT_OFF)){
+                Hero owner = (Hero) target;
+				if (owner.hasTalent(Talent.SHRUG_IT_OFF)){
 					//total damage reduction is 60%/68%/74%/80%, based on points in talent
-					damageMulti *= Math.pow(0.8f, Dungeon.hero.pointsInTalent(Talent.SHRUG_IT_OFF));
+					damageMulti *= Math.pow(0.8f, owner.pointsInTalent(Talent.SHRUG_IT_OFF));
 				}
 
 				return damage*damageMulti;
@@ -119,8 +120,10 @@ public class Endure extends ArmorAbility {
 				return;
 			}
 
+            Hero owner = (Hero) target; // получаем героя
+
 			enduring = false;
-			damageBonus *= 1f + 0.15f*Dungeon.hero.pointsInTalent(Talent.SUSTAINED_RETRIBUTION);
+			damageBonus *= 1f + 0.15f*owner.pointsInTalent(Talent.SUSTAINED_RETRIBUTION);
 
 			int nearby = 0;
 			for (Char ch : Actor.chars()){
@@ -128,9 +131,9 @@ public class Endure extends ArmorAbility {
 					nearby ++;
 				}
 			}
-			damageBonus *= 1f + (nearby*0.05f*Dungeon.hero.pointsInTalent(Talent.EVEN_THE_ODDS));
+			damageBonus *= 1f + (nearby*0.05f*owner.pointsInTalent(Talent.EVEN_THE_ODDS));
 
-			hitsLeft = 1+Dungeon.hero.pointsInTalent(Talent.SUSTAINED_RETRIBUTION);
+			hitsLeft = 1+owner.pointsInTalent(Talent.SUSTAINED_RETRIBUTION);
 			damageBonus /= hitsLeft;
 
 			if (damageBonus > 0) {

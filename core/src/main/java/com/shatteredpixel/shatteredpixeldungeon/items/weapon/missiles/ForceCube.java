@@ -106,7 +106,7 @@ public class ForceCube extends MissileWeapon {
 		
 		for (Char target : targets){
 			curUser.shoot(target, this);
-			if (target == Dungeon.hero && !target.isAlive()){
+			if (target instanceof Hero && !target.isAlive()){
 				Badges.validateDeathFromFriendlyMagic();
 				Dungeon.fail(this);
 				GLog.n(Messages.get(this, "ondeath"));
@@ -123,7 +123,7 @@ public class ForceCube extends MissileWeapon {
 
 				@Override
 				protected boolean act() {
-					SnipersMark mark = Dungeon.hero.buff(SnipersMark.class);
+					SnipersMark mark = curUser.buff(SnipersMark.class);
 					if (mark != null && primaryTarget.isActive()){
 						mark.object = primaryTarget.id();
 					}

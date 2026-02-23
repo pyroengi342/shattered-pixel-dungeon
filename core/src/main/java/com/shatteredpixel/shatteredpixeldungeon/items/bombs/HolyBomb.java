@@ -52,7 +52,7 @@ public class HolyBomb extends Bomb {
 		super.explode(cell);
 		
 		if (Dungeon.level.heroFOV[cell]) {
-			new Flare(10, 64).show(Dungeon.hero.sprite.parent, DungeonTilemap.tileCenterToWorld(cell), 2f);
+			new Flare(10, 64).show(curUser.sprite.parent, DungeonTilemap.tileCenterToWorld(cell), 2f);
 		}
 		
 		ArrayList<Char> affected = new ArrayList<>();

@@ -42,7 +42,7 @@ public class WarpingTrap extends TeleportationTrap {
 		super.activate();
 
 		GameScene.updateFog(); //just in case hero wasn't moved
-		Dungeon.observe();
+		Dungeon.observeAll();
 
 	}
 }

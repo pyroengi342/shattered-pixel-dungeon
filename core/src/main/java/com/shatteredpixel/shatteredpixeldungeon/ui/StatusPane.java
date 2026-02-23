@@ -21,6 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.ui;
 
+import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.SPDAction;
@@ -44,6 +46,8 @@ import com.watabou.noosa.particles.Emitter;
 import com.watabou.noosa.ui.Component;
 import com.watabou.utils.ColorMath;
 import com.watabou.utils.GameMath;
+
+import network.Multiplayer;
 
 public class StatusPane extends Component {
 
@@ -109,7 +113,7 @@ public class StatusPane extends Component {
 		heroInfo = new Button(){
 			@Override
 			protected void onClick () {
-				Camera.main.panTo( Dungeon.hero.sprite.center(), 5f );
+				Camera.main.panTo( Multiplayer.Players.get(getLocalPlayerId()).hero.sprite.center(), 5f );
 				GameScene.show( new WndHero() );
 			}
 			
@@ -125,7 +129,7 @@ public class StatusPane extends Component {
 		};
 		add(heroInfo);
 
-		avatar = HeroSprite.avatar( Dungeon.hero );
+		avatar = HeroSprite.avatar( Multiplayer.Players.get(getLocalPlayerId()).hero );
 		add( avatar );
 
 		talentBlink = 0;
@@ -148,7 +152,7 @@ public class StatusPane extends Component {
 		heroInfoOnBar = new Button(){
 			@Override
 			protected void onClick () {
-				Camera.main.panTo( Dungeon.hero.sprite.center(), 5f );
+				Camera.main.panTo( Multiplayer.Players.get(getLocalPlayerId()).hero.sprite.center(), 5f );
 				GameScene.show( new WndHero() );
 			}
 		};
@@ -167,7 +171,7 @@ public class StatusPane extends Component {
 		level.hardlight( 0xFFFFAA );
 		add( level );
 
-		buffs = new BuffIndicator( Dungeon.hero, large );
+		buffs = new BuffIndicator( Multiplayer.Players.get(getLocalPlayerId()).hero, large );
 		add( buffs );
 
 		busy = new BusyIndicator();
@@ -290,11 +294,11 @@ public class StatusPane extends Component {
 	public void update() {
 		super.update();
 		
-		int health = Dungeon.hero.HP;
-		int shield = Dungeon.hero.shielding();
-		int max = Dungeon.hero.HT;
+		int health = Multiplayer.Players.get(getLocalPlayerId()).hero.HP;
+		int shield = Multiplayer.Players.get(getLocalPlayerId()).hero.shielding();
+		int max = Multiplayer.Players.get(getLocalPlayerId()).hero.HT;
 
-		if (!Dungeon.hero.isAlive()) {
+		if (!Multiplayer.Players.get(getLocalPlayerId()).hero.isAlive()) {
 			avatar.tint(0x000000, 0.5f);
 		} else if ((health/(float)max) < 0.334f) {
 			warning += Game.elapsed * 5f *(0.4f - (health/(float)max));
@@ -331,27 +335,27 @@ public class StatusPane extends Component {
 		}
 
 		if (large) {
-			exp.scale.x = (128 / exp.width) * Dungeon.hero.exp / Dungeon.hero.maxExp();
+			exp.scale.x = (128 / exp.width) * Multiplayer.Players.get(getLocalPlayerId()).hero.exp / Multiplayer.Players.get(getLocalPlayerId()).hero.maxExp();
 
 			hpText.measure();
 			hpText.x = hp.x + (128 - hpText.width())/2f;
 
-			expText.text(Dungeon.hero.exp + "/" + Dungeon.hero.maxExp());
+			expText.text(Multiplayer.Players.get(getLocalPlayerId()).hero.exp + "/" + Multiplayer.Players.get(getLocalPlayerId()).hero.maxExp());
 			expText.measure();
 			expText.x = hp.x + (128 - expText.width())/2f;
 
 		} else {
-			exp.scale.x = ((17 + heroPaneExtraWidth) / exp.width) * Dungeon.hero.exp / Dungeon.hero.maxExp();
-			expText.text(Dungeon.hero.exp + "/" + Dungeon.hero.maxExp());
+			exp.scale.x = ((17 + heroPaneExtraWidth) / exp.width) * Multiplayer.Players.get(getLocalPlayerId()).hero.exp / Multiplayer.Players.get(getLocalPlayerId()).hero.maxExp();
+			expText.text(Multiplayer.Players.get(getLocalPlayerId()).hero.exp + "/" + Multiplayer.Players.get(getLocalPlayerId()).hero.maxExp());
 		}
 
-		if (Dungeon.hero.lvl != lastLvl) {
+		if (Multiplayer.Players.get(getLocalPlayerId()).hero.lvl != lastLvl) {
 
 			if (lastLvl != -1) {
 				showStarParticles();
 			}
 
-			lastLvl = Dungeon.hero.lvl;
+			lastLvl = Multiplayer.Players.get(getLocalPlayerId()).hero.lvl;
 
 			if (large){
 				level.text( "lv. " + lastLvl );
@@ -367,17 +371,17 @@ public class StatusPane extends Component {
 			PixelScene.align(level);
 		}
 
-		int tier = Dungeon.hero.tier();
+		int tier = Multiplayer.Players.get(getLocalPlayerId()).hero.tier();
 		if (tier != lastTier) {
 			lastTier = tier;
-			avatar.copy( HeroSprite.avatar( Dungeon.hero ) );
+			avatar.copy( HeroSprite.avatar( Multiplayer.Players.get(getLocalPlayerId()).hero ) );
 		}
 
 		counter.setSweep((1f - Actor.now()%1f)%1f);
 	}
 
 	public void updateAvatar(){
-		avatar.copy( HeroSprite.avatar( Dungeon.hero ) );
+		avatar.copy( HeroSprite.avatar( Multiplayer.Players.get(getLocalPlayerId()).hero ) );
 	}
 
 	public void alpha( float value ){

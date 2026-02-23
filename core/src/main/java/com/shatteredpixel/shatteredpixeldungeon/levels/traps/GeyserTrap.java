@@ -28,6 +28,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Fire;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Burning;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Splash;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfBlastWave;
@@ -112,7 +113,7 @@ public class GeyserTrap extends Trap {
 			int targetpos = -1;
 			if (centerKnockBackDirection != -1){
 				targetpos = centerKnockBackDirection;
-			} else if (ch == Dungeon.hero){
+			} else if (ch instanceof Hero){
 				//if it is the hero, random direction that isn't into a hazard
 				ArrayList<Integer> candidates = new ArrayList<>();
 				for (int i : PathFinder.NEIGHBOURS8){

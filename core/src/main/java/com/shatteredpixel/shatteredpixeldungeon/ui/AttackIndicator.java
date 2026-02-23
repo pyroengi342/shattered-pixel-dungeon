@@ -21,6 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.ui;
 
+import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.SPDAction;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
@@ -35,6 +37,8 @@ import com.watabou.utils.Random;
 import com.watabou.utils.Reflection;
 
 import java.util.ArrayList;
+
+import network.Multiplayer;
 
 //FIXME needs a refactor, lots of weird thread interaction here.
 public class AttackIndicator extends Tag {
@@ -100,9 +104,9 @@ public class AttackIndicator extends Tag {
 			active = true;
 			if (bg.width > 0 && sprite != null)sprite.visible = true;
 
-			if (Dungeon.hero.isAlive()) {
+			if (Multiplayer.Players.get(getLocalPlayerId()).hero.isAlive()) {
 
-				enable(Dungeon.hero.ready);
+				enable(Multiplayer.Players.get(getLocalPlayerId()).hero.ready);
 
 			} else {
 				visible( false );
@@ -114,10 +118,10 @@ public class AttackIndicator extends Tag {
 	private synchronized void checkEnemies() {
 
 		candidates.clear();
-		int v = Dungeon.hero.visibleEnemies();
+		int v = Multiplayer.Players.get(getLocalPlayerId()).hero.visibleEnemies();
 		for (int i=0; i < v; i++) {
-			Mob mob = Dungeon.hero.visibleEnemy( i );
-			if ( Dungeon.hero.canAttack( mob) ) {
+			Mob mob = Multiplayer.Players.get(getLocalPlayerId()).hero.visibleEnemy( i );
+			if ( Multiplayer.Players.get(getLocalPlayerId()).hero.canAttack( mob) ) {
 				candidates.add( mob );
 			}
 		}
@@ -180,9 +184,9 @@ public class AttackIndicator extends Tag {
 	@Override
 	protected void onClick() {
 		super.onClick();
-		if (enabled && Dungeon.hero.ready) {
-			if (Dungeon.hero.handle( lastTarget.pos )) {
-				Dungeon.hero.next();
+		if (enabled && Multiplayer.Players.get(getLocalPlayerId()).hero.ready) {
+			if (Multiplayer.Players.get(getLocalPlayerId()).hero.handle( lastTarget.pos )) {
+                Multiplayer.Players.get(getLocalPlayerId()).hero.next();
 			}
 		}
 	}

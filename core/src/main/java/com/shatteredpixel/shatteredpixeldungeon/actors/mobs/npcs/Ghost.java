@@ -27,6 +27,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AscensionChallenge;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.FetidRat;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.GnollTrickster;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.GreatCrab;
@@ -54,6 +55,8 @@ import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Callback;
 import com.watabou.utils.Random;
+
+import network.Multiplayer;
 
 public class Ghost extends NPC {
 
@@ -88,11 +91,14 @@ public class Ghost extends NPC {
 
 	@Override
 	protected boolean act() {
-		if (Dungeon.hero.buff(AscensionChallenge.class) != null){
-			die(null);
-			Notes.remove( landmark() );
-			return true;
-		}
+        for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+            if (player.hero.buff(AscensionChallenge.class) != null){
+                die(null);
+                Notes.remove( landmark() );
+                return true;
+            }
+        }
+        Notes.remove( landmark() );
 		return super.act();
 	}
 
@@ -132,10 +138,11 @@ public class Ghost extends NPC {
 		
 		Sample.INSTANCE.play( Assets.Sounds.GHOST );
 
-		if (c != Dungeon.hero){
+		if (!(c instanceof Hero)){
 			return super.interact(c);
 		}
-		
+        Hero hero = (Hero) c;
+
 		if (Quest.given) {
 			if (Quest.weapon != null) {
 				if (Quest.processed) {
@@ -173,13 +180,13 @@ public class Ghost extends NPC {
 			switch (Quest.type){
 				case 1: default:
 					questBoss = new FetidRat();
-					txt_quest = Messages.get(this, "rat_1", Messages.titleCase(Dungeon.hero.name())); break;
+					txt_quest = Messages.get(this, "rat_1", Messages.titleCase(hero.name())); break;
 				case 2:
 					questBoss = new GnollTrickster();
-					txt_quest = Messages.get(this, "gnoll_1", Messages.titleCase(Dungeon.hero.name())); break;
+					txt_quest = Messages.get(this, "gnoll_1", Messages.titleCase(hero.name())); break;
 				case 3:
 					questBoss = new GreatCrab();
-					txt_quest = Messages.get(this, "crab_1", Messages.titleCase(Dungeon.hero.name())); break;
+					txt_quest = Messages.get(this, "crab_1", Messages.titleCase(hero.name())); break;
 			}
 
 			questBoss.pos = Dungeon.level.randomRespawnCell( this );

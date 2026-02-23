@@ -148,24 +148,24 @@ public class Artifact extends KindofMisc {
 	}
 
 	public static void artifactProc(Char target, int artifLevel, int chargesUsed){
-		if (Dungeon.hero.subClass == HeroSubClass.PRIEST && target.buff(GuidingLight.Illuminated.class) != null) {
+		if (curUser.subClass == HeroSubClass.PRIEST && target.buff(GuidingLight.Illuminated.class) != null) {
 			target.buff(GuidingLight.Illuminated.class).detach();
-			target.damage(5+Dungeon.hero.lvl, GuidingLight.INSTANCE);
+			target.damage(5+curUser.lvl, GuidingLight.INSTANCE);
 		}
 
 		if (target.alignment != Char.Alignment.ALLY
-				&& Dungeon.hero.heroClass != HeroClass.CLERIC
-				&& Dungeon.hero.hasTalent(Talent.SEARING_LIGHT)
-				&& Dungeon.hero.buff(Talent.SearingLightCooldown.class) == null){
+				&& curUser.heroClass != HeroClass.CLERIC
+				&& curUser.hasTalent(Talent.SEARING_LIGHT)
+				&& curUser.buff(Talent.SearingLightCooldown.class) == null){
 			Buff.affect(target, GuidingLight.Illuminated.class);
-			Buff.affect(Dungeon.hero, Talent.SearingLightCooldown.class, 20f);
+			Buff.affect(curUser, Talent.SearingLightCooldown.class, 20f);
 		}
 
 		if (target.alignment != Char.Alignment.ALLY
-				&& Dungeon.hero.heroClass != HeroClass.CLERIC
-				&& Dungeon.hero.hasTalent(Talent.SUNRAY)){
+				&& curUser.heroClass != HeroClass.CLERIC
+				&& curUser.hasTalent(Talent.SUNRAY)){
 			// 15/25% chance
-			if (Random.Int(20) < 1 + 2*Dungeon.hero.pointsInTalent(Talent.SUNRAY)){
+			if (Random.Int(20) < 1 + 2*curUser.pointsInTalent(Talent.SUNRAY)){
 				Buff.prolong(target, Blindness.class, 4f);
 			}
 		}
@@ -173,10 +173,10 @@ public class Artifact extends KindofMisc {
 
 	@Override
 	public String info() {
-		if (cursed && cursedKnown && !isEquipped( Dungeon.hero )) {
+		if (cursed && cursedKnown && !isEquipped( curUser )) {
 			return super.info() + "\n\n" + Messages.get(Artifact.class, "curse_known");
 			
-		} else if (!isIdentified() && cursedKnown && !isEquipped( Dungeon.hero)) {
+		} else if (!isIdentified() && cursedKnown && !isEquipped( curUser)) {
 			return super.info() + "\n\n" + Messages.get(Artifact.class, "not_cursed");
 			
 		} else {
@@ -256,7 +256,7 @@ public class Artifact extends KindofMisc {
 		public boolean attachTo( Char target ) {
 			if (super.attachTo( target )) {
 				//if we're loading in and the hero has partially spent a turn, delay for 1 turn
-				if (target instanceof Hero && Dungeon.hero == null && cooldown() == 0 && target.cooldown() > 0) {
+				if (target instanceof Hero  && cooldown() == 0 && target.cooldown() > 0) {
 					spend(TICK);
 				}
 				return true;

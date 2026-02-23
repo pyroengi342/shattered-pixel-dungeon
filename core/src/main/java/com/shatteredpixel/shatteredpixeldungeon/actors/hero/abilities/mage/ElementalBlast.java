@@ -21,6 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.mage;
 
+import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Challenges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
@@ -86,6 +88,8 @@ import com.watabou.utils.Random;
 import com.watabou.utils.Reflection;
 
 import java.util.HashMap;
+
+import network.Multiplayer;
 
 public class ElementalBlast extends ArmorAbility {
 
@@ -444,7 +448,7 @@ public class ElementalBlast extends ArmorAbility {
 	public String desc() {
 		String desc = Messages.get(this, "desc");
 		if (Game.scene() instanceof GameScene){
-			MagesStaff staff = Dungeon.hero.belongings.getItem(MagesStaff.class);
+			MagesStaff staff = Multiplayer.Players.get(getLocalPlayerId()).hero.belongings.getItem(MagesStaff.class);
 			if (staff != null && staff.wandClass() != null){
 				desc += "\n\n" + Messages.get(staff.wandClass(), "eleblast_desc");
 			} else {

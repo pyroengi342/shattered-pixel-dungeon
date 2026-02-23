@@ -115,7 +115,7 @@ public class WandOfDisintegration extends DamageWand {
 		}
 		
 		if (terrainAffected) {
-			Dungeon.observe();
+			Dungeon.observeAll();
 		}
 		
 		int lvl = level + (chars.size()-1) + terrainBonus;

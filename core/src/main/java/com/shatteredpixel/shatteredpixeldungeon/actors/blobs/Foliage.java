@@ -32,6 +32,8 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 
+import network.Multiplayer;
+
 public class Foliage extends Blob {
 
 	@Override
@@ -67,14 +69,14 @@ public class Foliage extends Blob {
 				}
 			}
 		}
-		
-		Hero hero = Dungeon.hero;
-		if (hero.isAlive() && cur[hero.pos] > 0) {
-			Shadows s = Buff.affect( hero, Shadows.class );
-			if (s != null){
-				s.prolong();
-			}
-		}
+        for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+            if (player.hero.isAlive() && cur[player.hero.pos] > 0) {
+                Shadows s = Buff.affect( player.hero, Shadows.class, this);
+                if (s != null){
+                    s.prolong();
+                }
+            }
+        }
 	}
 	
 	@Override

@@ -21,6 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.spells;
 
+import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
@@ -36,6 +38,8 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
 import com.watabou.noosa.audio.Sample;
+
+import network.Multiplayer;
 
 public class DivineSense extends ClericSpell {
 
@@ -58,8 +62,8 @@ public class DivineSense extends ClericSpell {
 
 	@Override
 	public void onCast(HolyTome tome, Hero hero) {
-		Buff.prolong(hero, DivineSenseTracker.class, DivineSenseTracker.DURATION);
-		Dungeon.observe();
+		Buff.prolong(hero, DivineSenseTracker.class, DivineSenseTracker.DURATION, hero);
+		Dungeon.observe( hero );
 
 		Sample.INSTANCE.play(Assets.Sounds.READ);
 
@@ -69,15 +73,15 @@ public class DivineSense extends ClericSpell {
 
 		Char ally = PowerOfMany.getPoweredAlly();
 		if (ally != null && ally.buff(LifeLinkSpell.LifeLinkSpellBuff.class) != null){
-			Buff.prolong(ally, DivineSenseTracker.class, DivineSenseTracker.DURATION);
+			Buff.prolong(ally, DivineSenseTracker.class, DivineSenseTracker.DURATION, hero);
 			SpellSprite.show(ally, SpellSprite.VISION);
 		}
 
 		onSpellCast(tome, hero);
 	}
 
-	public String desc(){
-		return Messages.get(this, "desc", 4+4*Dungeon.hero.pointsInTalent(Talent.DIVINE_SENSE)) + "\n\n" + Messages.get(this, "charge_cost", (int)chargeUse(Dungeon.hero));
+	public String desc(Hero hero){
+		return Messages.get(this, "desc", 4+4* hero.pointsInTalent(Talent.DIVINE_SENSE)) + "\n\n" + Messages.get(this, "charge_cost", (int)chargeUse(hero));
 	}
 
 	public static class DivineSenseTracker extends FlavourBuff {
@@ -101,7 +105,10 @@ public class DivineSense extends ClericSpell {
 		@Override
 		public void detach() {
 			super.detach();
-			Dungeon.observe();
+            if (target instanceof Hero)
+            {
+                Dungeon.observe((Hero) target);
+            }
 			GameScene.updateFog();
 		}
 	}

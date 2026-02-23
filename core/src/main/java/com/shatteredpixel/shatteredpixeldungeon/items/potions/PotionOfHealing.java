@@ -56,14 +56,14 @@ public class PotionOfHealing extends Potion {
 	}
 
 	public static void heal( Char ch ){
-		if (ch == Dungeon.hero && Dungeon.isChallenged(Challenges.NO_HEALING)){
-			pharmacophobiaProc(Dungeon.hero);
+		if (ch instanceof Hero && Dungeon.isChallenged(Challenges.NO_HEALING)){
+			pharmacophobiaProc(curUser);
 		} else {
 			//starts out healing 30 hp, equalizes with hero health total at level 11
 			Healing healing = Buff.affect(ch, Healing.class);
 			healing.setHeal((int) (0.8f * ch.HT + 14), 0.25f, 0);
 			healing.applyVialEffect();
-			if (ch == Dungeon.hero){
+			if (ch instanceof Hero){
 				GLog.p( Messages.get(PotionOfHealing.class, "heal") );
 			}
 		}

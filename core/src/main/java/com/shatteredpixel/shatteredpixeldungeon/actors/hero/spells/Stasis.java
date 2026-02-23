@@ -58,8 +58,8 @@ public class Stasis extends ClericSpell {
 	}
 
 	@Override
-	public String desc() {
-		return Messages.get(this, "desc", 30 + 30*Dungeon.hero.pointsInTalent(Talent.STASIS)) + "\n\n" + Messages.get(this, "charge_cost", (int)chargeUse(Dungeon.hero));
+    public String desc(Hero hero){
+		return Messages.get(this, "desc", 30 + 30*hero.pointsInTalent(Talent.STASIS)) + "\n\n" + Messages.get(this, "charge_cost", (int)chargeUse(hero));
 	}
 
 	@Override
@@ -105,7 +105,7 @@ public class Stasis extends ClericSpell {
 		}
 		ally.clearTime();
 
-		Buff.prolong(hero, StasisBuff.class, 30 + 30*hero.pointsInTalent(Talent.STASIS)).stasisAlly = (Mob)ally;
+		Buff.prolong(hero, StasisBuff.class, 30 + 30*hero.pointsInTalent(Talent.STASIS), hero).stasisAlly = (Mob)ally;
 		Sample.INSTANCE.play(Assets.Sounds.TELEPORT);
 
 		if (hero.buff(LifeLink.class) != null && hero.buff(LifeLink.class).object == ally.id()){
@@ -113,17 +113,17 @@ public class Stasis extends ClericSpell {
 		}
 
 		hero.spendAndNext(Actor.TICK);
-		Dungeon.observe();
+		Dungeon.observe( hero );
 		GameScene.updateFog();
 
 	}
 
-	public static Char getStasisAlly(){
-		if (Dungeon.hero != null && Dungeon.hero.buff(StasisBuff.class) != null){
-			return Dungeon.hero.buff(StasisBuff.class).stasisAlly;
-		}
-		return null;
-	}
+    public static Char getStasisAlly(Hero hero){
+        if (hero != null && hero.buff(StasisBuff.class) != null){
+            return hero.buff(StasisBuff.class).stasisAlly;
+        }
+        return null;
+    }
 
 	public static class StasisBuff extends FlavourBuff {
 
@@ -136,46 +136,45 @@ public class Stasis extends ClericSpell {
 			return BuffIndicator.MANY_POWER;
 		}
 
+        @Override
+        public float iconFadePercent() {
+            int duration = 30 + 30 * ((Hero) target).pointsInTalent(Talent.STASIS);
+            return Math.max(0, (duration - visualcooldown()) / duration);
+        }
 		@Override
-		public float iconFadePercent() {
-			int duration = 30 + 30*Dungeon.hero.pointsInTalent(Talent.STASIS);
-			return Math.max(0, (duration - visualcooldown()) / duration);
-		}
-
-		@Override
-		public String desc() {
+	    public String desc(){
 			return Messages.get(this, "desc", Messages.titleCase(stasisAlly.name()), dispTurns());
 		}
 
-		@Override
-		public boolean act() {
-			ArrayList<Integer> spawnPoints = new ArrayList<>();
-			for (int i = 0; i < PathFinder.NEIGHBOURS8.length; i++) {
-				int p = target.pos + PathFinder.NEIGHBOURS8[i];
-				if (Actor.findChar(p) == null
-						&& (Dungeon.level.passable[p] || (stasisAlly.flying && Dungeon.level.avoid[p])) ){
-					spawnPoints.add(p);
-				}
-			}
-			if (spawnPoints.isEmpty()){
-				spawnPoints.add(target.pos + PathFinder.NEIGHBOURS8[Random.Int(8)]);
-			}
-			stasisAlly.pos = Random.element(spawnPoints);
-			GameScene.add(stasisAlly);
+        @Override
+        public boolean act() {
+            ArrayList<Integer> spawnPoints = new ArrayList<>();
+            for (int i = 0; i < PathFinder.NEIGHBOURS8.length; i++) {
+                int p = target.pos + PathFinder.NEIGHBOURS8[i];
+                if (Actor.findChar(p) == null
+                        && (Dungeon.level.passable[p] || (stasisAlly.flying && Dungeon.level.avoid[p])) ){
+                    spawnPoints.add(p);
+                }
+            }
+            if (spawnPoints.isEmpty()){
+                spawnPoints.add(target.pos + PathFinder.NEIGHBOURS8[Random.Int(8)]);
+            }
+            stasisAlly.pos = Random.element(spawnPoints);
+            GameScene.add(stasisAlly);
 
-			if (stasisAlly instanceof DirectableAlly){
-				((DirectableAlly) stasisAlly).clearDefensingPos();
-			}
+            if (stasisAlly instanceof DirectableAlly){
+                ((DirectableAlly) stasisAlly).clearDefensingPos();
+            }
 
-			if (stasisAlly.buff(LifeLink.class) != null){
-				Buff.prolong(Dungeon.hero, LifeLink.class, stasisAlly.buff(LifeLink.class).cooldown()).object = stasisAlly.id();
-			}
+            if (stasisAlly.buff(LifeLink.class) != null){
+                Buff.prolong((Hero) target, LifeLink.class, stasisAlly.buff(LifeLink.class).cooldown(), null).object = stasisAlly.id();
+            }
 
-			ScrollOfTeleportation.appear(stasisAlly, stasisAlly.pos);
-			Sample.INSTANCE.play(Assets.Sounds.TELEPORT);
+            ScrollOfTeleportation.appear(stasisAlly, stasisAlly.pos);
+            Sample.INSTANCE.play(Assets.Sounds.TELEPORT);
 
-			return super.act();
-		}
+            return super.act();
+        }
 
 		Mob stasisAlly;
 

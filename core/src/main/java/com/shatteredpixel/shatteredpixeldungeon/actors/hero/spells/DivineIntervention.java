@@ -21,6 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.spells;
 
+import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
@@ -36,6 +38,8 @@ import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
 import com.watabou.noosa.audio.Sample;
+
+import network.Multiplayer;
 
 public class DivineIntervention extends ClericSpell {
 
@@ -67,7 +71,7 @@ public class DivineIntervention extends ClericSpell {
 
 		for (Char ch : Actor.chars()){
 			if (ch.alignment == Char.Alignment.ALLY && ch != hero){
-				Buff.affect(ch, DivineShield.class).setShield(100 + 50*hero.pointsInTalent(Talent.DIVINE_INTERVENTION));
+				Buff.affect(ch, DivineShield.class, hero).setShield(100 + 50*hero.pointsInTalent(Talent.DIVINE_INTERVENTION));
 				new Flare(6, 32).color(0xFFFF00, true).show(ch.sprite, 2f);
 			}
 		}
@@ -85,10 +89,10 @@ public class DivineIntervention extends ClericSpell {
 	}
 
 	@Override
-	public String desc() {
-		int shield = 100 + 50*Dungeon.hero.pointsInTalent(Talent.DIVINE_INTERVENTION);
-		int leftBonus = 2+Dungeon.hero.pointsInTalent(Talent.DIVINE_INTERVENTION);
-		return Messages.get(this, "desc", shield, leftBonus) + "\n\n" + Messages.get(this, "charge_cost", (int)chargeUse(Dungeon.hero));
+	public String desc(Hero hero) {
+		int shield = 100 + 50*hero.pointsInTalent(Talent.DIVINE_INTERVENTION);
+		int leftBonus = 2+ hero.pointsInTalent(Talent.DIVINE_INTERVENTION);
+		return Messages.get(this, "desc", shield, leftBonus) + "\n\n" + Messages.get(this, "charge_cost", (int)chargeUse(hero));
 	}
 
 	public static class DivineShield extends ShieldBuff{
@@ -100,7 +104,7 @@ public class DivineIntervention extends ClericSpell {
 		@Override
 		public boolean act() {
 
-			if (Dungeon.hero == null || Dungeon.hero.buff(AscendedForm.AscendBuff.class) == null){
+			if (target == null || target.buff(AscendedForm.AscendBuff.class) == null){
 				detach();
 			}
 
@@ -110,7 +114,7 @@ public class DivineIntervention extends ClericSpell {
 
 		@Override
 		public int shielding() {
-			if (Dungeon.hero == null || Dungeon.hero.buff(AscendedForm.AscendBuff.class) == null){
+			if (target == null || target.buff(AscendedForm.AscendBuff.class) == null){
 				return 0;
 			}
 			return super.shielding();

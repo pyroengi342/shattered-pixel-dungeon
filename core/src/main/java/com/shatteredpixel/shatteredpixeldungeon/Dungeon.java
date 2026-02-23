@@ -21,6 +21,9 @@
 
 package com.shatteredpixel.shatteredpixeldungeon;
 
+import static network.Multiplayer.calculateHeroPositions;
+import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Amok;
@@ -33,6 +36,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MindVision;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.RevealedArea;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Terror;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.cleric.PowerOfMany;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.huntress.SpiritHawk;
@@ -94,8 +98,11 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
+
+import network.Multiplayer;
 
 public class Dungeon {
 
@@ -278,12 +285,52 @@ public class Dungeon {
 		Blacksmith.Quest.reset();
 		Imp.Quest.reset();
 
-		hero = new Hero();
-		hero.live();
-		
-		Badges.reset();
-		
-		GamesInProgress.selectedClass.initHero( hero );
+        if (network.Multiplayer.isMultiplayer) {
+            // Проверяем, есть ли уже игроки (включая администратора)
+            List<Multiplayer.PlayerInfo> players = Multiplayer.Players.getAll();
+            boolean hasHostHero = false;
+
+            for (Multiplayer.PlayerInfo player : players) {
+                if (player.hero != null) {
+                    hasHostHero = true;
+                    break;
+                }
+            }
+
+            // Если у администратора еще нет героя, создаем его
+            if (Multiplayer.isHost && !hasHostHero && !players.isEmpty()) {
+                Multiplayer.PlayerInfo host = players.get(0);
+                host.hero = new Hero();
+                host.hero.live();
+                GamesInProgress.selectedClass.initHero(host.hero);
+                System.out.println("Created hero for host in init()");
+            }
+            // TODO need to add more checks
+            // Adding every connected player right now
+            for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+
+                player.hero = new Hero();
+                player.hero.live();
+//                if (player.hero.heroClass != null) {
+//                    player.hero.heroClass.initHero(player.hero);
+//                } else {
+//                    // Если класс не выбран, используем класс по умолчанию
+//                    player.hero.heroClass = HeroClass.WARRIOR;
+//                    player.hero.heroClass.initHero(player.hero); // или другой класс по умолчанию
+//                }
+
+                System.out.println("Created hero for player: " + player.name + " (ID: " + player.id + ")");
+                GamesInProgress.selectedClass.initHero( player.hero );
+            }
+        } else {
+            hero = new Hero();
+            hero.live();
+        }
+
+        Badges.reset();
+
+        // TODO better show the player you actually play
+        // GamesInProgress.selectedClass.initHero( hero );
 	}
 
 	public static boolean isChallenged( int mask ) {
@@ -445,77 +492,182 @@ public class Dungeon {
 	//value used for scaling of damage values and other effects.
 	//is usually the dungeon depth, but can be set to 26 when ascending
 	public static int scalingDepth(){
-		if (Dungeon.hero != null && Dungeon.hero.buff(AscensionChallenge.class) != null){
-			return 26;
-		} else {
-			return depth;
-		}
-	}
+        // affects everyone
+        for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+            if (player.hero != null && player.hero.buff(AscensionChallenge.class) != null){
+                return 26;
+            }
+        }
+        return depth;
+    }
 
-	public static boolean interfloorTeleportAllowed(){
+	public static boolean interfloorTeleportAllowed( Hero hero ){
 		if (Dungeon.level.locked
 				|| Dungeon.level instanceof MiningLevel
-				|| (Dungeon.hero != null && Dungeon.hero.belongings.getItem(Amulet.class) != null)){
+				|| (hero != null && hero.belongings.getItem(Amulet.class) != null)){
 			return false;
 		}
 		return true;
 	}
-	
-	public static void switchLevel( final Level level, int pos ) {
 
-		//Position of -2 specifically means trying to place the hero the exit
-		if (pos == -2){
-			LevelTransition t = level.getTransition(LevelTransition.Type.REGULAR_EXIT);
-			if (t != null) pos = t.cell();
-		}
+    public static void switchLevel( final Level level, int pos ) {
+        //Position of -2 specifically means trying to place the hero the exit
+        if (pos == -2){
+            LevelTransition t = level.getTransition(LevelTransition.Type.REGULAR_EXIT);
+            if (t != null) pos = t.cell();
+        }
 
-		//Place hero at the entrance if they are out of the map (often used for pos = -1)
-		// or if they are in invalid terrain terrain (except in the mining level, where that happens normally)
-		if (pos < 0 || pos >= level.length() || level.invalidHeroPos(pos)){
-			pos = level.getTransition(null).cell();
-		}
-		
-		PathFinder.setMapSize(level.width(), level.height());
-		
-		Dungeon.level = level;
-		hero.pos = pos;
+        PathFinder.setMapSize(level.width(), level.height());
+        Dungeon.level = level;
 
-		if (hero.buff(AscensionChallenge.class) != null){
-			hero.buff(AscensionChallenge.class).onLevelSwitch();
-		}
+        if (network.Multiplayer.isMultiplayer) {
+            // МУЛЬТИПЛЕЕР: обрабатываем всех игроков
+            List<Multiplayer.PlayerInfo> players = Multiplayer.Players.getAll();
 
-		Mob.restoreAllies( level, pos );
+            // Определяем начальную позицию для первого героя
+            int basePos = pos;
+            if (basePos < 0 || basePos >= level.length() || level.invalidHeroPos(basePos)) {
+                basePos = level.getTransition(null).cell();
+            }
 
-		Actor.init();
+            // Распределяем героев вокруг базовой позиции
+            List<Integer> heroPositions = calculateHeroPositions(level, basePos, players.size());
 
-		level.addRespawner();
-		
-		for(Mob m : level.mobs){
-			if (m.pos == hero.pos && !Char.hasProp(m, Char.Property.IMMOVABLE)){
-				//displace mob
-				for(int i : PathFinder.NEIGHBOURS8){
-					if (Actor.findChar(m.pos+i) == null && level.passable[m.pos + i]){
-						m.pos += i;
-						break;
-					}
-				}
-			}
-		}
-		
-		Light light = hero.buff( Light.class );
-		hero.viewDistance = light == null ? level.viewDistance : Math.max( Light.DISTANCE, level.viewDistance );
-		
-		hero.curAction = hero.lastAction = null;
+            for (int i = 0; i < players.size(); i++) {
+                Multiplayer.PlayerInfo player = players.get(i);
+                if (player.hero != null) {
+                    int heroPos = heroPositions.get(i % heroPositions.size());
+                    player.hero.pos = heroPos;
 
-		observe();
-		try {
-			saveAll();
-		} catch (IOException e) {
-			ShatteredPixelDungeon.reportException(e);
-			/*This only catches IO errors. Yes, this means things can go wrong, and they can go wrong catastrophically.
-			But when they do the user will get a nice 'report this issue' dialogue, and I can fix the bug.*/
-		}
-	}
+                    // Применяем эффекты перехода уровня для каждого героя
+                    if (player.hero.buff(AscensionChallenge.class) != null) {
+                        player.hero.buff(AscensionChallenge.class).onLevelSwitch(player.hero);
+                    }
+
+                    // Восстанавливаем союзников для каждого героя
+                    Mob.restoreAllies(level, heroPos);
+
+                    // Смещаем мобов, если они занимают позицию героя
+                    for (Mob m : level.mobs) {
+                        if (m.pos == heroPos && !Char.hasProp(m, Char.Property.IMMOVABLE)) {
+                            for (int dir : PathFinder.NEIGHBOURS8) {
+                                if (Actor.findChar(m.pos + dir) == null && level.passable[m.pos + dir]) {
+                                    m.pos += dir;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    Light light = player.hero.buff(Light.class);
+                    player.hero.viewDistance = light == null ? level.viewDistance : Math.max(Light.DISTANCE, level.viewDistance);
+
+                    player.hero.curAction = player.hero.lastAction = null;
+                }
+            }
+        } else {
+            // ОДИНОЧНАЯ ИГРА: оригинальная логика
+            //Place hero at the entrance if they are out of the map
+            if (pos < 0 || pos >= level.length() || level.invalidHeroPos(pos)) {
+                pos = level.getTransition(null).cell();
+            }
+
+            hero.pos = pos;
+
+            if (hero.buff(AscensionChallenge.class) != null) {
+                hero.buff(AscensionChallenge.class).onLevelSwitch(hero);
+            }
+
+            Mob.restoreAllies(level, pos);
+
+            for (Mob m : level.mobs) {
+                if (m.pos == hero.pos && !Char.hasProp(m, Char.Property.IMMOVABLE)) {
+                    //displace mob
+                    for (int i : PathFinder.NEIGHBOURS8) {
+                        if (Actor.findChar(m.pos + i) == null && level.passable[m.pos + i]) {
+                            m.pos += i;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            Light light = hero.buff(Light.class);
+            hero.viewDistance = light == null ? level.viewDistance : Math.max(Light.DISTANCE, level.viewDistance);
+
+            hero.curAction = hero.lastAction = null;
+        }
+
+        Actor.init();
+        level.addRespawner();
+
+        // TODO observe for each hero or local only
+        observe(Multiplayer.Players.getHero(getLocalPlayerId()));
+
+        try {
+            saveAll();
+        } catch (IOException e) {
+            ShatteredPixelDungeon.reportException(e);
+        }
+    }
+
+
+//    public static void switchLevel( final Level level, int pos ) {
+//
+//		//Position of -2 specifically means trying to place the hero the exit
+//		if (pos == -2){
+//			LevelTransition t = level.getTransition(LevelTransition.Type.REGULAR_EXIT);
+//			if (t != null) pos = t.cell();
+//		}
+//
+//		//Place hero at the entrance if they are out of the map (often used for pos = -1)
+//		// or if they are in invalid terrain terrain (except in the mining level, where that happens normally)
+//		if (pos < 0 || pos >= level.length() || level.invalidHeroPos(pos)){
+//			pos = level.getTransition(null).cell();
+//		}
+//
+//		PathFinder.setMapSize(level.width(), level.height());
+//
+//		Dungeon.level = level;
+//
+//		hero.pos = pos;
+//
+//		if (hero.buff(AscensionChallenge.class) != null){
+//			hero.buff(AscensionChallenge.class).onLevelSwitch();
+//		}
+//
+//		Mob.restoreAllies( level, pos );
+//
+//		Actor.init();
+//
+//		level.addRespawner();
+//
+//		for(Mob m : level.mobs){
+//			if (m.pos == hero.pos && !Char.hasProp(m, Char.Property.IMMOVABLE)){
+//				//displace mob
+//				for(int i : PathFinder.NEIGHBOURS8){
+//					if (Actor.findChar(m.pos+i) == null && level.passable[m.pos + i]){
+//						m.pos += i;
+//						break;
+//					}
+//				}
+//			}
+//		}
+//
+//		Light light = hero.buff( Light.class );
+//		hero.viewDistance = light == null ? level.viewDistance : Math.max( Light.DISTANCE, level.viewDistance );
+//
+//		hero.curAction = hero.lastAction = null;
+//
+//		observe();
+//		try {
+//			saveAll();
+//		} catch (IOException e) {
+//			ShatteredPixelDungeon.reportException(e);
+//			/*This only catches IO errors. Yes, this means things can go wrong, and they can go wrong catastrophically.
+//			But when they do the user will get a nice 'report this issue' dialogue, and I can fix the bug.*/
+//		}
+//	}
 
 	public static void dropToChasm( Item item ) {
 		int depth = Dungeon.depth + 1;
@@ -704,16 +856,16 @@ public class Dungeon {
 	}
 	
 	public static void saveAll() throws IOException {
-		if (hero != null && (hero.isAlive() || WndResurrect.instance != null)) {
-			
-			Actor.fixTime();
-			updateLevelExplored();
-			saveGame( GamesInProgress.curSlot );
-			saveLevel( GamesInProgress.curSlot );
+        for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+            if (player.hero != null && (player.hero.isAlive() || WndResurrect.instance != null)) {
+                Actor.fixTime();
+                updateLevelExplored();
+                saveGame( GamesInProgress.curSlot );
+                saveLevel( GamesInProgress.curSlot );
 
-			GamesInProgress.set( GamesInProgress.curSlot );
-
-		}
+                GamesInProgress.set( GamesInProgress.curSlot );
+            }
+        }
 	}
 	
 	public static void loadGame( int save ) throws IOException {
@@ -893,130 +1045,254 @@ public class Dungeon {
 		}
 	}
 
-	//default to recomputing based on max hero vision, in case vision just shrank/grew
-	public static void observe(){
-		int dist = Math.max(Dungeon.hero.viewDistance, 8);
-		dist *= 1f + 0.25f*Dungeon.hero.pointsInTalent(Talent.FARSIGHT);
+    public static void observeAll(){
+            for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+                int dist = Math.max(hero.viewDistance, 8);
+                dist *= 1f + 0.25f* player.hero.pointsInTalent(Talent.FARSIGHT);
 
-		if (Dungeon.hero.buff(MagicalSight.class) != null){
-			dist = Math.max( dist, MagicalSight.DISTANCE );
-		}
+                if (player.hero.buff(MagicalSight.class) != null){
+                    dist = Math.max( dist, MagicalSight.DISTANCE );
+                }
+                observe( dist+1, hero );
+            }
+    }
 
-		observe( dist+1 );
-	}
-	
-	public static void observe( int dist ) {
+    public static void observe(Hero hero){
+        int dist = Math.max(hero.viewDistance, 8);
+        dist *= 1f + 0.25f*hero.pointsInTalent(Talent.FARSIGHT);
 
-		if (level == null) {
-			return;
-		}
-		
-		level.updateFieldOfView(hero, level.heroFOV);
+        if (hero.buff(MagicalSight.class) != null){
+            dist = Math.max( dist, MagicalSight.DISTANCE );
+        }
 
-		int x = hero.pos % level.width();
-		int y = hero.pos / level.width();
-	
-		//left, right, top, bottom
-		int l = Math.max( 0, x - dist );
-		int r = Math.min( x + dist, level.width() - 1 );
-		int t = Math.max( 0, y - dist );
-		int b = Math.min( y + dist, level.height() - 1 );
-	
-		int width = r - l + 1;
-		int height = b - t + 1;
-		
-		int pos = l + t * level.width();
-	
-		for (int i = t; i <= b; i++) {
-			BArray.or( level.visited, level.heroFOV, pos, width, level.visited );
-			pos+=level.width();
-		}
+        observe( dist+1, hero );
+    }
 
-		//always visit adjacent tiles, even if they aren't seen
-		for (int i : PathFinder.NEIGHBOURS9){
-			level.visited[hero.pos+i] = true;
-		}
-	
-		GameScene.updateFog(l, t, width, height);
+    public static void observe( int dist, Hero hero ) {
 
-		if (hero.buff(MindVision.class) != null || hero.buff(DivineSense.DivineSenseTracker.class) != null){
-			for (Mob m : level.mobs.toArray(new Mob[0])){
-				if (m instanceof Mimic && m.alignment == Char.Alignment.NEUTRAL && ((Mimic) m).stealthy()){
-					continue;
-				}
+        if (level == null) {
+            return;
+        }
 
-				BArray.or( level.visited, level.heroFOV, m.pos - 1 - level.width(), 3, level.visited );
-				BArray.or( level.visited, level.heroFOV, m.pos - 1, 3, level.visited );
-				BArray.or( level.visited, level.heroFOV, m.pos - 1 + level.width(), 3, level.visited );
-				//updates adjacent cells too
-				GameScene.updateFog(m.pos, 2);
-			}
-		}
+        level.updateFieldOfView(hero, level.heroFOV);
 
-		if (hero.buff(Awareness.class) != null){
-			for (Heap h : level.heaps.valueList()){
-				BArray.or( level.visited, level.heroFOV, h.pos - 1 - level.width(), 3, level.visited );
-				BArray.or( level.visited, level.heroFOV, h.pos - 1, 3, level.visited );
-				BArray.or( level.visited, level.heroFOV, h.pos - 1 + level.width(), 3, level.visited );
-				GameScene.updateFog(h.pos, 2);
-			}
-		}
+        int x = hero.pos % level.width();
+        int y = hero.pos / level.width();
 
-		for (TalismanOfForesight.CharAwareness c : hero.buffs(TalismanOfForesight.CharAwareness.class)){
-			Char ch = (Char) Actor.findById(c.charID);
-			if (ch == null || !ch.isAlive()) continue;
-			BArray.or( level.visited, level.heroFOV, ch.pos - 1 - level.width(), 3, level.visited );
-			BArray.or( level.visited, level.heroFOV, ch.pos - 1, 3, level.visited );
-			BArray.or( level.visited, level.heroFOV, ch.pos - 1 + level.width(), 3, level.visited );
-			GameScene.updateFog(ch.pos, 2);
-		}
+        //left, right, top, bottom
+        int l = Math.max( 0, x - dist );
+        int r = Math.min( x + dist, level.width() - 1 );
+        int t = Math.max( 0, y - dist );
+        int b = Math.min( y + dist, level.height() - 1 );
 
-		for (TalismanOfForesight.HeapAwareness h : hero.buffs(TalismanOfForesight.HeapAwareness.class)){
-			if (Dungeon.depth != h.depth || Dungeon.branch != h.branch) continue;
-			BArray.or( level.visited, level.heroFOV, h.pos - 1 - level.width(), 3, level.visited );
-			BArray.or( level.visited, level.heroFOV, h.pos - 1, 3, level.visited );
-			BArray.or( level.visited, level.heroFOV, h.pos - 1 + level.width(), 3, level.visited );
-			GameScene.updateFog(h.pos, 2);
-		}
+        int width = r - l + 1;
+        int height = b - t + 1;
 
-		for (RevealedArea a : hero.buffs(RevealedArea.class)){
-			if (Dungeon.depth != a.depth || Dungeon.branch != a.branch) continue;
-			BArray.or( level.visited, level.heroFOV, a.pos - 1 - level.width(), 3, level.visited );
-			BArray.or( level.visited, level.heroFOV, a.pos - 1, 3, level.visited );
-			BArray.or( level.visited, level.heroFOV, a.pos - 1 + level.width(), 3, level.visited );
-			GameScene.updateFog(a.pos, 2);
-		}
+        int pos = l + t * level.width();
 
-		for (Char ch : Actor.chars()){
-			if (ch instanceof WandOfWarding.Ward
-					|| ch instanceof WandOfRegrowth.Lotus
-					|| ch instanceof SpiritHawk.HawkAlly
-					|| ch.buff(PowerOfMany.PowerBuff.class) != null){
-				x = ch.pos % level.width();
-				y = ch.pos / level.width();
+        for (int i = t; i <= b; i++) {
+            BArray.or( level.visited, level.heroFOV, pos, width, level.visited );
+            pos+=level.width();
+        }
 
-				//left, right, top, bottom
-				dist = ch.viewDistance+1;
-				l = Math.max( 0, x - dist );
-				r = Math.min( x + dist, level.width() - 1 );
-				t = Math.max( 0, y - dist );
-				b = Math.min( y + dist, level.height() - 1 );
+        //always visit adjacent tiles, even if they aren't seen
+        for (int i : PathFinder.NEIGHBOURS9){
+            level.visited[hero.pos+i] = true;
+        }
 
-				width = r - l + 1;
-				height = b - t + 1;
+        GameScene.updateFog(l, t, width, height);
 
-				pos = l + t * level.width();
+        if (hero.buff(MindVision.class) != null || hero.buff(DivineSense.DivineSenseTracker.class) != null){
+            for (Mob m : level.mobs.toArray(new Mob[0])){
+                if (m instanceof Mimic && m.alignment == Char.Alignment.NEUTRAL && ((Mimic) m).stealthy()){
+                    continue;
+                }
 
-				for (int i = t; i <= b; i++) {
-					BArray.or( level.visited, level.heroFOV, pos, width, level.visited );
-					pos+=level.width();
-				}
-				GameScene.updateFog(ch.pos, dist);
-			}
-		}
+                BArray.or( level.visited, level.heroFOV, m.pos - 1 - level.width(), 3, level.visited );
+                BArray.or( level.visited, level.heroFOV, m.pos - 1, 3, level.visited );
+                BArray.or( level.visited, level.heroFOV, m.pos - 1 + level.width(), 3, level.visited );
+                //updates adjacent cells too
+                GameScene.updateFog(m.pos, 2);
+            }
+        }
 
-		GameScene.afterObserve();
-	}
+        if (hero.buff(Awareness.class) != null){
+            for (Heap h : level.heaps.valueList()){
+                BArray.or( level.visited, level.heroFOV, h.pos - 1 - level.width(), 3, level.visited );
+                BArray.or( level.visited, level.heroFOV, h.pos - 1, 3, level.visited );
+                BArray.or( level.visited, level.heroFOV, h.pos - 1 + level.width(), 3, level.visited );
+                GameScene.updateFog(h.pos, 2);
+            }
+        }
+
+        for (TalismanOfForesight.CharAwareness c : hero.buffs(TalismanOfForesight.CharAwareness.class)){
+            Char ch = (Char) Actor.findById(c.charID);
+            if (ch == null || !ch.isAlive()) continue;
+            BArray.or( level.visited, level.heroFOV, ch.pos - 1 - level.width(), 3, level.visited );
+            BArray.or( level.visited, level.heroFOV, ch.pos - 1, 3, level.visited );
+            BArray.or( level.visited, level.heroFOV, ch.pos - 1 + level.width(), 3, level.visited );
+            GameScene.updateFog(ch.pos, 2);
+        }
+
+        for (TalismanOfForesight.HeapAwareness h : hero.buffs(TalismanOfForesight.HeapAwareness.class)){
+            if (Dungeon.depth != h.depth || Dungeon.branch != h.branch) continue;
+            BArray.or( level.visited, level.heroFOV, h.pos - 1 - level.width(), 3, level.visited );
+            BArray.or( level.visited, level.heroFOV, h.pos - 1, 3, level.visited );
+            BArray.or( level.visited, level.heroFOV, h.pos - 1 + level.width(), 3, level.visited );
+            GameScene.updateFog(h.pos, 2);
+        }
+
+        for (RevealedArea a : hero.buffs(RevealedArea.class)){
+            if (Dungeon.depth != a.depth || Dungeon.branch != a.branch) continue;
+            BArray.or( level.visited, level.heroFOV, a.pos - 1 - level.width(), 3, level.visited );
+            BArray.or( level.visited, level.heroFOV, a.pos - 1, 3, level.visited );
+            BArray.or( level.visited, level.heroFOV, a.pos - 1 + level.width(), 3, level.visited );
+            GameScene.updateFog(a.pos, 2);
+        }
+
+        for (Char ch : Actor.chars()){
+            if (ch instanceof WandOfWarding.Ward
+                    || ch instanceof WandOfRegrowth.Lotus
+                    || ch instanceof SpiritHawk.HawkAlly
+                    || ch.buff(PowerOfMany.PowerBuff.class) != null){
+                x = ch.pos % level.width();
+                y = ch.pos / level.width();
+
+                //left, right, top, bottom
+                dist = ch.viewDistance+1;
+                l = Math.max( 0, x - dist );
+                r = Math.min( x + dist, level.width() - 1 );
+                t = Math.max( 0, y - dist );
+                b = Math.min( y + dist, level.height() - 1 );
+
+                width = r - l + 1;
+                height = b - t + 1;
+
+                pos = l + t * level.width();
+
+                for (int i = t; i <= b; i++) {
+                    BArray.or( level.visited, level.heroFOV, pos, width, level.visited );
+                    pos+=level.width();
+                }
+                GameScene.updateFog(ch.pos, dist);
+            }
+        }
+
+        GameScene.afterObserve();
+    }
+
+//	public static void observe( int dist ) {
+//
+//		if (level == null) {
+//			return;
+//		}
+//
+//		level.updateFieldOfView(hero, level.heroFOV);
+//
+//		int x = hero.pos % level.width();
+//		int y = hero.pos / level.width();
+//
+//		//left, right, top, bottom
+//		int l = Math.max( 0, x - dist );
+//		int r = Math.min( x + dist, level.width() - 1 );
+//		int t = Math.max( 0, y - dist );
+//		int b = Math.min( y + dist, level.height() - 1 );
+//
+//		int width = r - l + 1;
+//		int height = b - t + 1;
+//
+//		int pos = l + t * level.width();
+//
+//		for (int i = t; i <= b; i++) {
+//			BArray.or( level.visited, level.heroFOV, pos, width, level.visited );
+//			pos+=level.width();
+//		}
+//
+//		//always visit adjacent tiles, even if they aren't seen
+//		for (int i : PathFinder.NEIGHBOURS9){
+//			level.visited[hero.pos+i] = true;
+//		}
+//
+//		GameScene.updateFog(l, t, width, height);
+//
+//		if (hero.buff(MindVision.class) != null || hero.buff(DivineSense.DivineSenseTracker.class) != null){
+//			for (Mob m : level.mobs.toArray(new Mob[0])){
+//				if (m instanceof Mimic && m.alignment == Char.Alignment.NEUTRAL && ((Mimic) m).stealthy()){
+//					continue;
+//				}
+//
+//				BArray.or( level.visited, level.heroFOV, m.pos - 1 - level.width(), 3, level.visited );
+//				BArray.or( level.visited, level.heroFOV, m.pos - 1, 3, level.visited );
+//				BArray.or( level.visited, level.heroFOV, m.pos - 1 + level.width(), 3, level.visited );
+//				//updates adjacent cells too
+//				GameScene.updateFog(m.pos, 2);
+//			}
+//		}
+//
+//		if (hero.buff(Awareness.class) != null){
+//			for (Heap h : level.heaps.valueList()){
+//				BArray.or( level.visited, level.heroFOV, h.pos - 1 - level.width(), 3, level.visited );
+//				BArray.or( level.visited, level.heroFOV, h.pos - 1, 3, level.visited );
+//				BArray.or( level.visited, level.heroFOV, h.pos - 1 + level.width(), 3, level.visited );
+//				GameScene.updateFog(h.pos, 2);
+//			}
+//		}
+//
+//		for (TalismanOfForesight.CharAwareness c : hero.buffs(TalismanOfForesight.CharAwareness.class)){
+//			Char ch = (Char) Actor.findById(c.charID);
+//			if (ch == null || !ch.isAlive()) continue;
+//			BArray.or( level.visited, level.heroFOV, ch.pos - 1 - level.width(), 3, level.visited );
+//			BArray.or( level.visited, level.heroFOV, ch.pos - 1, 3, level.visited );
+//			BArray.or( level.visited, level.heroFOV, ch.pos - 1 + level.width(), 3, level.visited );
+//			GameScene.updateFog(ch.pos, 2);
+//		}
+//
+//		for (TalismanOfForesight.HeapAwareness h : hero.buffs(TalismanOfForesight.HeapAwareness.class)){
+//			if (Dungeon.depth != h.depth || Dungeon.branch != h.branch) continue;
+//			BArray.or( level.visited, level.heroFOV, h.pos - 1 - level.width(), 3, level.visited );
+//			BArray.or( level.visited, level.heroFOV, h.pos - 1, 3, level.visited );
+//			BArray.or( level.visited, level.heroFOV, h.pos - 1 + level.width(), 3, level.visited );
+//			GameScene.updateFog(h.pos, 2);
+//		}
+//
+//		for (RevealedArea a : hero.buffs(RevealedArea.class)){
+//			if (Dungeon.depth != a.depth || Dungeon.branch != a.branch) continue;
+//			BArray.or( level.visited, level.heroFOV, a.pos - 1 - level.width(), 3, level.visited );
+//			BArray.or( level.visited, level.heroFOV, a.pos - 1, 3, level.visited );
+//			BArray.or( level.visited, level.heroFOV, a.pos - 1 + level.width(), 3, level.visited );
+//			GameScene.updateFog(a.pos, 2);
+//		}
+//
+//		for (Char ch : Actor.chars()){
+//			if (ch instanceof WandOfWarding.Ward
+//					|| ch instanceof WandOfRegrowth.Lotus
+//					|| ch instanceof SpiritHawk.HawkAlly
+//					|| ch.buff(PowerOfMany.PowerBuff.class) != null){
+//				x = ch.pos % level.width();
+//				y = ch.pos / level.width();
+//
+//				//left, right, top, bottom
+//				dist = ch.viewDistance+1;
+//				l = Math.max( 0, x - dist );
+//				r = Math.min( x + dist, level.width() - 1 );
+//				t = Math.max( 0, y - dist );
+//				b = Math.min( y + dist, level.height() - 1 );
+//
+//				width = r - l + 1;
+//				height = b - t + 1;
+//
+//				pos = l + t * level.width();
+//
+//				for (int i = t; i <= b; i++) {
+//					BArray.or( level.visited, level.heroFOV, pos, width, level.visited );
+//					pos+=level.width();
+//				}
+//				GameScene.updateFog(ch.pos, dist);
+//			}
+//		}
+//
+//		GameScene.afterObserve();
+//	}
 
 	//we store this to avoid having to re-allocate the array with each pathfind
 	private static boolean[] passable;

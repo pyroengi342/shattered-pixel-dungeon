@@ -21,6 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.sprites;
 
+import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
@@ -29,6 +31,8 @@ import com.watabou.noosa.TextureFilm;
 import com.watabou.noosa.audio.Music;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.noosa.particles.Emitter;
+
+import network.Multiplayer;
 
 public class BlacksmithSprite extends MobSprite {
 	
@@ -79,7 +83,7 @@ public class BlacksmithSprite extends MobSprite {
 		if (visible && emitter != null && anim == idle) {
 			emitter.burst( Speck.factory( Speck.FORGE ), 3 );
 			if (!Music.INSTANCE.paused()) {
-				float volume = 0.2f / (Dungeon.level.distance(ch.pos, Dungeon.hero.pos));
+				float volume = 0.2f / (Dungeon.level.distance(ch.pos, Multiplayer.Players.get(getLocalPlayerId()).hero.pos));
 				Sample.INSTANCE.play(Assets.Sounds.EVOKE, volume, volume, 0.8f);
 			}
 		}

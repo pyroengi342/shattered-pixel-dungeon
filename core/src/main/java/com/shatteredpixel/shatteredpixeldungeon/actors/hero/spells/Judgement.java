@@ -21,6 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.spells;
 
+import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
@@ -37,6 +39,8 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Callback;
 import com.watabou.utils.Random;
+
+import network.Multiplayer;
 
 public class Judgement extends ClericSpell {
 
@@ -75,7 +79,7 @@ public class Judgement extends ClericSpell {
 					if (ch.alignment != hero.alignment && Dungeon.level.heroFOV[ch.pos]){
 						ch.damage( Random.NormalIntRange(damageBase, 2*damageBase), Judgement.this);
 						if (hero.subClass == HeroSubClass.PRIEST){
-							Buff.affect(ch, GuidingLight.Illuminated.class);
+							Buff.affect(ch, GuidingLight.Illuminated.class, hero);
 						}
 					}
 				}
@@ -92,13 +96,13 @@ public class Judgement extends ClericSpell {
 	}
 
 	@Override
-	public String desc() {
-		int baseDmg = 5 + 5*Dungeon.hero.pointsInTalent(Talent.JUDGEMENT);
+public String desc(Hero hero){
+		int baseDmg = 5 + 5* hero.pointsInTalent(Talent.JUDGEMENT);
 		int totalBaseDmg = baseDmg;
-		if (Dungeon.hero.buff(AscendedForm.AscendBuff.class) != null) {
-			totalBaseDmg += Math.round(baseDmg*Dungeon.hero.buff(AscendedForm.AscendBuff.class).spellCasts/3f);
+		if (hero.buff(AscendedForm.AscendBuff.class) != null) {
+			totalBaseDmg += Math.round(baseDmg*hero.buff(AscendedForm.AscendBuff.class).spellCasts/3f);
 		}
 
-		return Messages.get(this, "desc", baseDmg, 2*baseDmg, totalBaseDmg, 2*totalBaseDmg) + "\n\n" + Messages.get(this, "charge_cost", (int)chargeUse(Dungeon.hero));
+		return Messages.get(this, "desc", baseDmg, 2*baseDmg, totalBaseDmg, 2*totalBaseDmg) + "\n\n" + Messages.get(this, "charge_cost", (int)chargeUse(hero));
 	}
 }

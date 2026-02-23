@@ -21,6 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.spells;
 
+import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
@@ -44,6 +46,8 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Random;
 
+import network.Multiplayer;
+
 public class Sunray extends TargetedClericSpell {
 
 	public static final Sunray INSTANCE = new Sunray();
@@ -54,11 +58,11 @@ public class Sunray extends TargetedClericSpell {
 	}
 
 	@Override
-	public String desc() {
-		int min = Dungeon.hero.pointsInTalent(Talent.SUNRAY) == 2 ? 6 : 4;
-		int max = Dungeon.hero.pointsInTalent(Talent.SUNRAY) == 2 ? 12 : 8;
-		int dur = Dungeon.hero.pointsInTalent(Talent.SUNRAY) == 2 ? 6 : 4;
-		return Messages.get(this, "desc", min, max, dur) + "\n\n" + Messages.get(this, "charge_cost", (int)chargeUse(Dungeon.hero));
+public String desc(Hero hero){
+		int min = hero.pointsInTalent(Talent.SUNRAY) == 2 ? 6 : 4;
+		int max = hero.pointsInTalent(Talent.SUNRAY) == 2 ? 12 : 8;
+		int dur = hero.pointsInTalent(Talent.SUNRAY) == 2 ? 6 : 4;
+		return Messages.get(this, "desc", min, max, dur) + "\n\n" + Messages.get(this, "charge_cost", (int)chargeUse(hero));
 	}
 
 	@Override
@@ -112,15 +116,15 @@ public class Sunray extends TargetedClericSpell {
 
 			if (ch.isAlive()) {
 				if (ch.buff(Blindness.class) != null && ch.buff(SunRayRecentlyBlindedTracker.class) != null) {
-					Buff.prolong(ch, Paralysis.class, 2f + 2f*hero.pointsInTalent(Talent.SUNRAY));
+					Buff.prolong(ch, Paralysis.class, 2f + 2f*hero.pointsInTalent(Talent.SUNRAY), hero);
 					ch.buff(SunRayRecentlyBlindedTracker.class).detach();
 				} else if (ch.buff(SunRayUsedTracker.class) == null) {
-					Buff.prolong(ch, Blindness.class, 2f + 2f*hero.pointsInTalent(Talent.SUNRAY));
-					Buff.prolong(ch, SunRayRecentlyBlindedTracker.class, 2f + 2f*hero.pointsInTalent(Talent.SUNRAY));
-					Buff.affect(ch, SunRayUsedTracker.class);
+					Buff.prolong(ch, Blindness.class, 2f + 2f*hero.pointsInTalent(Talent.SUNRAY), hero);
+					Buff.prolong(ch, SunRayRecentlyBlindedTracker.class, 2f + 2f*hero.pointsInTalent(Talent.SUNRAY), hero);
+					Buff.affect(ch, SunRayUsedTracker.class, hero);
 				}
 				if (hero.subClass == HeroSubClass.PRIEST){
-					Buff.affect(ch, GuidingLight.Illuminated.class);
+					Buff.affect(ch, GuidingLight.Illuminated.class, hero);
 				}
 			}
 		}

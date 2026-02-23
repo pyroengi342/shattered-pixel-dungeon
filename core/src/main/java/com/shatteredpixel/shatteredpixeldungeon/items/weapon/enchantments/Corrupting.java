@@ -21,6 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments;
 
+import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Adrenaline;
@@ -32,6 +34,8 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.watabou.utils.Random;
+
+import network.Multiplayer;
 
 public class Corrupting extends Weapon.Enchantment {
 	
@@ -53,7 +57,7 @@ public class Corrupting extends Weapon.Enchantment {
 				&& defender.isAlive()){
 			
 			Mob enemy = (Mob) defender;
-			Hero hero = (attacker instanceof Hero) ? (Hero) attacker : Dungeon.hero;
+			Hero hero = (attacker instanceof Hero) ? (Hero) attacker : Multiplayer.Players.get(getLocalPlayerId()).hero;
 
 			Corruption.corruptionHeal(enemy);
 

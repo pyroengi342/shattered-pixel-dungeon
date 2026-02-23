@@ -61,7 +61,12 @@ public class PrismaticImage extends NPC {
 		//before other mobs
 		actPriority = MOB_PRIO + 1;
 	}
-	
+    public Hero getOwner() {
+        if (hero == null && heroID != 0) {
+            hero = (Hero) Actor.findById(heroID);
+        }
+        return hero;
+    }
 	private Hero hero;
 	private int heroID;
 	public int armTier;
@@ -247,7 +252,7 @@ public class PrismaticImage extends NPC {
 		@Override
 		public boolean act(boolean enemyInFOV, boolean justAlerted) {
 			if (!enemyInFOV){
-				Buff.affect(hero, PrismaticGuard.class).set( PrismaticImage.this );
+				Buff.affect(hero, PrismaticGuard.class, this).set( PrismaticImage.this );
 				destroy();
 				CellEmitter.get(pos).start( Speck.factory(Speck.LIGHT), 0.2f, 3 );
 				sprite.die();

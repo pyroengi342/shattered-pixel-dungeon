@@ -27,6 +27,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Blindness;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Weakness;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRetribution;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -74,7 +75,7 @@ public class ScrollOfPsionicBlast extends ExoticScroll {
 		if (curUser.isAlive()) {
 			Buff.prolong(curUser, Blindness.class, Blindness.DURATION);
 			Buff.prolong(curUser, Weakness.class, Weakness.DURATION*5f);
-			Dungeon.observe();
+			Dungeon.observe(curUser);
 			readAnimation();
 		} else {
 			Badges.validateDeathFromFriendlyMagic();

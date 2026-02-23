@@ -21,6 +21,9 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.levels;
 
+import static network.Multiplayer.findItemInAllHeroes;
+import static network.Multiplayer.hasAnyHeroTalent;
+
 import com.shatteredpixel.shatteredpixeldungeon.Bones;
 import com.shatteredpixel.shatteredpixeldungeon.Challenges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
@@ -504,7 +507,9 @@ public abstract class RegularLevel extends Level {
 		Random.popGenerator();
 
 		Random.pushGenerator( Random.Long() );
-			DriedRose rose = Dungeon.hero.belongings.getItem( DriedRose.class );
+            // TODO for each hero we need to check this
+            DriedRose rose = findItemInAllHeroes( DriedRose.class );
+			//DriedRose rose = Dungeon.hero.belongings.getItem( DriedRose.class );
 			if (rose != null && rose.isIdentified() && !rose.cursed && Ghost.Quest.completed()){
 				//aim to drop 1 petal every 2 floors
 				int petalsNeeded = (int) Math.ceil((float)((Dungeon.depth / 2) - rose.droppedPetals) / 3);
@@ -528,7 +533,8 @@ public abstract class RegularLevel extends Level {
 		//cached rations try to drop in a special room on floors 2/4/7, to a max of 2/3
 		//we increment dropped by 2 for compatibility with old saves, when the talent dropped 4/6 items
 		Random.pushGenerator( Random.Long() );
-			if (Dungeon.hero.hasTalent(Talent.CACHED_RATIONS)){
+        // TODO for each hero we need to check this
+			if (hasAnyHeroTalent(Talent.CACHED_RATIONS)){
 				Talent.CachedRationsDropped dropped = Buff.affect(Dungeon.hero, Talent.CachedRationsDropped.class);
 				int targetFloor = (int)(2 + dropped.count());
 				if (dropped.count() > 4) targetFloor++;

@@ -116,7 +116,7 @@ public class ChaoticCenser extends Trinket {
 
 						if (produceGas(target)){
 							Sample.INSTANCE.play(Assets.Sounds.GAS, 0.5f);
-							Dungeon.hero.interrupt();
+							curUser.interrupt();
 							left += Random.IntRange((int) (avgTurns * 0.9f), (int) (avgTurns * 1.1f));
 						}
 					}
@@ -176,7 +176,7 @@ public class ChaoticCenser extends Trinket {
 		}
 
 		HashMap<Integer, Float> candidateCells = new HashMap<>();
-		PathFinder.buildDistanceMap(Dungeon.hero.pos, BArray.not(Dungeon.level.solid, null), 6);
+		PathFinder.buildDistanceMap(curUser.pos, BArray.not(Dungeon.level.solid, null), 6);
 
 		//spawn gas in a random visible cell 2-6 tiles away
 		for (int i = 0; i < Dungeon.level.length(); i++){
@@ -189,11 +189,11 @@ public class ChaoticCenser extends Trinket {
 
 		//strongly prefer cells closer to target
 		int targetpos = target.pos;
-		if (Dungeon.level.trueDistance(target.pos, Dungeon.hero.pos) >= 4){
+		if (Dungeon.level.trueDistance(target.pos, curUser.pos) >= 4){
 			//if target is a distance from the hero, aim in front of them instead
 			for (int i : PathFinder.NEIGHBOURS8){
 				while (!Dungeon.level.solid[targetpos+i]
-						&& Dungeon.level.trueDistance(target.pos+i, Dungeon.hero.pos) < Dungeon.level.trueDistance(targetpos, Dungeon.hero.pos)){
+						&& Dungeon.level.trueDistance(target.pos+i, curUser.pos) < Dungeon.level.trueDistance(targetpos, curUser.pos)){
 					targetpos = target.pos+i;
 				}
 			}
@@ -219,7 +219,7 @@ public class ChaoticCenser extends Trinket {
 		if (!candidateCells.isEmpty()) {
 			Integer targetCell = Random.chances(candidateCells);
 			if (targetCell != null) {
-				Buff.affect(Dungeon.hero, GasSpewer.class, Dungeon.hero.cooldown()).set(targetCell, gasToSpawn, (int)gasQuantity);
+				Buff.affect(curUser, GasSpewer.class, curUser.cooldown()).set(targetCell, gasToSpawn, (int)gasQuantity);
 				GLog.w(Messages.get(ChaoticCenser.class, "spew", Messages.titleCase(Messages.get(gasToSpawn, "name")) ));
 				if (target.sprite != null && target.sprite.parent != null) {
 					target.sprite.parent.addToBack(new TargetedCell(targetCell, 0xFF0000));
@@ -263,7 +263,7 @@ public class ChaoticCenser extends Trinket {
 					((CorrosiveGas)Dungeon.level.blobs.get(CorrosiveGas.class)).setStrength( 2 + Dungeon.scalingDepth()/5, ChaoticCenser.class);
 				}
 
-				MagicMissile.boltFromChar(Dungeon.hero.sprite.parent, MISSILE_VFX.get(gasType), Dungeon.hero.sprite, targetCell, null);
+				MagicMissile.boltFromChar(curUser.sprite.parent, MISSILE_VFX.get(gasType), curUser.sprite, targetCell, null);
 				Sample.INSTANCE.play(Assets.Sounds.GAS);
 			}
 

@@ -106,15 +106,15 @@ public enum HeroClass {
 		if (!Challenges.isItemBlocked(i)) hero.belongings.armor = (ClothArmor)i;
 
 		i = new Food();
-		if (!Challenges.isItemBlocked(i)) i.collect();
+		if (!Challenges.isItemBlocked(i)) i.collect(hero);
 
-		new VelvetPouch().collect();
+		new VelvetPouch().collect(hero);
 		Dungeon.LimitedDrops.VELVET_POUCH.drop();
 
 		Waterskin waterskin = new Waterskin();
-		waterskin.collect();
+		waterskin.collect(hero);
 
-		new ScrollOfIdentify().identify();
+		new ScrollOfIdentify().identify(hero);
 
 		switch (this) {
 			case WARRIOR:
@@ -172,9 +172,9 @@ public enum HeroClass {
 	}
 
 	private static void initWarrior( Hero hero ) {
-		(hero.belongings.weapon = new WornShortsword()).identify();
+		(hero.belongings.weapon = new WornShortsword()).identify(hero);
 		ThrowingStone stones = new ThrowingStone();
-		stones.identify().collect();
+		stones.identify(hero).collect(hero);
 
 		Dungeon.quickslot.setSlot(0, stones);
 
@@ -183,8 +183,8 @@ public enum HeroClass {
 			Catalog.setSeen(BrokenSeal.class); //as it's not added to the inventory
 		}
 
-		new PotionOfHealing().identify();
-		new ScrollOfRage().identify();
+		new PotionOfHealing().identify(hero);
+		new ScrollOfRage().identify(hero);
 	}
 
 	private static void initMage( Hero hero ) {
@@ -192,37 +192,37 @@ public enum HeroClass {
 
 		staff = new MagesStaff(new WandOfMagicMissile());
 
-		(hero.belongings.weapon = staff).identify();
+		(hero.belongings.weapon = staff).identify( hero );
 		hero.belongings.weapon.activate(hero);
 
 		Dungeon.quickslot.setSlot(0, staff);
 
-		new ScrollOfUpgrade().identify();
-		new PotionOfLiquidFlame().identify();
+		new ScrollOfUpgrade().identify( hero );
+		new PotionOfLiquidFlame().identify( hero );
 	}
 
 	private static void initRogue( Hero hero ) {
-		(hero.belongings.weapon = new Dagger()).identify();
+		(hero.belongings.weapon = new Dagger()).identify( hero );
 
 		CloakOfShadows cloak = new CloakOfShadows();
-		(hero.belongings.artifact = cloak).identify();
+		(hero.belongings.artifact = cloak).identify( hero );
 		hero.belongings.artifact.activate( hero );
 
 		ThrowingKnife knives = new ThrowingKnife();
-		knives.identify().collect();
+		knives.identify( hero ).collect();
 
 		Dungeon.quickslot.setSlot(0, cloak);
 		Dungeon.quickslot.setSlot(1, knives);
 
-		new ScrollOfMagicMapping().identify();
-		new PotionOfInvisibility().identify();
+		new ScrollOfMagicMapping().identify( hero );
+		new PotionOfInvisibility().identify( hero );
 	}
 
 	private static void initHuntress( Hero hero ) {
 
 		(hero.belongings.weapon = new Gloves()).identify();
 		SpiritBow bow = new SpiritBow();
-		bow.identify().collect();
+		bow.identify( hero ).collect();
 
 		Dungeon.quickslot.setSlot(0, bow);
 

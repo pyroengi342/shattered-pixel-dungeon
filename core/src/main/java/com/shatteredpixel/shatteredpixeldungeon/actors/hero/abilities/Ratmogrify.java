@@ -65,7 +65,7 @@ public class Ratmogrify extends ArmorAbility {
 	public static boolean useRatroicEnergy = false;
 
 	@Override
-	public String targetingPrompt() {
+	public String targetingPrompt(Hero hero) {
 		return Messages.get(this, "prompt");
 	}
 
@@ -108,7 +108,7 @@ public class Ratmogrify extends ArmorAbility {
 					Rat rat = new Rat();
 					rat.alignment = Char.Alignment.ALLY;
 					rat.state = rat.HUNTING;
-					Buff.affect(rat, AscensionChallenge.AscensionBuffBlocker.class);
+					Buff.affect(rat, AscensionChallenge.AscensionBuffBlocker.class, hero);
 					GameScene.add( rat );
 					ScrollOfTeleportation.appear( rat, spawnPoints.get( index ) );
 
@@ -137,7 +137,8 @@ public class Ratmogrify extends ArmorAbility {
 			return;
 		} else {
 			TransmogRat rat = new TransmogRat();
-			rat.setup((Mob)ch);
+            rat.setup((Mob)ch);
+            rat.setOwnerId(hero.id());
 			rat.pos = ch.pos;
 
 			//preserve some buffs
@@ -195,6 +196,19 @@ public class Ratmogrify extends ArmorAbility {
 			//always false, as we derive stats from what we are transmogging from (which was already added)
 			firstAdded = false;
 		}
+
+        private int ownerId = -1;
+
+        public void setOwnerId(int id) {
+            ownerId = id;
+        }
+
+        public Hero getOwner() {
+            if (ownerId == -1) return null;
+            Char ch = ((Char) Actor.findById(ownerId));
+            if (ch instanceof Hero) return (Hero) ch;
+            return null;
+        }
 
 		private Mob original;
 		private boolean allied;
@@ -274,9 +288,12 @@ public class Ratmogrify extends ArmorAbility {
 		@Override
 		public int damageRoll() {
 			int damage = original.damageRoll();
-			if (!allied && Dungeon.hero.hasTalent(Talent.RATSISTANCE)){
-				damage *= Math.pow(0.9f, Dungeon.hero.pointsInTalent(Talent.RATSISTANCE));
-			}
+            if (!allied) {
+                Hero owner = getOwner();
+                if (owner != null && owner.hasTalent(Talent.RATSISTANCE)) {
+                    damage *= Math.pow(0.9f, owner.pointsInTalent(Talent.RATSISTANCE));
+                }
+            }
 			return damage;
 		}
 
@@ -315,23 +332,25 @@ public class Ratmogrify extends ArmorAbility {
 		private static final String ORIGINAL = "original";
 		private static final String ALLIED = "allied";
 
-		@Override
-		public void storeInBundle(Bundle bundle) {
-			super.storeInBundle(bundle);
-			bundle.put(ORIGINAL, original);
-			bundle.put(ALLIED, allied);
-		}
+        private static final String OWNER_ID = "owner_id";
 
-		@Override
-		public void restoreFromBundle(Bundle bundle) {
-			super.restoreFromBundle(bundle);
+        @Override
+        public void storeInBundle(Bundle bundle) {
+            super.storeInBundle(bundle);
+            bundle.put(ORIGINAL, original);
+            bundle.put(ALLIED, allied);
+            bundle.put(OWNER_ID, ownerId);
+        }
 
-			original = (Mob) bundle.get(ORIGINAL);
-			defenseSkill = original.defenseSkill;
-			EXP = original.EXP;
-
-			allied = bundle.getBoolean(ALLIED);
-			if (allied) alignment = Alignment.ALLY;
-		}
+        @Override
+        public void restoreFromBundle(Bundle bundle) {
+            super.restoreFromBundle(bundle);
+            original = (Mob) bundle.get(ORIGINAL);
+            defenseSkill = original.defenseSkill;
+            EXP = original.EXP;
+            allied = bundle.getBoolean(ALLIED);
+            if (allied) alignment = Alignment.ALLY;
+            ownerId = bundle.getInt(OWNER_ID);
+        }
 	}
 }

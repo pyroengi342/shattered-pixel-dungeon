@@ -33,6 +33,9 @@ import com.watabou.utils.Bundle;
 import com.watabou.utils.SparseArray;
 
 import java.util.HashSet;
+import java.util.List;
+
+import network.Multiplayer;
 
 public abstract class Actor implements Bundlable {
 	
@@ -192,8 +195,11 @@ public abstract class Actor implements Bundlable {
 	}
 	
 	public static void init() {
-		
-		add( Dungeon.hero );
+            List<Multiplayer.PlayerInfo> players = Multiplayer.Players.getAll();
+            for (int i = 0; i < players.size(); i++) {
+                Multiplayer.PlayerInfo player = players.get(i);
+                add( player.hero );
+            }
 		
 		for (Mob mob : Dungeon.level.mobs) {
 			add( mob );
@@ -242,7 +248,10 @@ public abstract class Actor implements Bundlable {
 	public static boolean keepActorThreadAlive = true;
 	
 	public static void process() {
-		
+//        if (Dungeon.Multiplayer.isMultiplayer && !Dungeon.Multiplayer.isHost) {
+//            // Клиенты ждут сигнала от сервера
+//            waitForServerTurn();
+//        }
 		boolean doNext;
 		boolean interrupted = false;
 

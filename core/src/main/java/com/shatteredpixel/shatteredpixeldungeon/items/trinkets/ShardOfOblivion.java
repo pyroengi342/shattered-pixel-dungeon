@@ -197,22 +197,22 @@ public class ShardOfOblivion extends Trinket {
 		if (level < 0) return 1f;
 
 		int wornUnIDed = 0;
-		if (Dungeon.hero.belongings.weapon() != null && !Dungeon.hero.belongings.weapon().isIdentified()){
+		if (curUser.belongings.weapon() != null && !curUser.belongings.weapon().isIdentified()){
 			wornUnIDed++;
 		}
-		if (Dungeon.hero.belongings.armor() != null && !Dungeon.hero.belongings.armor().isIdentified()){
+		if (curUser.belongings.armor() != null && !curUser.belongings.armor().isIdentified()){
 			wornUnIDed++;
 		}
-		if (Dungeon.hero.belongings.ring() != null && !Dungeon.hero.belongings.ring().isIdentified()){
+		if (curUser.belongings.ring() != null && !curUser.belongings.ring().isIdentified()){
 			wornUnIDed++;
 		}
-		if (Dungeon.hero.belongings.misc() != null && !Dungeon.hero.belongings.misc().isIdentified()){
+		if (curUser.belongings.misc() != null && !curUser.belongings.misc().isIdentified()){
 			wornUnIDed++;
 		}
-		if (Dungeon.hero.buff(WandUseTracker.class) != null){
+		if (curUser.buff(WandUseTracker.class) != null){
 			wornUnIDed++;
 		}
-		if (Dungeon.hero.buff(ThrownUseTracker.class) != null){
+		if (curUser.buff(ThrownUseTracker.class) != null){
 			wornUnIDed++;
 		}
 

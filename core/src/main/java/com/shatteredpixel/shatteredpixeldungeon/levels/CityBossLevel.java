@@ -27,6 +27,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DwarfKing;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Imp;
@@ -308,7 +309,7 @@ public class CityBossLevel extends Level {
 	@Override
 	public void occupyCell( Char ch ) {
 		if (map[bottomDoor] != Terrain.LOCKED_DOOR && map[topDoor] == Terrain.LOCKED_DOOR
-				&& ch.pos < bottomDoor && ch == Dungeon.hero) {
+				&& ch.pos < bottomDoor && ch instanceof Hero) {
 			seal();
 		}
 
@@ -339,7 +340,7 @@ public class CityBossLevel extends Level {
 
 		set( bottomDoor, Terrain.LOCKED_DOOR );
 		GameScene.updateMap( bottomDoor );
-		Dungeon.observe();
+		Dungeon.observeAll();
 
 		Game.runOnRenderThread(new Callback() {
 			@Override
@@ -362,7 +363,7 @@ public class CityBossLevel extends Level {
 		if (Imp.Quest.isCompleted()) {
 			spawnShop();
 		}
-		Dungeon.observe();
+		Dungeon.observeAll();
 
 		Game.runOnRenderThread(new Callback() {
 			@Override

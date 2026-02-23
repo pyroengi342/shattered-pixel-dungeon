@@ -21,6 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
+import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
@@ -55,6 +57,8 @@ import com.watabou.noosa.ColorBlock;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Reflection;
 
+import network.Multiplayer;
+
 public class WndUpgrade extends Window {
 
 	private static final int WIDTH = 120;
@@ -83,7 +87,7 @@ public class WndUpgrade extends Window {
 		add(title);
 
 		int quantity = upgrader.quantity();
-		Item moreUpgradeItem = Dungeon.hero.belongings.getItem(upgrader.getClass());
+		Item moreUpgradeItem = Multiplayer.Players.get(getLocalPlayerId()).hero.belongings.getItem(upgrader.getClass());
 
 		if (moreUpgradeItem != null && moreUpgradeItem != upgrader){
 			quantity += moreUpgradeItem.quantity();
@@ -220,7 +224,7 @@ public class WndUpgrade extends Window {
 					bottom);
 		}
 
-		if (Dungeon.hero != null && Dungeon.hero.heroClass == HeroClass.DUELIST
+		if (Multiplayer.Players.get(getLocalPlayerId()).hero != null && Multiplayer.Players.get(getLocalPlayerId()).hero.heroClass == HeroClass.DUELIST
 				&& toUpgrade instanceof MeleeWeapon && ((MeleeWeapon) toUpgrade).upgradeAbilityStat(levelFrom) != null){
 			bottom = fillFields(Messages.get(toUpgrade, "upgrade_ability_stat_name"),
 					((MeleeWeapon) toUpgrade).upgradeAbilityStat(levelFrom),
@@ -379,8 +383,8 @@ public class WndUpgrade extends Window {
 					lossChance = Math.min(100, 10 * (int) Math.pow(2, levelFrom - 6));
 				} else {
 					lossChance = Math.min(100, 10 * (int) Math.pow(2, levelFrom - 4));
-					if (Dungeon.hero != null && Dungeon.hero.heroClass != HeroClass.WARRIOR && Dungeon.hero.hasTalent(Talent.RUNIC_TRANSFERENCE)){
-						if (levelFrom < 5+Dungeon.hero.pointsInTalent(Talent.RUNIC_TRANSFERENCE)){
+					if (Multiplayer.Players.get(getLocalPlayerId()).hero != null && Multiplayer.Players.get(getLocalPlayerId()).hero.heroClass != HeroClass.WARRIOR && Multiplayer.Players.get(getLocalPlayerId()).hero.hasTalent(Talent.RUNIC_TRANSFERENCE)){
+						if (levelFrom < 5+Multiplayer.Players.get(getLocalPlayerId()).hero.pointsInTalent(Talent.RUNIC_TRANSFERENCE)){
 							lossChance = 0;
 						}
 					}
@@ -439,7 +443,7 @@ public class WndUpgrade extends Window {
 			protected void onClick() {
 				super.onClick();
 
-				ScrollOfUpgrade.upgrade(Dungeon.hero);
+				ScrollOfUpgrade.upgrade(Multiplayer.Players.get(getLocalPlayerId()).hero);
 
 				Item upgraded = toUpgrade;
 				if (upgrader instanceof ScrollOfUpgrade){
@@ -451,8 +455,8 @@ public class WndUpgrade extends Window {
 					upgraded = ((MagicalInfusion) upgrader).upgradeItem(toUpgrade);
 				}
 
-				if (!force) upgrader.detach(Dungeon.hero.belongings.backpack);
-				Item moreUpgradeItem = Dungeon.hero.belongings.getItem(upgrader.getClass());
+				if (!force) upgrader.detach(Multiplayer.Players.get(getLocalPlayerId()).hero.belongings.backpack);
+				Item moreUpgradeItem = Multiplayer.Players.get(getLocalPlayerId()).hero.belongings.getItem(upgrader.getClass());
 
 				hide();
 
@@ -480,7 +484,7 @@ public class WndUpgrade extends Window {
 		btnCancel.setRect(btnUpgrade.right()+1, bottom+2*GAP, WIDTH/2f, 16);
 		add(btnCancel);
 
-		btnUpgrade.enable(Dungeon.hero.ready);
+		btnUpgrade.enable(Multiplayer.Players.get(getLocalPlayerId()).hero.ready);
 
 		btnUpgrade.icon(new ItemSprite(upgrader));
 		btnCancel.icon(Icons.EXIT.get());
@@ -494,7 +498,7 @@ public class WndUpgrade extends Window {
 	@Override
 	public synchronized void update() {
 		super.update();
-		if (!btnUpgrade.active && Dungeon.hero.ready){
+		if (!btnUpgrade.active && Multiplayer.Players.get(getLocalPlayerId()).hero.ready){
 			btnUpgrade.enable(true);
 		}
 	}

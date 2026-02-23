@@ -157,7 +157,7 @@ public class LiquidMetal extends Item {
 								m.damage(100f);
 								m.repair(quantity()*durabilityPerMetal-1);
 								GLog.i(Messages.get(LiquidMetal.class, "apply", quantity()));
-								detachAll(Dungeon.hero.belongings.backpack);
+								detachAll(curUser.belongings.backpack);
 							}
 						} else {
 							GLog.w(Messages.get(LiquidMetal.class, "already_fixed"));
@@ -177,7 +177,7 @@ public class LiquidMetal extends Item {
 					Catalog.countUses(LiquidMetal.class, quantity());
 					m.repair(quantity()*durabilityPerMetal);
 					GLog.i(Messages.get(LiquidMetal.class, "apply", quantity()));
-					detachAll(Dungeon.hero.belongings.backpack);
+					detachAll(curUser.belongings.backpack);
 				}
 
 				curUser.sprite.operate(curUser.pos);
@@ -212,7 +212,7 @@ public class LiquidMetal extends Item {
 			}
 
 			m.quantity(0);
-			Buff.affect(Dungeon.hero, MissileWeapon.UpgradedSetTracker.class).levelThresholds.put(m.setID, Integer.MAX_VALUE);
+			Buff.affect(curUser, MissileWeapon.UpgradedSetTracker.class).levelThresholds.put(m.setID, Integer.MAX_VALUE);
 
 			return result;
 		}

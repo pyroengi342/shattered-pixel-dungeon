@@ -26,6 +26,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AscensionChallenge;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicImmune;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
@@ -101,30 +102,30 @@ public class Skeleton extends Mob {
 				if (ch.buff(MagicImmune.class) == null) {
 					ShieldOfLight.ShieldOfLightTracker shield = ch.buff(ShieldOfLight.ShieldOfLightTracker.class);
 					if (shield != null && shield.object == id()) {
-						int min = 1 + Dungeon.hero.pointsInTalent(Talent.SHIELD_OF_LIGHT);
+						int min = 1 + ((Hero) ch).pointsInTalent(Talent.SHIELD_OF_LIGHT);
 						damage -= Random.NormalIntRange(min, 2 * min);
 						damage -= Random.NormalIntRange(min, 2 * min); //apply twice
 						damage = Math.max(damage, 0);
-					} else if (ch == Dungeon.hero
-							&& Dungeon.hero.heroClass != HeroClass.CLERIC
-							&& Dungeon.hero.hasTalent(Talent.SHIELD_OF_LIGHT)
+					} else if (ch instanceof Hero
+							&& ((Hero) ch).heroClass != HeroClass.CLERIC
+							&& ((Hero) ch).hasTalent(Talent.SHIELD_OF_LIGHT)
 							&& TargetHealthIndicator.instance.target() == this) {
 						//33/50%
-						if (Random.Int(6) < 1 + Dungeon.hero.pointsInTalent(Talent.SHIELD_OF_LIGHT)) {
+						if (Random.Int(6) < 1 + ((Hero) ch).pointsInTalent(Talent.SHIELD_OF_LIGHT)) {
 							damage -= 2; //doubled
 						}
 					}
 
 					if (ch.buff(HolyWard.HolyArmBuff.class) != null){
 						//doubled
-						damage -= Dungeon.hero.subClass == HeroSubClass.PALADIN ? 6 : 2;
+						damage -= ((Hero) ch).subClass == HeroSubClass.PALADIN ? 6 : 2;
 					}
 				}
 
 				//apply DR twice (with 2 rolls for more consistency)
 				damage = Math.max( 0,  damage - (ch.drRoll() + ch.drRoll()) );
 				ch.damage( damage, this );
-				if (ch == Dungeon.hero && !ch.isAlive()) {
+				if (ch instanceof Hero && !ch.isAlive()) {
 					heroKilled = true;
 				}
 			}

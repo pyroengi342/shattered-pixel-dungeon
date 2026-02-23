@@ -92,7 +92,8 @@ public class Fire extends Blob {
 		}
 
 		if (observe) {
-			Dungeon.observe();
+            // Object destruction affects all
+			Dungeon.observeAll();
 		}
 	}
 	

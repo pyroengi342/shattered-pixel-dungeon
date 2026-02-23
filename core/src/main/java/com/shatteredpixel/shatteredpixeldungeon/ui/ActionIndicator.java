@@ -21,6 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.ui;
 
+import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.SPDAction;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -28,6 +30,8 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.watabou.input.GameAction;
 import com.watabou.noosa.BitmapText;
 import com.watabou.noosa.Visual;
+
+import network.Multiplayer;
 
 public class ActionIndicator extends Tag {
 
@@ -122,7 +126,7 @@ public class ActionIndicator extends Tag {
 				needsRefresh = false;
 			}
 
-			if (!Dungeon.hero.ready) {
+			if (!Multiplayer.Players.get(getLocalPlayerId()).hero.ready) {
 				if (primaryVis != null) primaryVis.alpha(0.5f);
 				if (secondVis != null) secondVis.alpha(0.5f);
 			} else {
@@ -136,7 +140,7 @@ public class ActionIndicator extends Tag {
 	@Override
 	protected void onClick() {
 		super.onClick();
-		if (action != null && Dungeon.hero.ready) {
+		if (action != null && Multiplayer.Players.get(getLocalPlayerId()).hero.ready) {
 			action.doAction();
 		}
 	}

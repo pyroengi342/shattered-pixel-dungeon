@@ -23,6 +23,7 @@ package com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments;
 
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfWealth;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
@@ -49,7 +50,7 @@ public class Lucky extends Weapon.Enchantment {
 
 			//default is -5: 80% common, 20% uncommon, 0% rare
 			//ring level increases by 1 for each 20% above 100% proc rate
-			Buff.affect(defender, LuckProc.class).ringLevel = -10 + Math.round(5*powerMulti);
+			Buff.affect(defender, LuckProc.class, attacker).ringLevel = -10 + Math.round(5*powerMulti);
 		} else {
 			//in rare cases where we attack many times at once (e.g. gladiator fury)
 			// make sure that failed luck procs override prior succeeded ones

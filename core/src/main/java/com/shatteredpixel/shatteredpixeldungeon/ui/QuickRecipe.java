@@ -21,6 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.ui;
 
+import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.items.ArcaneResin;
@@ -84,6 +86,8 @@ import com.watabou.utils.Reflection;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import network.Multiplayer;
+
 public class QuickRecipe extends Component {
 	
 	private ArrayList<Item> ingredients;
@@ -117,8 +121,8 @@ public class QuickRecipe extends Component {
 			};
 
 			int quantity = 0;
-			if (Dungeon.hero != null) {
-				ArrayList<Item> similar = Dungeon.hero.belongings.getAllSimilar(in);
+			if (Multiplayer.Players.get(getLocalPlayerId()).hero != null) {
+				ArrayList<Item> similar = Multiplayer.Players.get(getLocalPlayerId()).hero.belongings.getAllSimilar(in);
 				for (Item sim : similar) {
 					//if we are looking for a specific item, it must be IDed
 					if (sim.getClass() != in.getClass() || sim.isIdentified())
@@ -161,7 +165,7 @@ public class QuickRecipe extends Component {
 				ShatteredPixelDungeon.scene().addToFront(new WndInfoItem(output));
 			}
 		};
-		if (Dungeon.hero != null && !hasInputs){
+		if (Multiplayer.Players.get(getLocalPlayerId()).hero != null && !hasInputs){
 			this.output.sprite.alpha(0.3f);
 		}
 		this.output.showExtraInfo(false);
@@ -253,7 +257,7 @@ public class QuickRecipe extends Component {
 				}
 			}
 			
-			((AlchemyScene)ShatteredPixelDungeon.scene()).populate(ingredients, Dungeon.hero.belongings);
+			((AlchemyScene)ShatteredPixelDungeon.scene()).populate(ingredients, Multiplayer.Players.get(getLocalPlayerId()).hero.belongings);
 		}
 		
 		public void hardlightText(int color ){

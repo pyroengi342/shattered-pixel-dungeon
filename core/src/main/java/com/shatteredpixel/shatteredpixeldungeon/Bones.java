@@ -53,7 +53,7 @@ public class Bones {
 	private static Item item;
 	private static HeroClass heroClass;
 
-	public static void leave() {
+	public static void leave(Hero hero) {
 
 		//remains will usually drop on the floor the hero died on
 		// but are capped at 5 floors above the lowest depth reached (even when ascending)
@@ -67,8 +67,8 @@ public class Bones {
 			return;
 		}
 
-		item = pickItem(Dungeon.hero);
-		heroClass = Dungeon.hero.heroClass;
+		item = pickItem(hero);
+		heroClass = hero.heroClass;
 
 		Bundle bundle = new Bundle();
 		bundle.put( LEVEL, depth );

@@ -31,6 +31,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Electricity;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DM300;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Pylon;
@@ -278,7 +279,7 @@ public class CavesBossLevel extends Level {
 	public void occupyCell(Char ch) {
 		//seal the level when the hero moves near to a pylon, the level isn't already sealed, and the gate hasn't been destroyed
 		int gatePos = pointToCell(new Point(gate.left, gate.top));
-		if (ch == Dungeon.hero && !locked && solid[gatePos]){
+		if (ch instanceof Hero && !locked && solid[gatePos]){
 			for (int pos : pylonPositions){
 				if (Dungeon.level.distance(ch.pos, pos) <= 3){
 					seal();
@@ -319,7 +320,7 @@ public class CavesBossLevel extends Level {
 		}
 
 		GameScene.updateMap( entrance );
-		Dungeon.observe();
+		Dungeon.observeAll();
 
 		CellEmitter.get( entrance ).start( Speck.factory( Speck.ROCK ), 0.07f, 10 );
 		PixelScene.shake( 3, 0.7f );
@@ -359,7 +360,7 @@ public class CavesBossLevel extends Level {
 
 		if (customArenaVisuals != null) customArenaVisuals.updateState();
 
-		Dungeon.observe();
+		Dungeon.observeAll();
 
 		Game.runOnRenderThread(new Callback() {
 			@Override
@@ -869,7 +870,7 @@ public class CavesBossLevel extends Level {
 							ch.damage( Random.NormalIntRange(6, 12), new Electricity());
 							ch.sprite.flash();
 
-							if (ch == Dungeon.hero){
+							if (ch instanceof Hero){
 								if (energySourceSprite != null && energySourceSprite instanceof PylonSprite){
 									//took damage while DM-300 was supercharged
 									Statistics.qualifiedForBossChallengeBadge = false;

@@ -27,11 +27,14 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AllyBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Amok;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.stones.StoneOfAggression;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.BeeSprite;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Random;
+
+import network.Multiplayer;
 
 //FIXME the AI for these things is becoming a complete mess, should refactor
 public class Bee extends Mob {
@@ -194,11 +197,12 @@ public class Bee extends Mob {
 				if (closest != null){
 					return closest;
 				} else {
-					if (alignment != Alignment.ALLY && Dungeon.level.distance(Dungeon.hero.pos, potPos) <= 3){
-						return Dungeon.hero;
-					} else {
-						return null;
-					}
+                    for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+                        if (alignment != Alignment.ALLY && Dungeon.level.distance(player.hero.pos, potPos) <= 3){
+                            return player.hero;
+                        }
+                    }
+                    return null;
 				}
 				
 			} else {
@@ -212,7 +216,10 @@ public class Bee extends Mob {
 	@Override
 	protected boolean getCloser(int target) {
 		if (alignment == Alignment.ALLY && enemy == null && buffs(AllyBuff.class).isEmpty()) {
-			target = Dungeon.hero.pos;
+            for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+                        if (Dungeon.level.distance(player.hero.pos, pos) > Dungeon.level.distance(player.hero.pos, pos)){
+                            target = player.hero.pos;}
+            }
 		} else if (enemy != null && Actor.findById(potHolder) == enemy) {
 			target = enemy.pos;
 		} else if (potPos != -1 && (state == WANDERING || Dungeon.level.distance(target, potPos) > 3)) {

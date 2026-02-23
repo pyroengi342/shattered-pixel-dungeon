@@ -21,6 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
+import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
@@ -84,6 +86,8 @@ import com.watabou.utils.Reflection;
 
 import java.util.ArrayList;
 import java.util.Collection;
+
+import network.Multiplayer;
 
 public class WndJournal extends WndTabbed {
 	
@@ -1083,7 +1087,7 @@ public class WndJournal extends WndTabbed {
 		@Override
 		protected void createChildren() {
 
-			if (Dungeon.hero != null) {
+			if (Multiplayer.Players.get(getLocalPlayerId()).hero != null) {
 				btnLocal = new RedButton(Messages.get(this, "this_run")) {
 					@Override
 					protected void onClick() {

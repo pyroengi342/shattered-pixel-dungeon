@@ -25,6 +25,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
 import com.shatteredpixel.shatteredpixeldungeon.effects.TargetedCell;
 import com.shatteredpixel.shatteredpixeldungeon.items.bombs.Bomb;
@@ -109,7 +110,7 @@ public class SuperNovaTracker extends Buff {
 					//6x when along straight edge
 					//3x when outside straight edge
 					Dungeon.level.destroy(i);
-					if (Actor.findChar(i) == Dungeon.hero){
+					if (Actor.findChar(i) instanceof Hero){
 						GameScene.flash(0x80FFFFFF);
 					}
 				}

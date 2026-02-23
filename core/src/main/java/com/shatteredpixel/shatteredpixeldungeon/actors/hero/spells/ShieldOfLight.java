@@ -80,10 +80,10 @@ public class ShieldOfLight extends TargetedClericSpell {
 		hero.sprite.operate(hero.pos);
 
 		//1 turn less as the casting is instant
-		Buff.prolong( hero, ShieldOfLightTracker.class, 4f).object = ch.id();
+		Buff.prolong( hero, ShieldOfLightTracker.class, 4f, hero).object = ch.id();
 
 		if (hero.subClass == HeroSubClass.PRIEST) {
-			Buff.affect(ch, GuidingLight.Illuminated.class);
+			Buff.affect(ch, GuidingLight.Illuminated.class, hero);
 		}
 
 		hero.busy();
@@ -92,7 +92,7 @@ public class ShieldOfLight extends TargetedClericSpell {
 
 		Char ally = PowerOfMany.getPoweredAlly();
 		if (ally != null && ally.buff(LifeLinkSpell.LifeLinkSpellBuff.class) != null){
-			Buff.prolong( ally, ShieldOfLightTracker.class, 3f).object = ch.id();
+			Buff.prolong( ally, ShieldOfLightTracker.class, 3f, hero).object = ch.id();
 			ally.sprite.emitter().start(Speck.factory(Speck.LIGHT), 0.15f, 6);
 		}
 
@@ -101,10 +101,10 @@ public class ShieldOfLight extends TargetedClericSpell {
 	}
 
 	@Override
-	public String desc() {
-		int min = 1 + Dungeon.hero.pointsInTalent(Talent.SHIELD_OF_LIGHT);
+public String desc(Hero hero){
+		int min = 1 + hero.pointsInTalent(Talent.SHIELD_OF_LIGHT);
 		int max = 2*min;
-		return Messages.get(this, "desc", min, max) + "\n\n" + Messages.get(this, "charge_cost", (int)chargeUse(Dungeon.hero));
+		return Messages.get(this, "desc", min, max) + "\n\n" + Messages.get(this, "charge_cost", (int)chargeUse(hero));
 	}
 
 	public static class ShieldOfLightTracker extends FlavourBuff {

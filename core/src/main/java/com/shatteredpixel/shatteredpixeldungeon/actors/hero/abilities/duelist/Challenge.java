@@ -64,7 +64,7 @@ public class Challenge extends ArmorAbility {
 	}
 
 	@Override
-	public String targetingPrompt() {
+	public String targetingPrompt(Hero hero) {
 		return Messages.get(this, "prompt");
 	}
 
@@ -78,7 +78,7 @@ public class Challenge extends ArmorAbility {
 		float chargeUse = super.chargeUse(hero);
 		if (hero.buff(EliminationMatchTracker.class) != null){
 			//reduced charge use by 16%/30%/41%/50%
-			chargeUse *= Math.pow(0.84, hero.pointsInTalent(Talent.ELIMINATION_MATCH));
+			chargeUse *= (float) Math.pow(0.84, hero.pointsInTalent(Talent.ELIMINATION_MATCH));
 		}
 		return chargeUse;
 	}
@@ -150,15 +150,15 @@ public class Challenge extends ArmorAbility {
 		}
 
 		if (blinkpos != hero.pos){
-			Dungeon.hero.pos = blinkpos;
-			Dungeon.level.occupyCell(Dungeon.hero);
+            hero.pos = blinkpos;
+			Dungeon.level.occupyCell(hero);
 			//prevents the hero from being interrupted by seeing new enemies
-			Dungeon.observe();
+			Dungeon.observe( hero );
 			GameScene.updateFog();
-			Dungeon.hero.checkVisibleMobs();
+            hero.checkVisibleMobs();
 
-			Dungeon.hero.sprite.place( Dungeon.hero.pos );
-			CellEmitter.get( Dungeon.hero.pos ).burst( Speck.factory( Speck.WOOL ), 6 );
+            hero.sprite.place( hero.pos );
+			CellEmitter.get( hero.pos ).burst( Speck.factory( Speck.WOOL ), 6 );
 			Sample.INSTANCE.play( Assets.Sounds.PUFF );
 		}
 
@@ -171,8 +171,8 @@ public class Challenge extends ArmorAbility {
 			}
 		}
 
-		Buff.affect(targetCh, DuelParticipant.class);
-		Buff.affect(hero, DuelParticipant.class);
+		Buff.affect(targetCh, DuelParticipant.class, hero);
+		Buff.affect(hero, DuelParticipant.class, hero);
 		if (targetCh instanceof Mob){
 			((Mob) targetCh).aggro(hero);
 		}
@@ -205,7 +205,15 @@ public class Challenge extends ArmorAbility {
 
 		private int left = (int)DURATION;
 		private int takenDmg = 0;
+        private int ownerId = -1; // ID героя, начавшего дуэль
 
+        public void setOwnerId(int id) {
+            ownerId = id;
+        }
+
+        public int getOwnerId() {
+            return ownerId;
+        }
 		@Override
 		public int icon() {
 			return BuffIndicator.CHALLENGE;
@@ -250,52 +258,48 @@ public class Challenge extends ArmorAbility {
 			return true;
 		}
 
-		@Override
-		public void detach() {
-			super.detach();
-			if (target != Dungeon.hero){
-				if (!target.isAlive() || target.alignment == Dungeon.hero.alignment){
-					Sample.INSTANCE.play(Assets.Sounds.BOSS);
+        @Override
+        public void detach() {
+            super.detach();
+            if (target instanceof Hero){
+                if (!target.isAlive() || target.alignment == Char.Alignment.ALLY){
+                    Sample.INSTANCE.play(Assets.Sounds.BOSS);
 
-					if (Dungeon.hero.hasTalent(Talent.INVIGORATING_VICTORY)){
-						DuelParticipant heroBuff = Dungeon.hero.buff(DuelParticipant.class);
+                    if (((Hero) target).hasTalent(Talent.INVIGORATING_VICTORY)){
+                        // Используем текущий бафф для получения takenDmg
+                        int hpToHeal = takenDmg;
 
-						int hpToHeal = 0;
-						if (heroBuff != null){
-							hpToHeal = heroBuff.takenDmg;
-						}
+                        //heals for 30%/50%/65%/75% of taken damage plus 5/10/15/20 bonus, based on talent points
+                        hpToHeal = (int)Math.round(hpToHeal * (1f - Math.pow(0.707f, ((Hero) target).pointsInTalent(Talent.INVIGORATING_VICTORY))));
+                        hpToHeal += 5 * ((Hero) target).pointsInTalent(Talent.INVIGORATING_VICTORY);
+                        hpToHeal = Math.min(hpToHeal, ((Hero) target).HT - ((Hero) target).HP);
+                        if (hpToHeal > 0){
+                            ((Hero) target).HP += hpToHeal;
+                            ((Hero) target).sprite.emitter().start( Speck.factory( Speck.HEALING ), 0.33f, 6 );
+                            ((Hero) target).sprite.showStatusWithIcon( CharSprite.POSITIVE, Integer.toString(hpToHeal), FloatingText.HEALING );
+                        }
+                    }
+                }
+            } else {
+                Hero initiator = (Hero) Actor.findById(ownerId);
+                if (initiator != null && initiator.isAlive()) {
+                    GameScene.flash(0x80FFFFFF);
 
-						//heals for 30%/50%/65%/75% of taken damage plus 5/10/15/20 bonus, based on talent points
-						hpToHeal = (int)Math.round(hpToHeal * (1f - Math.pow(0.707f, Dungeon.hero.pointsInTalent(Talent.INVIGORATING_VICTORY))));
-						hpToHeal += 5*Dungeon.hero.pointsInTalent(Talent.INVIGORATING_VICTORY);
-						hpToHeal = Math.min(hpToHeal, Dungeon.hero.HT - Dungeon.hero.HP);
-						if (hpToHeal > 0){
-							Dungeon.hero.HP += hpToHeal;
-							Dungeon.hero.sprite.emitter().start( Speck.factory( Speck.HEALING ), 0.33f, 6 );
-							Dungeon.hero.sprite.showStatusWithIcon( CharSprite.POSITIVE, Integer.toString(hpToHeal), FloatingText.HEALING );
-						}
-					}
-				}
+                    if (initiator.hasTalent(Talent.ELIMINATION_MATCH)){
+                        Buff.affect(target, EliminationMatchTracker.class, 3);
+                    }
+                }
+            }
 
-			} else {
-				if (Dungeon.hero.isAlive()) {
-					GameScene.flash(0x80FFFFFF);
-
-					if (Dungeon.hero.hasTalent(Talent.ELIMINATION_MATCH)){
-						Buff.affect(target, EliminationMatchTracker.class, 3);
-					}
-				}
-			}
-
-			for (Char ch : Actor.chars()) {
-				if (ch.buff(SpectatorFreeze.class) != null) {
-					ch.buff(SpectatorFreeze.class).detach();
-				}
-				if (ch.buff(DuelParticipant.class) != null && ch != target) {
-					ch.buff(DuelParticipant.class).detach();
-				}
-			}
-		}
+            for (Char ch : Actor.chars()) {
+                if (ch.buff(SpectatorFreeze.class) != null) {
+                    ch.buff(SpectatorFreeze.class).detach();
+                }
+                if (ch.buff(DuelParticipant.class) != null && ch != target) {
+                    ch.buff(DuelParticipant.class).detach();
+                }
+            }
+        }
 
 		@Override
 		public String desc() {
@@ -305,19 +309,23 @@ public class Challenge extends ArmorAbility {
 		private static final String LEFT = "left";
 		private static final String TAKEN_DMG = "taken_dmg";
 
-		@Override
-		public void storeInBundle(Bundle bundle) {
-			super.storeInBundle(bundle);
-			bundle.put(LEFT, left);
-			bundle.put(TAKEN_DMG, takenDmg);
-		}
+        private static final String INITIATOR_ID = "initiator_id";
 
-		@Override
-		public void restoreFromBundle(Bundle bundle) {
-			super.restoreFromBundle(bundle);
-			left = bundle.getInt(LEFT);
-			takenDmg = bundle.getInt(TAKEN_DMG);
-		}
+        @Override
+        public void storeInBundle(Bundle bundle) {
+            super.storeInBundle(bundle);
+            bundle.put(LEFT, left);
+            bundle.put(TAKEN_DMG, takenDmg);
+            bundle.put(INITIATOR_ID, ownerId);
+        }
+
+        @Override
+        public void restoreFromBundle(Bundle bundle) {
+            super.restoreFromBundle(bundle);
+            left = bundle.getInt(LEFT);
+            takenDmg = bundle.getInt(TAKEN_DMG);
+            ownerId = bundle.getInt(INITIATOR_ID);
+        }
 	}
 
 	public static class SpectatorFreeze extends FlavourBuff {

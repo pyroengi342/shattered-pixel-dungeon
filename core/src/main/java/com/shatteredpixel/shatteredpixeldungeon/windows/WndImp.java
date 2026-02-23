@@ -22,6 +22,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Imp;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.quest.DwarfToken;
@@ -33,13 +34,15 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 
+import network.Multiplayer;
+
 public class WndImp extends Window {
 	
 	private static final int WIDTH      = 120;
 	private static final int BTN_HEIGHT = 20;
 	private static final int GAP        = 2;
 
-	public WndImp( final Imp imp, final DwarfToken tokens ) {
+	public WndImp(final Imp imp, final DwarfToken tokens, Hero hero) {
 		
 		super();
 		
@@ -57,7 +60,7 @@ public class WndImp extends Window {
 		RedButton btnReward = new RedButton( Messages.get(this, "reward") ) {
 			@Override
 			protected void onClick() {
-				takeReward( imp, tokens, Imp.Quest.reward );
+				takeReward( imp, Imp.Quest.reward, hero );
 			}
 		};
 		btnReward.setRect( 0, message.top() + message.height() + GAP, WIDTH, BTN_HEIGHT );
@@ -66,21 +69,22 @@ public class WndImp extends Window {
 		resize( WIDTH, (int)btnReward.bottom() );
 	}
 	
-	private void takeReward( Imp imp, DwarfToken tokens, Item reward ) {
-		
-		hide();
-		
-		tokens.detachAll( Dungeon.hero.belongings.backpack );
-		if (reward == null) return;
+	private void takeReward( Imp imp, Item reward, Hero hero ) {
+        if (reward == null) return;
+        hide();
+        for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+            DwarfToken tokens = player.hero.belongings.getItem( DwarfToken.class );
+            tokens.detachAll( player.hero.belongings.backpack );
+        }
 
 		reward.identify(false);
-		if (reward.doPickUp( Dungeon.hero )) {
-			GLog.i( Messages.capitalize(Messages.get(Dungeon.hero, "you_now_have", reward.name())) );
+		if (reward.doPickUp( hero )) {
+			GLog.i( Messages.capitalize(Messages.get(hero, "you_now_have", reward.name())) );
 		} else {
 			Dungeon.level.drop( reward, imp.pos ).sprite.drop();
 		}
 		
-		imp.flee();
+		imp.flee(hero);
 		
 		Imp.Quest.complete();
 	}

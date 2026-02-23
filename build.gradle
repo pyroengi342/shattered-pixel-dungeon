@@ -1,3 +1,4 @@
+// project
 buildscript {
     repositories {
         google()
@@ -17,6 +18,10 @@ allprojects {
         appVersionCode = 887
         appVersionName = '3.3.3'
 
+        // Add KryoNet version
+        nettyVersion = '4.1.119.Final'
+        kryoVersion = '5.6.2'
+
         appJavaCompatibility = JavaVersion.VERSION_11
 
         appAndroidCompileSDK = 35   //Android 15
@@ -35,4 +40,23 @@ allprojects {
         maven { url 'https://central.sonatype.com/repository/maven-snapshots/' }
     }
 
+}
+
+subprojects {
+    configurations.all {
+        resolutionStrategy {
+            // Force specific versions
+            force "com.esotericsoftware:kryo:$kryoVersion"
+            // Добавить принудительное задание версии Netty, если потребуется
+            // force "io.netty:netty-all:$nettyVersion"
+
+            // Remove duplicates
+            eachDependency { details ->
+                if (details.requested.name == 'kryo') {
+                    details.useVersion kryoVersion
+                    details.useTarget group: 'com.esotericsoftware', name: 'kryo', version: kryoVersion
+                }
+            }
+        }
+    }
 }

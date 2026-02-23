@@ -20,7 +20,9 @@
  */
 
 package com.shatteredpixel.shatteredpixeldungeon.scenes;
-
+// В начале файла HeroSelectScene.java добавить:
+import network.NetworkManager;
+import network.windows.WndMultiplayer;
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Challenges;
 import com.shatteredpixel.shatteredpixeldungeon.Chrome;
@@ -148,15 +150,38 @@ public class HeroSelectScene extends PixelScene {
 		add(title);
 
 		startBtn = new StyledButton(Chrome.Type.GREY_BUTTON_TR, ""){
-			@Override
-			protected void onClick() {
+			@SuppressWarnings("SuspiciousIndentation")
+            protected void onClick() {
 				super.onClick();
 
 				if (GamesInProgress.selectedClass == null) return;
 
-				Dungeon.hero = null;
-				Dungeon.daily = Dungeon.dailyReplay = false;
-				Dungeon.initSeed();
+                // TODO need to add switch to explicitly state multiplayer mode
+                if (network.Multiplayer.isMultiplayer) {
+                    switch (NetworkManager.getMode()) {
+                        case SERVER:
+                            // Server is allowed to init seed
+                            Dungeon.initSeed();
+                            network.NetworkManager.broadcastSeed(Dungeon.seed, Dungeon.customSeedText);
+                            break;
+                        case CLIENT:
+                            // Client needs to get the seed of host, if he
+                            // did not get one
+
+                            // Client sends selected class
+                            HeroClass cls = GamesInProgress.selectedClass;
+                            network.NetworkManager.sendHeroClass(cls);
+                            break;
+                        case NONE:
+                            // Do Nothing, probably error
+                            break;
+                    }
+                    // Standard behaviour if not multiplayer
+                } else Dungeon.initSeed();
+
+                Dungeon.hero = null;
+                Dungeon.daily = Dungeon.dailyReplay = false;
+
 				ActionIndicator.clearAction();
 				InterlevelScene.mode = InterlevelScene.Mode.DESCEND;
 
@@ -627,6 +652,7 @@ public class HeroSelectScene extends PixelScene {
 		private ArrayList<ColorBlock> spacers;
 
 		protected StyledButton challengeButton;
+        protected StyledButton multiplayerButton;
 
 		@Override
 		protected void createChildren() {
@@ -636,6 +662,49 @@ public class HeroSelectScene extends PixelScene {
 
 			buttons = new ArrayList<>();
 			spacers = new ArrayList<>();
+
+            // Добавить после challengeButton или в подходящее место
+            multiplayerButton = new StyledButton(Chrome.Type.BLANK,
+                    Messages.get(HeroSelectScene.class, "multiplayer"), 6) {
+
+                @Override
+                protected void onClick() {
+                    // Проверка на победу (аналогично другим опциям)
+                    if (!Badges.isUnlocked(Badges.Badge.VICTORY) && !DeviceCompat.isDebug()) {
+                        ShatteredPixelDungeon.scene().addToFront(new WndTitledMessage(
+                                Icons.get(Icons.MAGNIFY),
+                                Messages.get(HeroSelectScene.class, "multiplayer"),
+                                Messages.get(HeroSelectScene.class, "multiplayer_nowin")
+                        ));
+                        return;
+                    }
+
+                    // Показать окно мультиплеера
+                    ShatteredPixelDungeon.scene().addToFront(new WndMultiplayer());
+                }
+
+                @Override
+                public void update() {
+                    super.update();
+                    // Обновлять состояние кнопки, если нужно
+                    if (network.Multiplayer.isMultiplayer) {
+                        icon().hardlight(0.5f, 1f, 0.5f); // Подсветка при активном мультиплеере
+                    } else {
+                        icon().resetColor();
+                    }
+                }
+            };
+            multiplayerButton.leftJustify = true;
+            multiplayerButton.icon(Icons.get(Icons.MAGNIFY));
+            buttons.add(multiplayerButton);
+            add(multiplayerButton);
+
+            // Добавить разделитель для новой кнопки
+            if (buttons.size() > 1) {
+                ColorBlock spc = new ColorBlock(1, 1, 0xFF000000);
+                add(spc);
+                spacers.add(spc);
+            }
 			StyledButton seedButton = new StyledButton(Chrome.Type.BLANK, Messages.get(HeroSelectScene.class, "custom_seed"), 6){
 				@Override
 				protected void onClick() {
@@ -998,6 +1067,8 @@ public class HeroSelectScene extends PixelScene {
 				spc.alpha(value);
 			}
 		}
+
+
 	}
 
 }

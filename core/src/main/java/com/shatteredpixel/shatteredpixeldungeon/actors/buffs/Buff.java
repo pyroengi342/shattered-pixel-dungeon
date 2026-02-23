@@ -26,12 +26,38 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.watabou.noosa.Image;
+import com.watabou.utils.Bundlable;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Reflection;
 
 import java.util.HashSet;
 
 public class Buff extends Actor {
+
+    // НОВОЕ: поле для хранения источника баффа
+    protected Object source;
+
+    // Методы для работы с источником
+    public Buff setSource(Object source) {
+        this.source = source;
+        return this;
+    }
+
+    public Object getSource() {
+        return source;
+    }
+
+    public Char getSourceChar() {
+        if (source instanceof Char) {
+            return (Char) source;
+        }
+        // Если source - это ID, попробуем найти персонажа
+        if (source instanceof Integer) {
+            return (Char) Actor.findById((Integer) source);
+        }
+        return null;
+    }
+    private static final String SOURCE = "source";
 	
 	public Char target;
 
@@ -63,26 +89,40 @@ public class Buff extends Actor {
 	public HashSet<Class> immunities() {
 		return new HashSet<>(immunities);
 	}
-	
-	public boolean attachTo( Char target ) {
 
-		if (target.isImmune( getClass() )) {
-			return false;
-		}
-		
-		this.target = target;
+    public boolean attachTo(Char target) {
+        return attachTo(target, null);
+    }
+    public boolean attachTo(Char target, Object source) {
+        // Устанавливаем источник ПЕРЕД прикреплением
+        this.source = source;
 
-		if (target.add( this )){
-			if (target.sprite != null) fx( true );
-			return true;
-		} else {
-			this.target = null;
-			return false;
-		}
-	}
+        if (target.isImmune(getClass())) {
+            this.source = null;
+            return false;
+        }
+
+        this.target = target;
+
+        if (target.add(this)) {
+            if (target.sprite != null) fx(true);
+            return true;
+        } else {
+            this.target = null;
+            this.source = null;
+            return false;
+        }
+    }
 	
 	public void detach() {
-		if (target.remove( this ) && target.sprite != null) fx( false );
+        // Очищаем ссылки перед отсоединением
+        if (target != null) {
+            if (target.remove(this) && target.sprite != null) {
+                fx(false);
+            }
+            target = null;
+        }
+        clearReferences();
 	}
 	
 	@Override
@@ -147,55 +187,73 @@ public class Buff extends Actor {
 	@Override
 	public void storeInBundle(Bundle bundle) {
 		super.storeInBundle(bundle);
+        if (source instanceof Bundlable) {
+            bundle.put(SOURCE, (Bundlable) source);
+        } else if (source instanceof Integer) {
+            bundle.put(SOURCE, (int) source);
+        } else if (source instanceof String) {
+            bundle.put(SOURCE, (String) source);
+        }
 		if (mnemonicExtended) bundle.put(MNEMONIC_EXTENDED, mnemonicExtended);
 	}
 
 	@Override
 	public void restoreFromBundle(Bundle bundle) {
 		super.restoreFromBundle(bundle);
+        if (bundle.contains(SOURCE)) {
+            // Проверяем тип сохраненного объекта
+            Object stored = bundle.get(SOURCE);
+            if (stored instanceof Integer) {
+                source = stored; // Это ID персонажа
+            } else if (stored instanceof String) {
+                source = stored; // Это строка (например, имя ловушки)
+            } else if (stored instanceof Bundlable) {
+                source = stored; // Это Bundlable объект
+            }
+        }
 		if (bundle.contains(MNEMONIC_EXTENDED)) {
 			mnemonicExtended = bundle.getBoolean(MNEMONIC_EXTENDED);
 		}
 	}
 
 	//creates a fresh instance of the buff and attaches that, this allows duplication.
-	public static<T extends Buff> T append( Char target, Class<T> buffClass ) {
+	public static<T extends Buff> T append( Char target, Class<T> buffClass, Object source ) {
 		T buff = Reflection.newInstance(buffClass);
-		buff.attachTo( target );
+		buff.attachTo( target, source );
 		return buff;
 	}
 
-	public static<T extends FlavourBuff> T append( Char target, Class<T> buffClass, float duration ) {
-		T buff = append( target, buffClass );
+	public static<T extends FlavourBuff> T append( Char target, Class<T> buffClass, float duration, Object source ) {
+		T buff = append( target, buffClass, source );
 		buff.spend( duration * target.resist(buffClass) );
 		return buff;
 	}
 
 	//same as append, but prevents duplication.
-	public static<T extends Buff> T affect( Char target, Class<T> buffClass ) {
+	public static<T extends Buff> T affect( Char target, Class<T> buffClass, Object source ) {
 		T buff = target.buff( buffClass );
 		if (buff != null) {
 			return buff;
 		} else {
-			return append( target, buffClass );
+			return append( target, buffClass, source );
 		}
 	}
 	
-	public static<T extends FlavourBuff> T affect( Char target, Class<T> buffClass, float duration ) {
-		T buff = affect( target, buffClass );
+	public static<T extends FlavourBuff> T affect( Char target, Class<T> buffClass, float duration, Object source ) {
+		T buff = affect( target, buffClass, source );
 		buff.spend( duration * target.resist(buffClass) );
 		return buff;
 	}
 
 	//postpones an already active buff, or creates & attaches a new buff and delays that.
-	public static<T extends FlavourBuff> T prolong( Char target, Class<T> buffClass, float duration ) {
-		T buff = affect( target, buffClass );
+	public static<T extends FlavourBuff> T prolong( Char target, Class<T> buffClass, float duration, Object source ) {
+		T buff = affect( target, buffClass, source );
 		buff.postpone( duration * target.resist(buffClass) );
 		return buff;
 	}
 
-	public static<T extends CounterBuff> T count( Char target, Class<T> buffclass, float count ) {
-		T buff = affect( target, buffclass );
+	public static<T extends CounterBuff> T count( Char target, Class<T> buffclass, float count, Object source ) {
+		T buff = affect( target, buffclass, source );
 		buff.countUp( count );
 		return buff;
 	}
@@ -205,4 +263,16 @@ public class Buff extends Actor {
 			b.detach();
 		}
 	}
+
+    // Метод для очистки всех ссылок
+    private void clearReferences() {
+        source = null;
+        target = null;
+    }
+    @Override
+    protected void onRemove() {
+        // Очищаем ссылки при полном удалении баффа
+        clearReferences();
+        super.onRemove();
+    }
 }

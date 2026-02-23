@@ -6,4 +6,15 @@ java.sourceCompatibility = java.targetCompatibility = appJavaCompatibility
 dependencies {
     api project(':SPD-classes')
     implementation project(':services')
+
+    api "com.badlogicgames.gdx:gdx:$gdxVersion"
+    api "com.badlogicgames.gdx-controllers:gdx-controllers-core:$gdxControllersVersion"
+    implementation "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
+
+    //noinspection GradleDependency , later JSON versions cause crashes on old versions of android
+    implementation "org.json:json:20170516"
+
+    // Add KryoNet to core for shared networking code
+    implementation "io.netty:netty-all:$nettyVersion" // Сетевой фреймворк
+    implementation "com.esotericsoftware:kryo:$kryoVersion" // Сериализация
 }

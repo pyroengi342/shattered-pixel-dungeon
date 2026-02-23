@@ -54,6 +54,7 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.TextureFilm;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.BArray;
+import com.watabou.utils.Bundle;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
@@ -64,12 +65,12 @@ public class SmokeBomb extends ArmorAbility {
 	}
 
 	@Override
-	public String targetingPrompt() {
+	public String targetingPrompt(Hero hero) {
 		return Messages.get(this, "prompt");
 	}
 
 	@Override
-	public boolean useTargeting() {
+	public boolean useTargeting(Hero hero) {
 		return false;
 	}
 
@@ -110,7 +111,7 @@ public class SmokeBomb extends ArmorAbility {
 			if (!shadowStepping) {
 				for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
 					if (Dungeon.level.adjacent(mob.pos, hero.pos) && mob.alignment != Char.Alignment.ALLY) {
-						Buff.prolong(mob, Blindness.class, Blindness.DURATION / 2f);
+						Buff.prolong(mob, Blindness.class, Blindness.DURATION / 2f, hero);
 						if (mob.state == mob.HUNTING) mob.state = mob.WANDERING;
 						mob.sprite.emitter().burst(Speck.factory(Speck.LIGHT), 4);
 					}
@@ -123,7 +124,7 @@ public class SmokeBomb extends ArmorAbility {
 						}
 					}
 
-					NinjaLog n = new NinjaLog();
+					NinjaLog n = new NinjaLog(hero);
 					n.pos = hero.pos;
 					GameScene.add(n);
 					Dungeon.level.occupyCell(n);
@@ -141,7 +142,7 @@ public class SmokeBomb extends ArmorAbility {
 			ScrollOfTeleportation.appear( hero, target );
 			Sample.INSTANCE.play( Assets.Sounds.PUFF );
 			Dungeon.level.occupyCell( hero );
-			Dungeon.observe();
+			Dungeon.observe( hero );
 			GameScene.updateFog();
 
 			if (!shadowStepping) {
@@ -164,28 +165,33 @@ public class SmokeBomb extends ArmorAbility {
 
 	public static class NinjaLog extends NPC {
 
-		{
-			spriteClass = NinjaLogSprite.class;
-			defenseSkill = 0;
+        // Добавляем поле для хранения героя-владельца
+        private Hero owner;
+        public NinjaLog(Hero owner) {
+            this.owner = owner;
+            spriteClass = NinjaLogSprite.class;
+            defenseSkill = 0;
 
-			properties.add(Property.INORGANIC); //wood is organic, but this is accurate for game logic
+            properties.add(Property.INORGANIC);
 
-			alignment = Alignment.ALLY;
+            alignment = Alignment.ALLY;
 
-			HT = 20;
-			if (Dungeon.hero != null) HT *= Dungeon.hero.pointsInTalent(Talent.BODY_REPLACEMENT);
-			HP = HT;
-		}
+            HT = 20;
+            if (owner != null) HT *= owner.pointsInTalent(Talent.BODY_REPLACEMENT);
+            HP = HT;
+        }
 
-		@Override
-		public int drRoll() {
-			int dr = super.drRoll();
+        @Override
+        public int drRoll() {
+            int dr = super.drRoll();
 
-			dr += Random.NormalIntRange(Dungeon.hero.pointsInTalent(Talent.BODY_REPLACEMENT),
-					3*Dungeon.hero.pointsInTalent(Talent.BODY_REPLACEMENT));
+            if (owner != null) {
+                dr += Random.NormalIntRange(owner.pointsInTalent(Talent.BODY_REPLACEMENT),
+                        3 * owner.pointsInTalent(Talent.BODY_REPLACEMENT));
+            }
 
-			return dr;
-		}
+            return dr;
+        }
 
 		{
 			immunities.add( Dread.class );
@@ -196,6 +202,28 @@ public class SmokeBomb extends ArmorAbility {
 			immunities.add( AllyBuff.class );
 		}
 
+        // Для сохранения/загрузки
+        private static final String OWNER = "owner";
+
+        @Override
+        public void storeInBundle(Bundle bundle) {
+            super.storeInBundle(bundle);
+            bundle.put(OWNER, owner.id());
+        }
+
+        @Override
+        public void restoreFromBundle(Bundle bundle) {
+            super.restoreFromBundle(bundle);
+
+            int ownerId = bundle.getInt(OWNER);
+            Actor actor = Actor.findById(ownerId);
+            if (actor instanceof Hero) {
+                owner = (Hero) actor;
+            } else {
+                owner = null;
+            }
+
+        }
 	}
 
 	public static class NinjaLogSprite extends MobSprite {

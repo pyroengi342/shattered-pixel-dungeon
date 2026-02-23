@@ -21,6 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.plants;
 
+import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Challenges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
@@ -50,6 +52,8 @@ import com.watabou.utils.Reflection;
 
 import java.util.ArrayList;
 
+import network.Multiplayer;
+
 public abstract class Plant implements Bundlable {
 	
 	public int image;
@@ -65,10 +69,12 @@ public abstract class Plant implements Bundlable {
 			((Hero) ch).interrupt();
 		}
 
-		if (Dungeon.level.heroFOV[pos] && Dungeon.hero.hasTalent(Talent.NATURES_AID)){
-			// 3/5 turns based on talent points spent
-			Barkskin.conditionallyAppend(Dungeon.hero, 2, 1 + 2*(Dungeon.hero.pointsInTalent(Talent.NATURES_AID)));
-		}
+        for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+            if (Dungeon.level.heroFOV[pos] && player.hero.hasTalent(Talent.NATURES_AID)){
+                // 3/5 turns based on talent points spent
+                Barkskin.conditionallyAppend(player.hero, 2, 1 + 2*(player.hero.pointsInTalent(Talent.NATURES_AID)));
+            }
+        }
 
 		wither();
 		activate( ch );
@@ -119,13 +125,15 @@ public abstract class Plant implements Bundlable {
 		return Messages.get(this, "name");
 	}
 
-	public String desc() {
-		String desc = Messages.get(this, "desc");
-		if (Dungeon.hero != null && Dungeon.hero.subClass == HeroSubClass.WARDEN){
-			desc += "\n\n" + Messages.get(this, "warden_desc");
-		}
-		return desc;
-	}
+    public String desc() {
+        String desc = Messages.get(this, "desc");
+        Hero localHero = Multiplayer.Players.get(getLocalPlayerId()).hero;
+        if (localHero != null && localHero.subClass == HeroSubClass.WARDEN){
+            desc += "\n\n" + Messages.get(this, "warden_desc");
+        }
+        return desc;
+    }
+
 	
 	public static class Seed extends Item {
 
@@ -157,7 +165,7 @@ public abstract class Plant implements Bundlable {
 			} else {
 				Catalog.countUse(getClass());
 				Dungeon.level.plant( this, cell );
-				if (Dungeon.hero.subClass == HeroSubClass.WARDEN) {
+				if (curUser.subClass == HeroSubClass.WARDEN) {
 					for (int i : PathFinder.NEIGHBOURS8) {
 						int c = Dungeon.level.map[cell + i];
 						if ( c == Terrain.EMPTY || c == Terrain.EMPTY_DECO
@@ -219,7 +227,7 @@ public abstract class Plant implements Bundlable {
 		@Override
 		public String desc() {
 			String desc = Messages.get(plantClass, "desc");
-			if (Dungeon.hero != null && Dungeon.hero.subClass == HeroSubClass.WARDEN){
+			if (curUser != null && curUser.subClass == HeroSubClass.WARDEN){
 				desc += "\n\n" + Messages.get(plantClass, "warden_desc");
 			}
 			return desc;

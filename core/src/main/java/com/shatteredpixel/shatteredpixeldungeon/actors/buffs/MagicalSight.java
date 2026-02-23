@@ -23,6 +23,7 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.buffs;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.watabou.noosa.Image;
@@ -64,7 +65,10 @@ public class MagicalSight extends FlavourBuff {
 	@Override
 	public void detach() {
 		super.detach();
-		Dungeon.observe();
+        if (target instanceof Hero)
+        {
+            Dungeon.observe((Hero) target);
+        }
 		GameScene.updateFog();
 	}
 

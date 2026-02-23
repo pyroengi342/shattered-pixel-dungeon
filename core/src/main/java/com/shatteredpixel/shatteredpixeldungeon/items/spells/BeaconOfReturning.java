@@ -97,7 +97,7 @@ public class BeaconOfReturning extends Spell {
 	@Override
 	protected void onThrow(int cell) {
 		if (returnDepth != -1) {
-			if (Dungeon.hero.belongings.getItem(getClass()) == null) {
+			if (curUser.belongings.getItem(getClass()) == null) {
 				Notes.remove(Notes.Landmark.BEACON_LOCATION, returnDepth);
 			}
 			returnDepth = -1;
@@ -192,7 +192,7 @@ public class BeaconOfReturning extends Spell {
 
 		} else {
 
-			if (!Dungeon.interfloorTeleportAllowed()) {
+			if (!Dungeon.interfloorTeleportAllowed( curUser )) {
 				GLog.w( Messages.get(this, "preventing") );
 				return;
 			}
@@ -225,8 +225,8 @@ public class BeaconOfReturning extends Spell {
 	@Override
 	public String desc() {
 		String desc = super.desc();
-		if (Dungeon.hero != null) {
-			BeaconTracker tracker = Dungeon.hero.buff(BeaconTracker.class);
+		if (curUser != null) {
+			BeaconTracker tracker = curUser.buff(BeaconTracker.class);
 			if (tracker != null){
 				desc += "\n\n" + Messages.get(this, "desc_set", tracker.returnDepth);
 			} else if (returnDepth != -1) {

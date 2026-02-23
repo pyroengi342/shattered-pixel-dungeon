@@ -21,6 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.spells;
 
+import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
@@ -45,6 +47,8 @@ import com.watabou.noosa.Image;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Callback;
 import com.watabou.utils.Random;
+
+import network.Multiplayer;
 
 public class GuidingLight extends TargetedClericSpell {
 
@@ -87,8 +91,8 @@ public class GuidingLight extends TargetedClericSpell {
 					Sample.INSTANCE.play(Assets.Sounds.HIT_MAGIC, 1, Random.Float(0.87f, 1.15f));
 					ch.sprite.burst(0xFFFFFF44, 3);
 					if (ch.isAlive()){
-						Buff.affect(ch, Illuminated.class);
-						Buff.affect(ch, WasIlluminatedTracker.class);
+						Buff.affect(ch, Illuminated.class, hero);
+						Buff.affect(ch, WasIlluminatedTracker.class, hero);
 					}
 				} else {
 					Dungeon.level.pressCell(aim.collisionPos);
@@ -99,7 +103,7 @@ public class GuidingLight extends TargetedClericSpell {
 
 				onSpellCast(tome, hero);
 				if (hero.subClass == HeroSubClass.PRIEST && hero.buff(GuidingLightPriestCooldown.class) == null) {
-					Buff.prolong(hero, GuidingLightPriestCooldown.class, 50f);
+					Buff.prolong(hero, GuidingLightPriestCooldown.class, 50f, hero);
 					ActionIndicator.refresh();
 				}
 
@@ -117,12 +121,12 @@ public class GuidingLight extends TargetedClericSpell {
 		}
 	}
 
-	public String desc(){
+	public String desc(Hero hero){
 		String desc = Messages.get(this, "desc");
-		if (Dungeon.hero.subClass == HeroSubClass.PRIEST){
+		if (hero.subClass == HeroSubClass.PRIEST){
 			desc += "\n\n" + Messages.get(this, "desc_priest");
 		}
-		return desc + "\n\n" + Messages.get(this, "charge_cost", (int)chargeUse(Dungeon.hero));
+		return desc + "\n\n" + Messages.get(this, "charge_cost", (int)chargeUse(hero));
 	}
 
 	public static class GuidingLightPriestCooldown extends FlavourBuff {
@@ -164,12 +168,12 @@ public class GuidingLight extends TargetedClericSpell {
 		}
 
 		@Override
-		public String desc() {
+	public String desc(Hero hero){
 			String desc = super.desc();
 
-			if (Dungeon.hero.subClass == HeroSubClass.PRIEST){
+			if (((Hero) target).subClass == HeroSubClass.PRIEST){
 				desc += "\n\n" + Messages.get(this, "desc_priest");
-			} else if (Dungeon.hero.heroClass != HeroClass.CLERIC){
+			} else if (((Hero) target).heroClass != HeroClass.CLERIC){
 				desc += "\n\n" + Messages.get(this, "desc_generic");
 			}
 

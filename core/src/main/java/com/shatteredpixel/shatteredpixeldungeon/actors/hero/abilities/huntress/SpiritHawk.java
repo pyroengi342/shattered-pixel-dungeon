@@ -55,16 +55,16 @@ import java.util.ArrayList;
 public class SpiritHawk extends ArmorAbility {
 
 	@Override
-	public String targetingPrompt() {
+	public String targetingPrompt(Hero hero) {
 		if (getHawk() == null) {
-			return super.targetingPrompt();
+			return super.targetingPrompt(hero);
 		} else {
 			return Messages.get(this, "prompt");
 		}
 	}
 
 	@Override
-	public boolean useTargeting(){
+	public boolean useTargeting(Hero hero){
 		return false;
 	}
 
@@ -104,12 +104,12 @@ public class SpiritHawk extends ArmorAbility {
 				armor.charge -= chargeUse(hero);
 				armor.updateQuickslot();
 
-				ally = new HawkAlly();
+				ally = new HawkAlly(hero);
 				ally.pos = Random.element(spawnPoints);
 				GameScene.add(ally);
 
 				ScrollOfTeleportation.appear(ally, ally.pos);
-				Dungeon.observe();
+				Dungeon.observe( hero );
 
 				Invisibility.dispel();
 				hero.spendAndNext(Actor.TICK);
@@ -142,25 +142,32 @@ public class SpiritHawk extends ArmorAbility {
 
 	public static class HawkAlly extends DirectableAlly {
 
-		{
-			spriteClass = HawkSprite.class;
+        // Добавляем поле владельца
+        private Hero owner;
 
-			HP = HT = 10;
-			defenseSkill = 60;
+        {
+            spriteClass = HawkSprite.class;
 
-			flying = true;
-			if (Dungeon.hero != null) {
-				viewDistance = (int) GameMath.gate(6, 6 + Dungeon.hero.pointsInTalent(Talent.EAGLE_EYE), 8);
-				baseSpeed = 2f + Dungeon.hero.pointsInTalent(Talent.SWIFT_SPIRIT) / 2f;
-			} else {
-				viewDistance = 6;
-				baseSpeed = 2f;
-			}
-			attacksAutomatically = false;
+            HP = HT = 10;
+            defenseSkill = 60;
 
-			immunities.addAll(new BlobImmunity().immunities());
-			immunities.add(AllyBuff.class);
-		}
+            flying = true;
+            // Инициализация в конструкторе
+            viewDistance = 6;
+            baseSpeed = 2f;
+            attacksAutomatically = false;
+
+            immunities.addAll(new BlobImmunity().immunities());
+            immunities.add(AllyBuff.class);
+        }
+        // Конструктор с владельцем
+        public HawkAlly(Hero owner) {
+            this.owner = owner;
+            if (owner != null) {
+                viewDistance = (int) GameMath.gate(6, 6 + owner.pointsInTalent(Talent.EAGLE_EYE), 8);
+                baseSpeed = 2f + owner.pointsInTalent(Talent.SWIFT_SPIRIT) / 2f;
+            }
+        }
 
 		@Override
 		public int attackSkill(Char target) {
@@ -170,15 +177,15 @@ public class SpiritHawk extends ArmorAbility {
 		private int dodgesUsed = 0;
 		private float timeRemaining = 100f;
 
-		@Override
-		public int defenseSkill(Char enemy) {
-			if (Dungeon.hero.hasTalent(Talent.SWIFT_SPIRIT) &&
-					dodgesUsed < 2*Dungeon.hero.pointsInTalent(Talent.SWIFT_SPIRIT)) {
-				dodgesUsed++;
-				return Char.INFINITE_EVASION;
-			}
-			return super.defenseSkill(enemy);
-		}
+        @Override
+        public int defenseSkill(Char enemy) {
+            if (owner != null && owner.hasTalent(Talent.SWIFT_SPIRIT) &&
+                    dodgesUsed < 2 * owner.pointsInTalent(Talent.SWIFT_SPIRIT)) {
+                dodgesUsed++;
+                return Char.INFINITE_EVASION;
+            }
+            return super.defenseSkill(enemy);
+        }
 
 		@Override
 		public int damageRoll() {
@@ -188,20 +195,20 @@ public class SpiritHawk extends ArmorAbility {
 		@Override
 		public int attackProc(Char enemy, int damage) {
 			damage = super.attackProc( enemy, damage );
-			switch (Dungeon.hero.pointsInTalent(Talent.GO_FOR_THE_EYES)){
+			switch (owner.pointsInTalent(Talent.GO_FOR_THE_EYES)){
 				case 1:
-					Buff.prolong( enemy, Blindness.class, 2);
+					Buff.prolong( enemy, Blindness.class, 2, owner);
 					break;
 				case 2:
-					Buff.prolong( enemy, Blindness.class, 5);
+					Buff.prolong( enemy, Blindness.class, 5, owner);
 					break;
 				case 3:
-					Buff.prolong( enemy, Blindness.class, 5);
-					Buff.prolong( enemy, Cripple.class, 2);
+					Buff.prolong( enemy, Blindness.class, 5, owner);
+					Buff.prolong( enemy, Cripple.class, 2, owner);
 					break;
 				case 4:
-					Buff.prolong( enemy, Blindness.class, 5);
-					Buff.prolong( enemy, Cripple.class, 5);
+					Buff.prolong( enemy, Blindness.class, 5, owner);
+					Buff.prolong( enemy, Cripple.class, 5, owner);
 					break;
 				default:
 					//do nothing
@@ -210,20 +217,28 @@ public class SpiritHawk extends ArmorAbility {
 			return damage;
 		}
 
-		@Override
-		protected boolean act() {
-			if (timeRemaining <= 0){
-				die(null);
-				Dungeon.hero.interrupt();
-				return true;
-			}
-			viewDistance = 6+Dungeon.hero.pointsInTalent(Talent.EAGLE_EYE);
-			baseSpeed = 2f + Dungeon.hero.pointsInTalent(Talent.SWIFT_SPIRIT)/2f;
-			boolean result = super.act();
-			Dungeon.level.updateFieldOfView( this, fieldOfView );
-			GameScene.updateFog(pos, viewDistance+(int)Math.ceil(speed()));
-			return result;
-		}
+        @Override
+        protected boolean act() {
+            if (timeRemaining <= 0) {
+                die(null);
+                if (owner != null) {
+                    owner.interrupt();
+                }
+                return true;
+            }
+            if (owner != null) {
+                viewDistance = 6 + owner.pointsInTalent(Talent.EAGLE_EYE);
+                baseSpeed = 2f + owner.pointsInTalent(Talent.SWIFT_SPIRIT) / 2f;
+            }
+            boolean result = super.act();
+            Dungeon.level.updateFieldOfView(this, fieldOfView);
+
+            // Обновляем туман для владельца
+            if (owner != null) {
+                GameScene.updateFog(pos, viewDistance + (int) Math.ceil(speed()));
+            }
+            return result;
+        }
 
 		@Override
 		public void die(Object cause) {
@@ -240,7 +255,7 @@ public class SpiritHawk extends ArmorAbility {
 		@Override
 		public void destroy() {
 			super.destroy();
-			Dungeon.observe();
+			Dungeon.observeAll( );
 			GameScene.updateFog();
 		}
 
@@ -262,34 +277,47 @@ public class SpiritHawk extends ArmorAbility {
 			super.targetChar(ch);
 		}
 
-		@Override
-		public String description() {
-			String message = Messages.get(this, "desc", (int)timeRemaining);
-			if (Actor.chars().contains(this)){
-				message += "\n\n" + Messages.get(this, "desc_remaining", (int)timeRemaining);
-				if (dodgesUsed < 2*Dungeon.hero.pointsInTalent(Talent.SWIFT_SPIRIT)){
-					message += "\n" + Messages.get(this, "desc_dodges", (2*Dungeon.hero.pointsInTalent(Talent.SWIFT_SPIRIT) - dodgesUsed));
-				}
-			}
-			return message;
-		}
+        @Override
+        public String description() {
+            String message = Messages.get(this, "desc", (int) timeRemaining);
+            if (Actor.chars().contains(this) && owner != null) {
+                message += "\n\n" + Messages.get(this, "desc_remaining", (int) timeRemaining);
+                if (dodgesUsed < 2 * owner.pointsInTalent(Talent.SWIFT_SPIRIT)) {
+                    message += "\n" + Messages.get(this, "desc_dodges",
+                            (2 * owner.pointsInTalent(Talent.SWIFT_SPIRIT) - dodgesUsed));
+                }
+            }
+            return message;
+        }
 
 		private static final String DODGES_USED     = "dodges_used";
 		private static final String TIME_REMAINING  = "time_remaining";
+        private static final String OWNER = "owner";
 
-		@Override
-		public void storeInBundle(Bundle bundle) {
-			super.storeInBundle(bundle);
-			bundle.put(DODGES_USED, dodgesUsed);
-			bundle.put(TIME_REMAINING, timeRemaining);
-		}
+        @Override
+        public void storeInBundle(Bundle bundle) {
+            super.storeInBundle(bundle);
+            bundle.put(DODGES_USED, dodgesUsed);
+            bundle.put(TIME_REMAINING, timeRemaining);
+            if (owner != null) {
+                bundle.put(OWNER, owner.id());
+            }
+        }
 
-		@Override
-		public void restoreFromBundle(Bundle bundle) {
-			super.restoreFromBundle(bundle);
-			dodgesUsed = bundle.getInt(DODGES_USED);
-			timeRemaining = bundle.getFloat(TIME_REMAINING);
-		}
+        @Override
+        public void restoreFromBundle(Bundle bundle) {
+            super.restoreFromBundle(bundle);
+            dodgesUsed = bundle.getInt(DODGES_USED);
+            timeRemaining = bundle.getFloat(TIME_REMAINING);
+            if (bundle.contains(OWNER)) {
+                int ownerId = bundle.getInt(OWNER);
+                Actor actor = Actor.findById(ownerId);
+                if (actor instanceof Hero) {
+                    owner = (Hero) actor;
+                }
+            }
+        }
+
 	}
 
 	public static class HawkSprite extends MobSprite {

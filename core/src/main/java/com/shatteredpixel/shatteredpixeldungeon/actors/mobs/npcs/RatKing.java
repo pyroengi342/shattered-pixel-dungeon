@@ -21,11 +21,14 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs;
 
+import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.Ratmogrify;
 import com.shatteredpixel.shatteredpixeldungeon.items.KingsCrown;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Notes;
@@ -37,6 +40,8 @@ import com.shatteredpixel.shatteredpixeldungeon.windows.WndInfoArmorAbility;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions;
 import com.watabou.noosa.Game;
 import com.watabou.utils.Callback;
+
+import network.Multiplayer;
 
 public class RatKing extends NPC {
 
@@ -115,19 +120,19 @@ public class RatKing extends NPC {
 
 	@Override
 	public boolean interact(Char c) {
+        if (c instanceof Hero){
+            return super.interact(c);
+        }
+
 		sprite.turnTo( pos, c.pos );
 
-		if (c != Dungeon.hero){
-			return super.interact(c);
-		}
-
-		KingsCrown crown = Dungeon.hero.belongings.getItem(KingsCrown.class);
+		KingsCrown crown = ((Hero) c).belongings.getItem(KingsCrown.class);
 		if (state == SLEEPING) {
 			notice();
 			yell( Messages.get(this, "not_sleeping") );
 			state = WANDERING;
 		} else if (crown != null){
-			if (Dungeon.hero.belongings.armor() == null){
+			if (((Hero) c).belongings.armor() == null){
 				yell( Messages.get(RatKing.class, "crown_clothes") );
 			} else {
 				Badges.validateRatmogrify();
@@ -145,12 +150,12 @@ public class RatKing extends NPC {
 							@Override
 							protected void onSelect(int index) {
 								if (index == 0){
-									crown.upgradeArmor(Dungeon.hero, Dungeon.hero.belongings.armor(), new Ratmogrify());
+									crown.upgradeArmor(((Hero) c), ((Hero) c).belongings.armor(), new Ratmogrify());
 									Statistics.qualifiedForRandomVictoryBadge = false;
 									((RatKingSprite)sprite).resetAnims();
 									yell(Messages.get(RatKing.class, "crown_thankyou"));
 								} else if (index == 1) {
-									GameScene.show(new WndInfoArmorAbility(Dungeon.hero.heroClass, new Ratmogrify()));
+									GameScene.show(new WndInfoArmorAbility(((Hero) c).heroClass, new Ratmogrify()));
 								} else {
 									yell(Messages.get(RatKing.class, "crown_fine"));
 								}
@@ -159,7 +164,7 @@ public class RatKing extends NPC {
 					}
 				});
 			}
-		} else if (Dungeon.hero.armorAbility instanceof Ratmogrify) {
+		} else if (((Hero) c).armorAbility instanceof Ratmogrify) {
 			yell( Messages.get(RatKing.class, "crown_after") );
 		} else {
 			yell( Messages.get(this, "what_is_it") );
@@ -169,7 +174,8 @@ public class RatKing extends NPC {
 	
 	@Override
 	public String description() {
-		if (Dungeon.hero != null && Dungeon.hero.armorAbility instanceof Ratmogrify){
+        Hero localHero = Multiplayer.Players.get(getLocalPlayerId()).hero;
+		if (localHero != null && localHero.armorAbility instanceof Ratmogrify){
 			return Messages.get(this, "desc_crown");
 		} else if (Holiday.getCurrentHoliday() == Holiday.APRIL_FOOLS){
 			return Messages.get(this, "desc_birthday");

@@ -110,7 +110,7 @@ public class LloydsBeacon extends Artifact {
 
 		if (action == AC_SET || action == AC_RETURN) {
 			
-			if (Dungeon.bossLevel() || !Dungeon.interfloorTeleportAllowed()) {
+			if (Dungeon.bossLevel() || !Dungeon.interfloorTeleportAllowed( hero )) {
 				hero.spend( LloydsBeacon.TIME_TO_USE );
 				GLog.w( Messages.get(this, "preventing") );
 				return;
@@ -172,7 +172,7 @@ public class LloydsBeacon extends Artifact {
 					}
 				}
 				Dungeon.level.occupyCell(hero );
-				Dungeon.observe();
+				Dungeon.observe(hero);
 				GameScene.updateFog();
 			} else {
 

@@ -21,6 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.effects;
 
+import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap;
@@ -28,6 +30,8 @@ import com.watabou.noosa.Game;
 import com.watabou.noosa.Group;
 import com.watabou.noosa.Image;
 import com.watabou.noosa.Visual;
+
+import network.Multiplayer;
 
 public class Surprise extends Image {
 
@@ -89,7 +93,7 @@ public class Surprise extends Image {
 	}
 
 	public static void hit(int pos, float angle) {
-		Group parent = Dungeon.hero.sprite.parent;
+        Group parent = Multiplayer.Players.get(getLocalPlayerId()).hero.sprite.parent;
 		Surprise s = (Surprise) parent.recycle(Surprise.class);
 		parent.bringToFront(s);
 		s.reset(pos);

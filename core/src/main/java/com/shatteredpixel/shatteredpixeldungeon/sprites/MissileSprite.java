@@ -22,8 +22,12 @@
 package com.shatteredpixel.shatteredpixeldungeon.sprites;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.spells.HolyLance;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.GnollGeomancer;
+
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.SpiritBow;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Crossbow;
@@ -50,42 +54,51 @@ import java.util.HashMap;
 public class MissileSprite extends ItemSprite implements Tweener.Listener {
 
 	private static final float SPEED	= 240f;
-	
+    private int attackerId = -1; // ID атакующего персонажа
 	private Callback callback;
-	
-	public void reset( int from, int to, Item item, Callback listener ) {
-		reset(Dungeon.level.solid[from] ? DungeonTilemap.raisedTileCenterToWorld(from) : DungeonTilemap.raisedTileCenterToWorld(from),
-				Dungeon.level.solid[to] ? DungeonTilemap.raisedTileCenterToWorld(to) : DungeonTilemap.raisedTileCenterToWorld(to),
-				item, listener);
-	}
 
-	public void reset( Visual from, int to, Item item, Callback listener ) {
-		reset(from.center(),
-				Dungeon.level.solid[to] ? DungeonTilemap.raisedTileCenterToWorld(to) : DungeonTilemap.raisedTileCenterToWorld(to),
-				item, listener );
-	}
+    // Новый метод reset с указанием атакующего
+    public void reset( Char attacker, int from, int to, Item item, Callback listener ) {
+        reset(attacker,
+                Dungeon.level.solid[from] ? DungeonTilemap.raisedTileCenterToWorld(from) : DungeonTilemap.raisedTileCenterToWorld(from),
+                Dungeon.level.solid[to] ? DungeonTilemap.raisedTileCenterToWorld(to) : DungeonTilemap.raisedTileCenterToWorld(to),
+                item, listener);
+    }
 
-	public void reset( int from, Visual to, Item item, Callback listener ) {
-		reset(Dungeon.level.solid[from] ? DungeonTilemap.raisedTileCenterToWorld(from) : DungeonTilemap.raisedTileCenterToWorld(from),
-				to.center(),
-				item, listener );
-	}
+    public void reset( Char attacker, Visual from, int to, Item item, Callback listener ) {
+        reset(attacker, from.center(),
+                Dungeon.level.solid[to] ? DungeonTilemap.raisedTileCenterToWorld(to) : DungeonTilemap.raisedTileCenterToWorld(to),
+                item, listener);
+    }
 
-	public void reset( Visual from, Visual to, Item item, Callback listener ) {
-		reset(from.center(), to.center(), item, listener );
-	}
+    public void reset( Char attacker, int from, Visual to, Item item, Callback listener ) {
+        reset(attacker,
+                Dungeon.level.solid[from] ? DungeonTilemap.raisedTileCenterToWorld(from) : DungeonTilemap.raisedTileCenterToWorld(from),
+                to.center(),
+                item, listener);
+    }
 
-	public void reset( PointF from, PointF to, Item item, Callback listener) {
-		revive();
+    public void reset( Char attacker, Visual from, Visual to, Item item, Callback listener ) {
+        reset(attacker, from.center(), to.center(), item, listener);
+    }
 
-		if (item == null)   view(0, null);
-		else                view( item );
+    // Основной метод reset с точками
+    public void reset( Char attacker, PointF from, PointF to, Item item, Callback listener ) {
+        this.attackerId = (attacker != null) ? attacker.id() : -1;
+        revive();
 
-		setup( from,
-				to,
-				item,
-				listener );
-	}
+        if (item == null) view(0, null);
+        else view(item);
+
+        setup(from, to, item, listener);
+    }
+
+    // Старые методы reset оставляем для совместимости, но без атакующего
+    // (они будут работать без бонусов скорости, т.к. attackerId = -1)
+    public void reset( int from, int to, Item item, Callback listener ) {
+        reset(null, from, to, item, listener);
+    }
+
 	
 	private static final int DEFAULT_ANGULAR_SPEED = 720;
 	
@@ -161,9 +174,19 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 		}
 		
 		float speed = SPEED;
-		if (item instanceof Dart
-				&& (Dungeon.hero.belongings.weapon() instanceof Crossbow
-				|| Dungeon.hero.belongings.secondWep() instanceof Crossbow)){
+
+        // Получаем атакующего по ID
+        Hero attackerHero = null;
+        if (attackerId != -1) {
+            Char ch = (Char) Actor.findById(attackerId);
+            if (ch instanceof Hero) {
+                attackerHero = (Hero) ch;
+            }
+        }
+
+		if (item instanceof Dart && attackerHero != null
+				&& (attackerHero.belongings.weapon() instanceof Crossbow
+				|| attackerHero.belongings.secondWep() instanceof Crossbow)){
 			speed *= 3f;
 			
 		} else if (item instanceof SpiritBow.SpiritArrow

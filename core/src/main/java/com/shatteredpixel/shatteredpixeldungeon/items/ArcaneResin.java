@@ -128,7 +128,7 @@ public class ArcaneResin extends Item {
 					if (resinToUse < quantity()){
 						quantity(quantity()-resinToUse);
 					} else {
-						detachAll(Dungeon.hero.belongings.backpack);
+						detachAll(curUser.belongings.backpack);
 					}
 
 					w.resinBonus++;
@@ -190,8 +190,8 @@ public class ArcaneResin extends Item {
 			int level = w.level() - w.resinBonus;
 			int quantity = 2*(level+1);
 
-			if (Dungeon.hero.heroClass != HeroClass.MAGE && Dungeon.hero.hasTalent(Talent.WAND_PRESERVATION)){
-				quantity += Dungeon.hero.pointsInTalent(Talent.WAND_PRESERVATION);
+			if (curUser.heroClass != HeroClass.MAGE && curUser.hasTalent(Talent.WAND_PRESERVATION)){
+				quantity += curUser.pointsInTalent(Talent.WAND_PRESERVATION);
 			}
 			return quantity;
 		}

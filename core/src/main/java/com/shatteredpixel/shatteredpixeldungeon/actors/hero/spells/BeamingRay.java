@@ -21,6 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.spells;
 
+import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
@@ -46,6 +48,8 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.PathFinder;
 
+import network.Multiplayer;
+
 public class BeamingRay extends TargetedClericSpell {
 
 	public static BeamingRay INSTANCE = new BeamingRay();
@@ -56,8 +60,8 @@ public class BeamingRay extends TargetedClericSpell {
 	}
 
 	@Override
-	public String desc() {
-		return Messages.get(this, "desc", 4*Dungeon.hero.pointsInTalent(Talent.BEAMING_RAY), 30 + 5*Dungeon.hero.pointsInTalent(Talent.BEAMING_RAY)) + "\n\n" + Messages.get(this, "charge_cost", (int)chargeUse(Dungeon.hero));
+	public String desc(Hero hero ) {
+		return Messages.get(this, "desc", 4* hero.pointsInTalent(Talent.BEAMING_RAY), 30 + 5*hero.pointsInTalent(Talent.BEAMING_RAY)) + "\n\n" + Messages.get(this, "charge_cost", (int)chargeUse(hero));
 	}
 
 	@Override
@@ -69,7 +73,7 @@ public class BeamingRay extends TargetedClericSpell {
 	public boolean canCast(Hero hero) {
 		return super.canCast(hero)
 				&& hero.hasTalent(Talent.BEAMING_RAY)
-				&& (PowerOfMany.getPoweredAlly() != null || Stasis.getStasisAlly() != null);
+				&& (PowerOfMany.getPoweredAlly() != null || Stasis.getStasisAlly(hero) != null);
 	}
 
 	@Override
@@ -82,7 +86,7 @@ public class BeamingRay extends TargetedClericSpell {
 
 		if (ally == null){
 			//temporary, for distance checks
-			ally = Dungeon.hero;
+			ally = hero;
 		}
 
 		int telePos = target;
@@ -109,8 +113,8 @@ public class BeamingRay extends TargetedClericSpell {
 			return;
 		}
 
-		if (ally == Dungeon.hero){
-			ally = Stasis.getStasisAlly();
+		if (ally instanceof Hero){
+			ally = Stasis.getStasisAlly(hero);
 		}
 
 		int range = 4*hero.pointsInTalent(Talent.BEAMING_RAY);
@@ -126,11 +130,11 @@ public class BeamingRay extends TargetedClericSpell {
 		if (Actor.findChar(target) != null && Actor.findChar(target).alignment == Char.Alignment.ENEMY){
 			chTarget = Actor.findChar(target);
 			if (hero.subClass == HeroSubClass.PRIEST){
-				Buff.affect(chTarget, GuidingLight.Illuminated.class);
+				Buff.affect(chTarget, GuidingLight.Illuminated.class, hero);
 			}
 		}
 
-		if (ally == Stasis.getStasisAlly()){
+		if (ally == Stasis.getStasisAlly(hero)){
 			ally.pos = telePos;
 			GameScene.add((Mob) ally);
 			hero.buff(Stasis.StasisBuff.class).detach();
@@ -138,7 +142,7 @@ public class BeamingRay extends TargetedClericSpell {
 					new Beam.SunRay(hero.sprite.center(), DungeonTilemap.raisedTileCenterToWorld(telePos)));
 
 			if (ally.buff(LifeLink.class) != null){
-				Buff.prolong(Dungeon.hero, LifeLink.class, ally.buff(LifeLink.class).cooldown()).object = ally.id();
+				Buff.prolong(hero, LifeLink.class, ally.buff(LifeLink.class).cooldown(), hero).object = ally.id();
 			}
 		} else {
 			hero.sprite.parent.add(
@@ -164,17 +168,17 @@ public class BeamingRay extends TargetedClericSpell {
 			} else if (ally instanceof Mob) {
 				((Mob) ally).aggro(chTarget);
 			}
-			FlavourBuff.prolong(ally, BeamingRayBoost.class, BeamingRayBoost.DURATION).object = chTarget.id();
+			FlavourBuff.prolong(ally, BeamingRayBoost.class, BeamingRayBoost.DURATION, hero).object = chTarget.id();
 		} else {
 			if (ally instanceof DirectableAlly) {
 				((DirectableAlly) ally).clearDefensingPos();
 			}
 			//just the buff with no target
-			FlavourBuff.prolong(ally, BeamingRayBoost.class, BeamingRayBoost.DURATION);
+			FlavourBuff.prolong(ally, BeamingRayBoost.class, BeamingRayBoost.DURATION, hero);
 		}
 
 		hero.spendAndNext(Actor.TICK);
-		Dungeon.observe();
+		Dungeon.observe( hero );
 		GameScene.updateFog();
 
 		onSpellCast(tome, hero);

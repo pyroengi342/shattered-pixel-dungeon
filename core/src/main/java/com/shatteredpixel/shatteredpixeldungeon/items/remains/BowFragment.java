@@ -72,7 +72,7 @@ public class BowFragment extends RemainsItem {
 				GameScene.updateMap(grassCell);
 			}
 		}
-		Dungeon.observe();
+		Dungeon.observe( hero );
 		Sample.INSTANCE.play(Assets.Sounds.PLANT);
 	}
 }

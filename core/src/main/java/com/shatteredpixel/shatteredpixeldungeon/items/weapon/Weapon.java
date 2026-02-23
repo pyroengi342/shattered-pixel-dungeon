@@ -135,9 +135,9 @@ abstract public class Weapon extends KindOfWeapon {
 		if (attacker.buff(MagicImmune.class) == null) {
 			Enchantment trinityEnchant = null;
 			//only when it's the hero or a char that uses the hero's weapon
-			if (Dungeon.hero.buff(BodyForm.BodyFormBuff.class) != null && this instanceof MeleeWeapon
-					&& (attacker == Dungeon.hero || attacker instanceof MirrorImage || attacker instanceof ShadowClone.ShadowAlly)){
-				trinityEnchant = Dungeon.hero.buff(BodyForm.BodyFormBuff.class).enchant();
+			if (curUser.buff(BodyForm.BodyFormBuff.class) != null && this instanceof MeleeWeapon
+					&& (attacker instanceof Hero || attacker instanceof MirrorImage || attacker instanceof ShadowClone.ShadowAlly)){
+				trinityEnchant = curUser.buff(BodyForm.BodyFormBuff.class).enchant();
 				if (enchantment != null && trinityEnchant != null && trinityEnchant.getClass() == enchantment.getClass()){
 					trinityEnchant = null;
 				}
@@ -187,8 +187,8 @@ abstract public class Weapon extends KindOfWeapon {
 			return damage;
 		}
 		
-		if (!levelKnown && attacker == Dungeon.hero) {
-			float uses = Math.min( availableUsesToID, Talent.itemIDSpeedFactor(Dungeon.hero, this) );
+		if (!levelKnown && attacker instanceof Hero) {
+			float uses = Math.min( availableUsesToID, Talent.itemIDSpeedFactor(curUser, this) );
 			availableUsesToID -= uses;
 			usesLeftToID -= uses;
 			if (usesLeftToID <= 0) {
@@ -260,7 +260,7 @@ abstract public class Weapon extends KindOfWeapon {
 	@Override
 	public boolean collect(Bag container) {
 		if(super.collect(container)){
-			if (Dungeon.hero != null && Dungeon.hero.isAlive() && isIdentified() && enchantment != null){
+			if (curUser != null && curUser.isAlive() && isIdentified() && enchantment != null){
 				Catalog.setSeen(enchantment.getClass());
 				Statistics.itemTypesDiscovered.add(enchantment.getClass());
 			}
@@ -272,7 +272,7 @@ abstract public class Weapon extends KindOfWeapon {
 
 	@Override
 	public Item identify(boolean byHero) {
-		if (enchantment != null && byHero && Dungeon.hero != null && Dungeon.hero.isAlive()){
+		if (enchantment != null && byHero && curUser != null && curUser.isAlive()){
 			Catalog.setSeen(enchantment.getClass());
 			Statistics.itemTypesDiscovered.add(enchantment.getClass());
 		}
@@ -406,8 +406,8 @@ abstract public class Weapon extends KindOfWeapon {
 	
 	@Override
 	public String name() {
-		if (isEquipped(Dungeon.hero) && !hasCurseEnchant() && Dungeon.hero.buff(HolyWeapon.HolyWepBuff.class) != null
-			&& (Dungeon.hero.subClass != HeroSubClass.PALADIN || enchantment == null)){
+		if (isEquipped(curUser) && !hasCurseEnchant() && curUser.buff(HolyWeapon.HolyWepBuff.class) != null
+			&& (curUser.subClass != HeroSubClass.PALADIN || enchantment == null)){
 				return Messages.get(HolyWeapon.class, "ench_name", super.name());
 			} else {
 				return enchantment != null && (cursedKnown || !enchantment.curse()) ? enchantment.name(super.name()) : super.name();
@@ -452,8 +452,8 @@ abstract public class Weapon extends KindOfWeapon {
 		if (ench == null || !ench.curse()) curseInfusionBonus = false;
 		enchantment = ench;
 		updateQuickslot();
-		if (ench != null && isIdentified() && Dungeon.hero != null
-				&& Dungeon.hero.isAlive() && Dungeon.hero.belongings.contains(this)){
+		if (ench != null && isIdentified() && curUser != null
+				&& curUser.isAlive() && curUser.belongings.contains(this)){
 			Catalog.setSeen(ench.getClass());
 			Statistics.itemTypesDiscovered.add(ench.getClass());
 		}
@@ -502,8 +502,8 @@ abstract public class Weapon extends KindOfWeapon {
 
 	@Override
 	public ItemSprite.Glowing glowing() {
-		if (isEquipped(Dungeon.hero) && !hasCurseEnchant() && Dungeon.hero.buff(HolyWeapon.HolyWepBuff.class) != null
-				&& (Dungeon.hero.subClass != HeroSubClass.PALADIN || enchantment == null)){
+		if (isEquipped(curUser) && !hasCurseEnchant() && curUser.buff(HolyWeapon.HolyWepBuff.class) != null
+				&& (curUser.subClass != HeroSubClass.PALADIN || enchantment == null)){
 			return HOLY;
 		} else {
 			return enchantment != null && (cursedKnown || !enchantment.curse()) ? enchantment.glowing() : null;

@@ -21,6 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.spells;
 
+import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FlavourBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
@@ -37,6 +39,8 @@ import com.watabou.noosa.Image;
 import com.watabou.utils.Bundlable;
 import com.watabou.utils.Bundle;
 
+import network.Multiplayer;
+
 public class BodyForm extends ClericSpell {
 
 	public static BodyForm INSTANCE = new BodyForm();
@@ -47,8 +51,8 @@ public class BodyForm extends ClericSpell {
 	}
 
 	@Override
-	public String desc() {
-		return Messages.get(this, "desc", duration()) + "\n\n" + Messages.get(this, "charge_cost", (int)chargeUse(Dungeon.hero));
+	public String desc(Hero hero) {
+		return Messages.get(this, "desc", duration(hero)) + "\n\n" + Messages.get(this, "charge_cost", (int)chargeUse(hero));
 	}
 
 	@Override
@@ -64,12 +68,12 @@ public class BodyForm extends ClericSpell {
 	@Override
 	public void onCast(HolyTome tome, Hero hero) {
 
-		GameScene.show(new Trinity.WndItemtypeSelect(tome, this));
+		GameScene.show(new Trinity.WndItemtypeSelect(tome, this, hero));
 
 	}
 
-	public static int duration(){
-		return Math.round(13.33f + 6.67f* Dungeon.hero.pointsInTalent(Talent.BODY_FORM));
+	public static int duration( Hero hero ){
+		return Math.round(13.33f + 6.67f* hero.pointsInTalent(Talent.BODY_FORM));
 	}
 
 	public static class BodyFormBuff extends FlavourBuff {
@@ -90,10 +94,12 @@ public class BodyForm extends ClericSpell {
 			icon.hardlight(1, 0, 0);
 		}
 
-		@Override
-		public float iconFadePercent() {
-			return Math.max(0, (duration() - visualcooldown()) / duration());
-		}
+        @Override
+        public float iconFadePercent() {
+            if (!(target instanceof Hero)) return 0;
+            Hero hero = (Hero) target;
+            return Math.max(0, (BodyForm.duration(hero) - visualcooldown()) / BodyForm.duration(hero));
+        }
 
 		public void setEffect(Bundlable effect){
 			this.effect = effect;
@@ -114,7 +120,7 @@ public class BodyForm extends ClericSpell {
 		}
 
 		@Override
-		public String desc() {
+	    public String desc(){
 			if (enchant() != null){
 				return Messages.get(this, "desc", Messages.titleCase(enchant().name()), dispTurns());
 			} else if (glyph() != null){

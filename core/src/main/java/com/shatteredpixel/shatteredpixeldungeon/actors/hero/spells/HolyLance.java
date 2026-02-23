@@ -21,6 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.spells;
 
+import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
@@ -59,10 +61,10 @@ public class HolyLance extends TargetedClericSpell {
 	}
 
 	@Override
-	public String desc() {
-		int min = 15 + 15*Dungeon.hero.pointsInTalent(Talent.HOLY_LANCE);
-		int max = Math.round(27.5f + 27.5f*Dungeon.hero.pointsInTalent(Talent.HOLY_LANCE));
-		return Messages.get(this, "desc", min, max) + "\n\n" + Messages.get(this, "charge_cost", (int)chargeUse(Dungeon.hero));
+public String desc(Hero hero){
+		int min = 15 + 15*hero.pointsInTalent(Talent.HOLY_LANCE);
+		int max = Math.round(27.5f + 27.5f*hero.pointsInTalent(Talent.HOLY_LANCE));
+		return Messages.get(this, "desc", min, max) + "\n\n" + Messages.get(this, "charge_cost", (int)chargeUse(hero));
 	}
 
 	@Override
@@ -115,8 +117,8 @@ public class HolyLance extends TargetedClericSpell {
 							new Callback() {
 								@Override
 								public void call() {
-									int min = 15 + 15*Dungeon.hero.pointsInTalent(Talent.HOLY_LANCE);
-									int max = Math.round(27.5f + 27.5f*Dungeon.hero.pointsInTalent(Talent.HOLY_LANCE));
+									int min = 15 + 15*hero.pointsInTalent(Talent.HOLY_LANCE);
+									int max = Math.round(27.5f + 27.5f*hero.pointsInTalent(Talent.HOLY_LANCE));
 									if (Char.hasProp(enemy, Char.Property.UNDEAD) || Char.hasProp(enemy, Char.Property.DEMONIC)){
 										min = max;
 									}
@@ -125,7 +127,7 @@ public class HolyLance extends TargetedClericSpell {
 									Sample.INSTANCE.play( Assets.Sounds.HIT_STAB, 1, Random.Float(0.8f, 1f) );
 
 									if (enemy.isActive()){
-										Buff.affect(enemy, GuidingLight.Illuminated.class);
+										Buff.affect(enemy, GuidingLight.Illuminated.class, hero);
 									}
 
 									enemy.sprite.burst(0xFFFFFFFF, 10);

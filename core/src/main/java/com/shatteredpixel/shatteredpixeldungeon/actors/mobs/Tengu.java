@@ -639,7 +639,7 @@ public class Tengu extends Mob {
 								ch.damage(dmg, Bomb.class);
 							}
 
-							if (ch == Dungeon.hero){
+							if (ch instanceof Hero){
 								Statistics.qualifiedForBossChallengeBadge = false;
 								Statistics.bossScores[1] -= 100;
 
@@ -873,7 +873,7 @@ public class Tengu extends Mob {
 							if (ch != null && !ch.isImmune(Fire.class) && !(ch instanceof Tengu)) {
 								Buff.affect( ch, Burning.class ).reignite( ch );
 							}
-							if (ch == Dungeon.hero){
+							if (ch instanceof Hero){
 								Statistics.qualifiedForBossChallengeBadge = false;
 								Statistics.bossScores[1] -= 100;
 							}
@@ -902,7 +902,7 @@ public class Tengu extends Mob {
 				}
 				
 				if (observe) {
-					Dungeon.observe();
+					Dungeon.observeAll();
 				}
 				
 				if (burned){
@@ -1068,7 +1068,7 @@ public class Tengu extends Mob {
 							if (ch != null && !(ch instanceof Tengu)){
 								ch.damage(2 + Dungeon.scalingDepth(), new Electricity());
 								
-								if (ch == Dungeon.hero){
+								if (ch instanceof Hero){
 									Statistics.qualifiedForBossChallengeBadge = false;
 									Statistics.bossScores[1] -= 100;
 									if (!ch.isAlive()) {

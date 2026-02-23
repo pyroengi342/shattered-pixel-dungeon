@@ -152,8 +152,19 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Locale;
 
-public class GameScene extends PixelScene {
+import network.Multiplayer;
 
+public class GameScene extends PixelScene {
+//    public static void handleCell(Integer cell) {
+//        if (network.Multiplayer.isMultiplayer && !network.Multiplayer.isHost) {
+//            // Клиент отправляет команду на сервер
+//            PlayerCommand cmd = new PlayerCommand(PlayerCommand.Type.MOVE, cell);
+//            NetworkManager.getInstance().sendPlayerAction(cmd.toBundle());
+//        } else {
+//            // Локальная обработка (хост или одиночная игра)
+//            cellSelector.select(cell, PointerEvent.LEFT);
+//        }
+//    }
 	static GameScene scene;
 
 	private SkinnedBlock water;
@@ -1652,7 +1663,7 @@ public class GameScene extends PixelScene {
 	private static ArrayList<Object> getObjectsAtCell( int cell ){
 		ArrayList<Object> objects = new ArrayList<>();
 
-		if (cell == Dungeon.hero.pos) {
+        if (cell instanceof Hero.pos) {
 			objects.add(Dungeon.hero);
 
 		} else if (Dungeon.level.heroFOV[cell]) {
@@ -1685,7 +1696,7 @@ public class GameScene extends PixelScene {
 	}
 
 	public static void examineObject(Object o){
-		if (o == Dungeon.hero){
+		if (o instanceof Hero){
 			GameScene.show( new WndHero() );
 		} else if ( o instanceof Mob && ((Mob) o).isActive() ){
 			GameScene.show(new WndInfoMob((Mob) o));

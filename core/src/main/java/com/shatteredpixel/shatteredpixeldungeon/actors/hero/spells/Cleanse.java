@@ -21,6 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.spells;
 
+import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
@@ -41,6 +43,8 @@ import com.watabou.noosa.audio.Sample;
 
 import java.util.ArrayList;
 
+import network.Multiplayer;
+
 public class Cleanse extends ClericSpell {
 
 	public static Cleanse INSTANCE = new Cleanse();
@@ -55,11 +59,11 @@ public class Cleanse extends ClericSpell {
 		return 2;
 	}
 
-	public String desc(){
-		int immunity = 2 * (Dungeon.hero.pointsInTalent(Talent.CLEANSE)-1);
+	public String desc(Hero hero){
+		int immunity = 2 * (hero.pointsInTalent(Talent.CLEANSE)-1);
 		if (immunity > 0) immunity++;
-		int shield = 10 * Dungeon.hero.pointsInTalent(Talent.CLEANSE);
-		return Messages.get(this, "desc", immunity, shield) + "\n\n" + Messages.get(this, "charge_cost", (int)chargeUse(Dungeon.hero));
+		int shield = 10 * hero.pointsInTalent(Talent.CLEANSE);
+		return Messages.get(this, "desc", immunity, shield) + "\n\n" + Messages.get(this, "charge_cost", (int)chargeUse(hero));
 	}
 
 	@Override
@@ -97,9 +101,9 @@ public class Cleanse extends ClericSpell {
 
 			if (hero.pointsInTalent(Talent.CLEANSE) > 1) {
 				//0, 2, or 4. 1 less than displayed as spell is instant
-				Buff.prolong(ch, PotionOfCleansing.Cleanse.class, 2 * (Dungeon.hero.pointsInTalent(Talent.CLEANSE)-1));
+				Buff.prolong(ch, PotionOfCleansing.Cleanse.class, 2 * (hero.pointsInTalent(Talent.CLEANSE)-1), hero);
 			}
-			Buff.affect(ch, Barrier.class).setShield(10 * hero.pointsInTalent(Talent.CLEANSE));
+			Buff.affect(ch, Barrier.class, hero).setShield(10 * hero.pointsInTalent(Talent.CLEANSE));
 			new Flare( 6, 32 ).color(0xFF4CD2, true).show( ch.sprite, 2f );
 		}
 

@@ -216,10 +216,10 @@ public class TrinketCatalyst extends Item {
 							result = Generator.random(Generator.Category.TRINKET);
 						}
 
-						TrinketCatalyst cata = Dungeon.hero.belongings.getItem(TrinketCatalyst.class);
+						TrinketCatalyst cata = curUser.belongings.getItem(TrinketCatalyst.class);
 
 						if (cata != null) {
-							cata.detach(Dungeon.hero.belongings.backpack);
+							cata.detach(curUser.belongings.backpack);
 							Catalog.countUse(cata.getClass());
 							result.identify();
 							if (ShatteredPixelDungeon.scene() instanceof AlchemyScene) {
@@ -227,10 +227,10 @@ public class TrinketCatalyst extends Item {
 							} else {
 								Sample.INSTANCE.play( Assets.Sounds.PUFF );
 
-								if (result.doPickUp(Dungeon.hero)){
+								if (result.doPickUp(curUser)){
 									GLog.p( Messages.capitalize(Messages.get(Hero.class, "you_now_have", item.name())) );
 								} else {
-									Dungeon.level.drop(result, Dungeon.hero.pos);
+									Dungeon.level.drop(result, curUser.pos);
 								}
 
 								Statistics.itemsCrafted++;

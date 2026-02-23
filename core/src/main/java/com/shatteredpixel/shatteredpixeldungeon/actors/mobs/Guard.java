@@ -26,6 +26,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Cripple;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Chains;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Effects;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Pushing;
@@ -125,9 +126,11 @@ public class Guard extends Mob {
 		enemy.sprite.place(pullPos);
 		Dungeon.level.occupyCell(enemy);
 		Cripple.prolong(enemy, Cripple.class, 4f);
-		if (enemy == Dungeon.hero) {
+
+        // TODO remove instanceof Hero instances!!!!!!!
+		if (enemy instanceof Hero) {
 			Dungeon.hero.interrupt();
-			Dungeon.observe();
+			Dungeon.observe((Hero) enemy);
 			GameScene.updateFog();
 		} else {
 			enemy.sprite.visible = Dungeon.level.heroFOV[pullPos];

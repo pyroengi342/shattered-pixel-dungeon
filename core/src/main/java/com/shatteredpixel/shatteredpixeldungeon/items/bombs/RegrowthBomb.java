@@ -73,7 +73,7 @@ public class RegrowthBomb extends Bomb {
 				Char ch = Actor.findChar(i);
 				int t = Dungeon.level.map[i];
 				if (ch != null){
-					if (ch.alignment == Dungeon.hero.alignment) {
+					if (ch.alignment == curUser.alignment) {
 						//same as a healing potion
 						PotionOfHealing.cure(ch);
 						PotionOfHealing.heal(ch);

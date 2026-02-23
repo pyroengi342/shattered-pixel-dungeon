@@ -84,7 +84,7 @@ public class Chasm implements Hero.Doom {
 							@Override
 							protected void onSelect( int index ) {
 								if (index == 0 && elapsed > 0.2f) {
-									if (Dungeon.hero.pos == heroPos) {
+									if (hero.pos == heroPos) {
 										jumpConfirmed = true;
 										hero.resume();
 									}
@@ -95,8 +95,8 @@ public class Chasm implements Hero.Doom {
 			}
 		});
 	}
-	
-	public static void heroFall( int pos ) {
+
+    public static void heroFall( int pos, Hero hero ) {
 		
 		jumpConfirmed = false;
 				
@@ -104,8 +104,8 @@ public class Chasm implements Hero.Doom {
 
 		Level.beforeTransition();
 
-		if (Dungeon.hero.isAlive()) {
-			Dungeon.hero.interrupt();
+		if (hero.isAlive()) {
+            hero.interrupt();
 			InterlevelScene.mode = InterlevelScene.Mode.FALL;
 			if (Dungeon.level instanceof RegularLevel &&
 						((RegularLevel)Dungeon.level).room( pos ) instanceof WeakFloorRoom){
@@ -116,7 +116,7 @@ public class Chasm implements Hero.Doom {
 			}
 			Game.switchScene( InterlevelScene.class );
 		} else {
-			Dungeon.hero.sprite.visible = false;
+            hero.sprite.visible = false;
 		}
 	}
 
@@ -128,10 +128,7 @@ public class Chasm implements Hero.Doom {
 		GLog.n( Messages.get(Chasm.class, "ondeath") );
 	}
 
-	public static void heroLand() {
-		
-		Hero hero = Dungeon.hero;
-		
+	public static void heroLand(Hero hero) {
 		ElixirOfFeatherFall.FeatherBuff b = hero.buff(ElixirOfFeatherFall.FeatherBuff.class);
 		
 		if (b != null){
@@ -143,17 +140,17 @@ public class Chasm implements Hero.Doom {
 		PixelScene.shake( 4, 1f );
 
 		Dungeon.level.occupyCell(hero );
-		Buff.prolong( hero, Cripple.class, Cripple.DURATION );
+		Buff.prolong( hero, Cripple.class, Cripple.DURATION, hero);
 
 		//The lower the hero's HP, the more bleed and the less upfront damage.
 		//Hero has a 50% chance to bleed out at 66% HP, and begins to risk instant-death at 25%
-		Buff.affect( hero, Bleeding.class).set( Math.round(hero.HT / (6f + (6f*(hero.HP/(float)hero.HT)))), Chasm.class);
+		Buff.affect( hero, Bleeding.class, hero).set( Math.round(hero.HT / (6f + (6f*(hero.HP/(float)hero.HT)))), Chasm.class);
 		hero.damage( Math.max( hero.HP / 2, Random.NormalIntRange( hero.HP / 2, hero.HT / 4 )), new Chasm() );
 	}
 
 	public static void mobFall( Mob mob ) {
 		if (mob.isAlive()) {
-			Buff.prolong(mob, Trap.HazardAssistTracker.class, Trap.HazardAssistTracker.DURATION);
+			Buff.prolong(mob, Trap.HazardAssistTracker.class, Trap.HazardAssistTracker.DURATION, null);
 			mob.die( Chasm.class );
 		}
 		
@@ -168,7 +165,7 @@ public class Chasm implements Hero.Doom {
 		
 		@Override
 		public boolean act() {
-			heroLand();
+			heroLand((Hero)target);
 			detach();
 			return true;
 		}

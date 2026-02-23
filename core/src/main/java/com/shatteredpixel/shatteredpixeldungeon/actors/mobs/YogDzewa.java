@@ -31,6 +31,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Light;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.LockedFloor;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Sheep;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Beam;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
@@ -177,7 +178,7 @@ public class YogDzewa extends Mob {
 
 		if (phase == 0){
 			if (Dungeon.hero.viewDistance >= Dungeon.level.distance(pos, Dungeon.hero.pos)) {
-				Dungeon.observe();
+				Dungeon.observeAll();
 			}
 			if (Dungeon.level.heroFOV[pos]) {
 				notice();
@@ -210,12 +211,12 @@ public class YogDzewa extends Mob {
 					}
 				}
 				if (terrainAffected) {
-					Dungeon.observe();
+					Dungeon.observeAll();
 				}
 				Invisibility.dispel(this);
 				for (Char ch : affected) {
 
-					if (ch == Dungeon.hero) {
+					if (ch instanceof Hero) {
 						Statistics.bossScores[4] -= 500;
 					}
 
@@ -229,7 +230,7 @@ public class YogDzewa extends Mob {
 							ch.sprite.flash();
 							CellEmitter.center(pos).burst(PurpleParticle.BURST, Random.IntRange(1, 2));
 						}
-						if (!ch.isAlive() && ch == Dungeon.hero) {
+						if (!ch.isAlive() && ch instanceof Hero) {
 							Badges.validateDeathFromEnemyMagic();
 							Dungeon.fail(this);
 							GLog.n(Messages.get(Char.class, "kill", name()));
@@ -475,11 +476,12 @@ public class YogDzewa extends Mob {
 			viewDistance = Math.min(viewDistance, 2);
 		}
 		level.viewDistance = viewDistance;
+
 		if (Dungeon.hero != null) {
 			if (Dungeon.hero.buff(Light.class) == null) {
 				Dungeon.hero.viewDistance = level.viewDistance;
 			}
-			Dungeon.observe();
+			Dungeon.observeAll();
 		}
 	}
 

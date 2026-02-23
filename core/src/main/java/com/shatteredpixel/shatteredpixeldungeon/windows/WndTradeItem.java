@@ -29,6 +29,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Shopkeeper;
 import com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem;
+import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Gold;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -51,13 +52,15 @@ public class WndTradeItem extends WndInfoItem {
 	private static final int BTN_HEIGHT	= 18;
 
 	private WndBag owner;
-
+    // Сохраняем ссылку на героя для использования в hide()
+    private Hero hero;
 	private boolean selling = false;
 
 	//selling
-	public WndTradeItem( final Item item, WndBag owner ) {
+	public WndTradeItem(final Item item, WndBag owner, Hero hero) {
 
 		super(item);
+        this.hero = hero;
 
 		selling = true;
 
@@ -89,7 +92,7 @@ public class WndTradeItem extends WndInfoItem {
 			RedButton btnSell = new RedButton( Messages.get(this, "sell", item.value()) ) {
 				@Override
 				protected void onClick() {
-					sell( item, finalShop);
+					sell( item, finalShop, hero);
 					hide();
 				}
 			};
@@ -105,7 +108,7 @@ public class WndTradeItem extends WndInfoItem {
 			RedButton btnSell1 = new RedButton( Messages.get(this, "sell_1", priceAll / item.quantity()) ) {
 				@Override
 				protected void onClick() {
-					sellOne( item, finalShop );
+					sellOne( item, finalShop, hero );
 					hide();
 				}
 			};
@@ -115,7 +118,7 @@ public class WndTradeItem extends WndInfoItem {
 			RedButton btnSellAll = new RedButton( Messages.get(this, "sell_all", priceAll ) ) {
 				@Override
 				protected void onClick() {
-					sell( item, finalShop );
+					sell( item, finalShop, hero );
 					hide();
 				}
 			};
@@ -131,9 +134,10 @@ public class WndTradeItem extends WndInfoItem {
 	}
 
 	//buying
-	public WndTradeItem( final Heap heap ) {
+	public WndTradeItem( final Heap heap, Hero hero ) {
 
 		super(heap);
+        this.hero = hero;
 
 		selling = false;
 		CurrencyIndicator.showGold = true;
@@ -148,7 +152,7 @@ public class WndTradeItem extends WndInfoItem {
 			@Override
 			protected void onClick() {
 				hide();
-				buy( heap );
+				buy( heap, hero );
 			}
 		};
 		btnBuy.setRect( 0, pos + GAP, width, BTN_HEIGHT );
@@ -158,7 +162,7 @@ public class WndTradeItem extends WndInfoItem {
 
 		pos = btnBuy.bottom();
 
-		final MasterThievesArmband.Thievery thievery = Dungeon.hero.buff(MasterThievesArmband.Thievery.class);
+		final MasterThievesArmband.Thievery thievery = hero.buff(MasterThievesArmband.Thievery.class);
 		if (thievery != null && !thievery.isCursed() && thievery.chargesToUse(item) > 0) {
 			final float chance = thievery.stealChance(item);
 			final int chargesToUse = thievery.chargesToUse(item);
@@ -167,7 +171,6 @@ public class WndTradeItem extends WndInfoItem {
 				protected void onClick() {
 					if (chance >= 1){
 						thievery.steal(item);
-						Hero hero = Dungeon.hero;
 						Item item = heap.pickUp();
 						hide();
 
@@ -185,7 +188,6 @@ public class WndTradeItem extends WndInfoItem {
 								super.onSelect(index);
 								if (index == 0){
 									if (thievery.steal(item)) {
-										Hero hero = Dungeon.hero;
 										Item item = heap.pickUp();
 										WndTradeItem.this.hide();
 
@@ -218,7 +220,7 @@ public class WndTradeItem extends WndInfoItem {
 
 		resize(width, (int) pos);
 	}
-	
+
 	@Override
 	public void hide() {
 		
@@ -228,16 +230,14 @@ public class WndTradeItem extends WndInfoItem {
 		if (owner != null) {
 			owner.hide();
 		}
-		if (selling) Shopkeeper.sell();
+		if (selling) Shopkeeper.sell(hero);
 	}
 
-	public static void sell( Item item ) {
-		sell(item, null);
+	public static void sell( Item item, Hero hero ) {
+		sell(item, null, hero);
 	}
 
-	public static void sell( Item item, Shopkeeper shop ) {
-		
-		Hero hero = Dungeon.hero;
+	public static void sell( Item item, Shopkeeper shop, Hero hero ) {
 		
 		if (item.isEquipped( hero ) && !((EquipableItem)item).doUnequip( hero, false )) {
 			return;
@@ -245,7 +245,7 @@ public class WndTradeItem extends WndInfoItem {
 		item.detachAll( hero.belongings.backpack );
 
 		if (item instanceof MissileWeapon && item.isUpgradable()){
-			Buff.affect(hero, MissileWeapon.UpgradedSetTracker.class).levelThresholds.put(((MissileWeapon) item).setID, Integer.MAX_VALUE);
+			Buff.affect(hero, MissileWeapon.UpgradedSetTracker.class, hero).levelThresholds.put(((MissileWeapon) item).setID, Integer.MAX_VALUE);
 		}
 
 		//selling items in the sell interface doesn't spend time
@@ -261,17 +261,15 @@ public class WndTradeItem extends WndInfoItem {
 		}
 	}
 
-	public static void sellOne( Item item ) {
-		sellOne( item, null );
+	public static void sellOne( Item item, Hero hero ) {
+		sellOne( item, hero );
 	}
 
-	public static void sellOne( Item item, Shopkeeper shop ) {
+	public static void sellOne( Item item, Shopkeeper shop, Hero hero ) {
 		
 		if (item.quantity() <= 1) {
-			sell( item, shop );
+			sell( item, shop, hero );
 		} else {
-			
-			Hero hero = Dungeon.hero;
 			
 			item = item.detach( hero.belongings.backpack );
 
@@ -289,7 +287,7 @@ public class WndTradeItem extends WndInfoItem {
 		}
 	}
 	
-	private void buy( Heap heap ) {
+	private void buy( Heap heap, Hero hero ) {
 		
 		Item item = heap.pickUp();
 		if (item == null) return;
@@ -298,7 +296,7 @@ public class WndTradeItem extends WndInfoItem {
 		Dungeon.gold -= price;
 		Catalog.countUses(Gold.class, price);
 		
-		if (!item.doPickUp( Dungeon.hero )) {
+		if (!item.doPickUp( hero )) {
 			Dungeon.level.drop( item, heap.pos ).sprite.drop();
 		}
 	}

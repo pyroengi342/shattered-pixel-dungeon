@@ -21,6 +21,9 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.spells;
 
+import static network.NetworkManager.getLocalPlayerId;
+import static network.NetworkManager.sendHeroClass;
+
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
@@ -44,6 +47,8 @@ import com.watabou.utils.Bundlable;
 import com.watabou.utils.Callback;
 import com.watabou.utils.Random;
 
+import network.Multiplayer;
+
 public class MindForm extends ClericSpell {
 
 	public static MindForm INSTANCE = new MindForm();
@@ -54,8 +59,8 @@ public class MindForm extends ClericSpell {
 	}
 
 	@Override
-	public String desc() {
-		return Messages.get(this, "desc", itemLevel()) + "\n\n" + Messages.get(this, "charge_cost", (int)chargeUse(Dungeon.hero));
+	public String desc(Hero hero) {
+		return Messages.get(this, "desc", itemLevel(hero)) + "\n\n" + Messages.get(this, "charge_cost", (int)chargeUse(hero));
 	}
 
 	@Override
@@ -68,25 +73,29 @@ public class MindForm extends ClericSpell {
 		return super.canCast(hero) && hero.hasTalent(Talent.MIND_FORM);
 	}
 
-	public static int effectLevel(){
-		return 2 + Dungeon.hero.pointsInTalent(Talent.MIND_FORM);
+	public static int effectLevel(Hero hero){
+		return 2 + hero.pointsInTalent(Talent.MIND_FORM);
 	}
 
 	@Override
 	public void onCast(HolyTome tome, Hero hero) {
 
-		GameScene.show(new Trinity.WndItemtypeSelect(tome, this));
+		GameScene.show(new Trinity.WndItemtypeSelect(tome, this, hero));
 
 	}
 
-	public static int itemLevel(){
-		return 2 + Dungeon.hero.pointsInTalent(Talent.MIND_FORM);
+	public static int itemLevel(Hero hero){
+		return 2 + (hero.pointsInTalent(Talent.MIND_FORM));
 	}
 
 	//TODO selecting
 	public static class targetSelector extends CellSelector.Listener {
-
 		private Bundlable effect;
+        private Hero hero; // добавляем поле для хранения героя
+        // Конструктор для инициализации героя
+        public targetSelector(Hero hero) {
+            this.hero = hero;
+        }
 
 		public void setEffect(Bundlable effect){
 			this.effect = effect;
@@ -94,7 +103,7 @@ public class MindForm extends ClericSpell {
 
 		private Wand wand(){
 			if (effect instanceof Wand){
-				((Wand) effect).level(effectLevel());
+				((Wand) effect).level(effectLevel(hero));
 				((Wand) effect).curCharges = ((Wand) effect).maxCharges;
 				((Wand) effect).identify(false);
 				return (Wand)effect;
@@ -104,7 +113,7 @@ public class MindForm extends ClericSpell {
 
 		private MissileWeapon thrown(){
 			if (effect instanceof MissileWeapon){
-				((MissileWeapon) effect).level(effectLevel());
+				((MissileWeapon) effect).level(effectLevel(hero));
 				((MissileWeapon) effect).repair(100);
 				((MissileWeapon) effect).identify(false);
 				((MissileWeapon) effect).spawnedForEffect = true;
@@ -120,17 +129,17 @@ public class MindForm extends ClericSpell {
 			}
 			if (wand() != null){
 				Wand wand = wand();
-				if (wand.tryToZap(Dungeon.hero, target)) {
+				if (wand.tryToZap(hero, target)) {
 
-					final Ballistica shot = new Ballistica( Dungeon.hero.pos, target, wand.collisionProperties(target));
+					final Ballistica shot = new Ballistica( hero.pos, target, wand.collisionProperties(target));
 					int cell = shot.collisionPos;
 
-					if (target == Dungeon.hero.pos || cell == Dungeon.hero.pos) {
+					if ((target == hero.pos || cell == hero.pos)) {
 						GLog.i( Messages.get(Wand.class, "self_target") );
 						return;
 					}
 
-					Dungeon.hero.sprite.zap(cell);
+                    hero.sprite.zap(cell);
 
 					//attempts to target the cell aimed at if something is there, otherwise targets the collision pos.
 					if (Actor.findChar(target) != null)
@@ -144,23 +153,23 @@ public class MindForm extends ClericSpell {
 							if (Random.Float() < WondrousResin.extraCurseEffectChance()){
 								WondrousResin.forcePositive = true;
 								CursedWand.cursedZap(wand,
-										Dungeon.hero,
-										new Ballistica(Dungeon.hero.pos, cell, Ballistica.MAGIC_BOLT), new Callback() {
+                                        hero,
+										new Ballistica(hero.pos, cell, Ballistica.MAGIC_BOLT), new Callback() {
 											@Override
 											public void call() {
 												WondrousResin.forcePositive = false;
 											}
 										});
 							}
-							((ClassArmor)Dungeon.hero.belongings.armor()).charge -= Trinity.trinityChargeUsePerEffect(wand.getClass());
+							((ClassArmor)hero.belongings.armor()).charge -= Trinity.trinityChargeUsePerEffect(wand.getClass(), hero);
 							wand.wandUsed();
 						}
 					});
 				}
 			} else if (thrown() != null){
 				MissileWeapon thrown = thrown();
-				thrown.cast(Dungeon.hero, target);
-				((ClassArmor)Dungeon.hero.belongings.armor()).charge -= Trinity.trinityChargeUsePerEffect(thrown.getClass());
+				thrown.cast(hero, target);
+				((ClassArmor)hero.belongings.armor()).charge -= Trinity.trinityChargeUsePerEffect(thrown.getClass(), hero);
 			}
 		}
 

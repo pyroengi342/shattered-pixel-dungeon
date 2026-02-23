@@ -87,9 +87,9 @@ public class ScrollOfUpgrade extends InventoryScroll {
 			item = w.upgrade();
 
 			if (w.cursedKnown && hadCursedEnchant && !w.hasCurseEnchant()){
-				removeCurse( Dungeon.hero );
+				removeCurse( curUser );
 			} else if (w.cursedKnown && wasCursed && !w.cursed){
-				weakenCurse( Dungeon.hero );
+				weakenCurse( curUser );
 			}
 			if (wasHardened && !w.enchantHardened){
 				GLog.w( Messages.get(Weapon.class, "hardening_gone") );
@@ -107,9 +107,9 @@ public class ScrollOfUpgrade extends InventoryScroll {
 			item = a.upgrade();
 
 			if (a.cursedKnown && hadCursedGlyph && !a.hasCurseGlyph()){
-				removeCurse( Dungeon.hero );
+				removeCurse( curUser );
 			} else if (a.cursedKnown && wasCursed && !a.cursed){
-				weakenCurse( Dungeon.hero );
+				weakenCurse( curUser );
 			}
 			if (wasHardened && !a.glyphHardened){
 				GLog.w( Messages.get(Armor.class, "hardening_gone") );
@@ -123,7 +123,7 @@ public class ScrollOfUpgrade extends InventoryScroll {
 			item = item.upgrade();
 
 			if (item.cursedKnown && wasCursed && !item.cursed){
-				removeCurse( Dungeon.hero );
+				removeCurse( curUser );
 			}
 
 		} else {

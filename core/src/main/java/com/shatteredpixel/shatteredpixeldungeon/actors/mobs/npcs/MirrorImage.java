@@ -61,7 +61,12 @@ public class MirrorImage extends NPC {
 		//before other mobs
 		actPriority = MOB_PRIO + 1;
 	}
-	
+    public Hero getOwner() {
+        if (hero == null && heroID != 0) {
+            hero = (Hero) Actor.findById(heroID);
+        }
+        return hero;
+    }
 	private Hero hero;
 	private int heroID;
 	public int armTier;
@@ -176,7 +181,7 @@ public class MirrorImage extends NPC {
 		}
 		if (hero.belongings.weapon() != null){
 			damage = hero.belongings.weapon().proc( this, enemy, damage );
-			if (!enemy.isAlive() && enemy == Dungeon.hero){
+			if (!enemy.isAlive() && enemy instanceof Hero){
 				Dungeon.fail(this);
 				GLog.n( Messages.capitalize(Messages.get(Char.class, "kill", name())) );
 			}

@@ -125,8 +125,8 @@ public class TimekeepersHourglass extends Artifact {
 									Sample.INSTANCE.play(Assets.Sounds.TELEPORT);
 
 									activeBuff = new timeStasis();
-									Talent.onArtifactUsed(Dungeon.hero);
-									activeBuff.attachTo(Dungeon.hero);
+									Talent.onArtifactUsed(curUser);
+									activeBuff.attachTo(curUser);
 								} else if (index == 1) {
 
 									//This might be really good...
@@ -140,10 +140,10 @@ public class TimekeepersHourglass extends Artifact {
 									GameScene.flash(0x80FFFFFF);
 									Sample.INSTANCE.play(Assets.Sounds.TELEPORT);
 
-									Invisibility.dispel(Dungeon.hero);
+									Invisibility.dispel(curUser);
 									activeBuff = new timeFreeze();
-									Talent.onArtifactUsed(Dungeon.hero);
-									activeBuff.attachTo(Dungeon.hero);
+									Talent.onArtifactUsed(curUser);
+									activeBuff.attachTo(curUser);
 									charge--;
 									((timeFreeze)activeBuff).processTime(0f);
 								}
@@ -207,7 +207,7 @@ public class TimekeepersHourglass extends Artifact {
 	public String desc() {
 		String desc = super.desc();
 
-		if (isEquipped( Dungeon.hero )){
+		if (isEquipped( curUser )){
 			if (!cursed) {
 				if (level() < levelCap )
 					desc += "\n\n" + Messages.get(this, "desc_hint");
@@ -313,8 +313,8 @@ public class TimekeepersHourglass extends Artifact {
 
 				updateQuickslot();
 
-				if (Dungeon.hero != null) {
-					Dungeon.observe();
+				if (target instanceof Hero) {
+					Dungeon.observe((Hero) target);
 				}
 
 				return true;
@@ -335,7 +335,10 @@ public class TimekeepersHourglass extends Artifact {
 			if (target.paralysed > 0) target.paralysed--;
 			super.detach();
 			activeBuff = null;
-			Dungeon.observe();
+            if (target instanceof Hero)
+            {
+                Dungeon.observe((Hero) target);
+            }
 		}
 
 		@Override

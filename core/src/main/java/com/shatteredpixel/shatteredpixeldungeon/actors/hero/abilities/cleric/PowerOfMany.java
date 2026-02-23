@@ -70,22 +70,22 @@ public class PowerOfMany extends ArmorAbility {
 	}
 
 	@Override
-	public String targetingPrompt() {
+	public String targetingPrompt( Hero hero ) {
 		Char ally = getPoweredAlly();
 
 		boolean allyExists = ally != null;
 
-		if (Dungeon.hero.buff(PrismaticGuard.class) != null
-				&& Dungeon.hero.buff(PrismaticGuard.class).isEmpowered()){
+		if (hero.buff(PrismaticGuard.class) != null
+				&& hero.buff(PrismaticGuard.class).isEmpowered()){
 			allyExists = true;
 		}
 
-		if (Dungeon.hero.buff(WandOfLivingEarth.RockArmor.class) != null
-				&& Dungeon.hero.buff(WandOfLivingEarth.RockArmor.class).isEmpowered()){
+		if (hero.buff(WandOfLivingEarth.RockArmor.class) != null
+				&& hero.buff(WandOfLivingEarth.RockArmor.class).isEmpowered()){
 			allyExists = true;
 		}
 
-		if (Stasis.getStasisAlly() != null){
+		if (Stasis.getStasisAlly(hero) != null){
 			allyExists = true;
 		}
 
@@ -119,7 +119,7 @@ public class PowerOfMany extends ArmorAbility {
 			allyExists = true;
 		}
 
-		if (Stasis.getStasisAlly() != null){
+		if (Stasis.getStasisAlly(hero) != null){
 			allyExists = true;
 		}
 
@@ -145,11 +145,16 @@ public class PowerOfMany extends ArmorAbility {
 			float chargeUse = chargeUse(hero);
 
 			Char ch = Actor.findChar(target);
+
 			if (ch != null){
-				if (ch.alignment != Char.Alignment.ALLY || ch == Dungeon.hero){
+				if (ch.alignment != Char.Alignment.ALLY || ch instanceof Hero){
 					GLog.w(Messages.get(this, "only_allies"));
 					return;
 				}
+                // Уже существующий союзник
+                PowerBuff buff = Buff.affect(ch, PowerBuff.class, 100f);
+                buff.setOwnerId(hero.id());  // <-- запоминаем владельца
+                Buff.affect(ch, Barrier.class, hero).setShield(25);
 			} else {
 
 				if (!Dungeon.level.passable[target] || Dungeon.level.avoid[target]){
@@ -157,14 +162,14 @@ public class PowerOfMany extends ArmorAbility {
 					return;
 				}
 
-				ch = new LightAlly(hero.lvl);
-				ch.pos = target;
-				GameScene.add((Mob) ch);
-				ScrollOfTeleportation.appear(ch, ch.pos);
+                LightAlly new_ally = new LightAlly(hero.lvl);
+                new_ally.setOwnerId(hero.id());  // <-- запоминаем владельца
+				new_ally.pos = target;
+				GameScene.add((Mob) new_ally);
+				ScrollOfTeleportation.appear(new_ally, new_ally.pos);
+                Buff.affect(new_ally, PowerBuff.class, 100f, hero);
+                Buff.affect(new_ally, Barrier.class, hero).setShield(25);
 			}
-
-			Buff.affect(ch, PowerBuff.class, 100f);
-			Buff.affect(ch, Barrier.class).setShield(25);
 
 			armor.charge -= chargeUse;
 			armor.updateQuickslot();
@@ -207,6 +212,33 @@ public class PowerOfMany extends ArmorAbility {
 			announced = true;
 		}
 
+        private int ownerId = -1;
+
+        public void setOwnerId(int id) {
+            ownerId = id;
+        }
+
+        public Hero getOwnerId() {
+            if (ownerId == -1) return null;
+            Char ch = ((Char) Actor.findById(ownerId));
+            if (ch instanceof Hero) return (Hero) ch;
+            return null;
+        }
+
+        private static final String OWNER_ID = "owner_id";
+
+        @Override
+        public void storeInBundle(Bundle bundle) {
+            super.storeInBundle(bundle);
+            bundle.put(OWNER_ID, ownerId);
+        }
+
+        @Override
+        public void restoreFromBundle(Bundle bundle) {
+            super.restoreFromBundle(bundle);
+            ownerId = bundle.getInt(OWNER_ID);
+        }
+
 		@Override
 		public int icon() {
 			return BuffIndicator.MANY_POWER;
@@ -236,7 +268,11 @@ public class PowerOfMany extends ArmorAbility {
 		@Override
 		public void detach() {
 			super.detach();
-			Dungeon.observe();
+            // FIXME Those are ally, probably can see with there vision !!!
+            if (target instanceof Hero)
+            {
+                Dungeon.observe((Hero) target);
+            }
 			GameScene.updateFog();
 		}
 	}
@@ -252,6 +288,19 @@ public class PowerOfMany extends ArmorAbility {
 
 			properties.add(Property.INORGANIC);
 		}
+
+        private int ownerId = -1;
+
+        public void setOwnerId(int id) {
+            ownerId = id;
+        }
+
+        public Hero getOwnerId() {
+            if (ownerId == -1) return null;
+            Char ch = ((Char) Actor.findById(ownerId));
+            if (ch instanceof Hero) return (Hero) ch;
+            return null;
+        }
 
 		HeroClass cls;
 
@@ -313,19 +362,19 @@ public class PowerOfMany extends ArmorAbility {
 			return super.drRoll() + Random.NormalIntRange(1, 5); //+0 plate
 		}
 
-		@Override
-		public float speed() {
-			float speed = super.speed();
+        @Override
+        public float speed() {
+            float speed = super.speed();
+            Hero owner = getOwnerId();
+            // Ускоряемся, если удаляемся от владельца
+            if (owner != null && state == WANDERING
+                    && defendingPos == -1
+                    && Dungeon.level.distance(pos, owner.pos) > 1){
+                speed *= 2;
+            }
+            return speed;
+        }
 
-			//moves 2 tiles at a time when returning to the hero
-			if (state == WANDERING
-					&& defendingPos == -1
-					&& Dungeon.level.distance(pos, Dungeon.hero.pos) > 1){
-				speed *= 2;
-			}
-
-			return speed;
-		}
 
 		@Override
 		public CharSprite sprite() {
@@ -337,19 +386,19 @@ public class PowerOfMany extends ArmorAbility {
 		private static final String HERO_CLS = "hero_cls";
 		private static final String DEF_SKILL = "def_skill";
 
-		@Override
-		public void storeInBundle(Bundle bundle) {
-			super.storeInBundle(bundle);
-			bundle.put(HERO_CLS, cls);
-			bundle.put(DEF_SKILL, defenseSkill);
-		}
+        private static final String OWNER_ID = "owner_id";
 
-		@Override
-		public void restoreFromBundle(Bundle bundle) {
-			super.restoreFromBundle(bundle);
-			cls = bundle.getEnum(HERO_CLS, HeroClass.class);
-			defenseSkill = bundle.getInt(DEF_SKILL);
-		}
+        @Override
+        public void storeInBundle(Bundle bundle) {
+            super.storeInBundle(bundle);
+            bundle.put(OWNER_ID, ownerId);
+        }
+
+        @Override
+        public void restoreFromBundle(Bundle bundle) {
+            super.restoreFromBundle(bundle);
+            ownerId = bundle.getInt(OWNER_ID);
+        }
 	}
 
 	public static class LightAllySprite extends MobSprite {

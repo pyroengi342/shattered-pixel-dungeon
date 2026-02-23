@@ -32,6 +32,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Cripple;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Haste;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Paralysis;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Blacksmith;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Pushing;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Splash;
@@ -130,7 +131,7 @@ public class CrystalSpire extends Mob {
 					if (ch instanceof CrystalGuardian) {
 						dmg += 12; //18-27 damage
 						Buff.prolong(ch, Cripple.class, 30f);
-					} else if (ch == Dungeon.hero){
+					} else if (ch instanceof Hero){
 						Statistics.questScores[2] -= 100;
 					}
 					ch.damage(dmg, new SpireSpike());
@@ -159,7 +160,7 @@ public class CrystalSpire extends Mob {
 							ch.pos = movePos;
 							Dungeon.level.occupyCell(ch);
 						}
-					} else if (ch == Dungeon.hero){
+					} else if (ch instanceof Hero){
 						GLog.n( Messages.capitalize(Messages.get(Char.class, "kill", name())) );
 						Dungeon.fail(this);
 					}
@@ -310,7 +311,7 @@ public class CrystalSpire extends Mob {
 
 	@Override
 	public boolean interact(Char c) {
-		if (c == Dungeon.hero){
+		if (c instanceof Hero){
 			final Pickaxe p = Dungeon.hero.belongings.getItem(Pickaxe.class);
 
 			if (p == null){

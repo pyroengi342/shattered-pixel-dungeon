@@ -21,6 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.ui;
 
+import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.SPDAction;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -28,6 +30,8 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndKeyBindings;
 import com.watabou.input.GameAction;
 import com.watabou.noosa.Image;
+
+import network.Multiplayer;
 
 public class ResumeIndicator extends Tag {
 
@@ -68,8 +72,8 @@ public class ResumeIndicator extends Tag {
 	@Override
 	protected void onClick() {
 		super.onClick();
-		if (Dungeon.hero.ready) {
-			Dungeon.hero.resume();
+		if (Multiplayer.Players.get(getLocalPlayerId()).hero.ready) {
+			Multiplayer.Players.get(getLocalPlayerId()).hero.resume();
 		}
 	}
 
@@ -80,10 +84,10 @@ public class ResumeIndicator extends Tag {
 
 	@Override
 	public void update() {
-		if (!Dungeon.hero.isAlive())
+		if (!Multiplayer.Players.get(getLocalPlayerId()).hero.isAlive())
 			visible = false;
-		else if (visible != (Dungeon.hero.lastAction != null)){
-			visible = Dungeon.hero.lastAction != null;
+		else if (visible == (Multiplayer.Players.get(getLocalPlayerId()).hero.lastAction == null)){
+			visible = Multiplayer.Players.get(getLocalPlayerId()).hero.lastAction != null;
 			if (visible)
 				flash();
 		}

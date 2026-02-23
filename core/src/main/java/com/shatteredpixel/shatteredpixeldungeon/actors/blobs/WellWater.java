@@ -32,6 +32,8 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
+import network.Multiplayer;
+
 public abstract class WellWater extends Blob {
 
 	@Override
@@ -48,57 +50,56 @@ public abstract class WellWater extends Blob {
 			}
 		}
 	}
-	
-	protected boolean affect( int pos ) {
-		
-		Heap heap;
-		
-		if (pos == Dungeon.hero.pos && affectHero( Dungeon.hero )) {
-			
-			clear(pos);
-			return true;
-			
-		} else if ((heap = Dungeon.level.heaps.get( pos )) != null) {
-			
-			Item oldItem = heap.peek();
-			Item newItem = affectItem( oldItem, pos );
-			
-			if (newItem != null) {
-				
-				if (newItem == oldItem) {
 
-				} else if (oldItem.quantity() > 1) {
+    protected boolean affect( int pos ) {
 
-					oldItem.quantity( oldItem.quantity() - 1 );
-					heap.drop( newItem );
-					
-				} else {
-					heap.replace( oldItem, newItem );
-				}
-				
-				heap.sprite.link();
-				clear(pos);
-				
-				return true;
-				
-			} else {
-				
-				int newPlace;
-				do {
-					newPlace = pos + PathFinder.NEIGHBOURS8[Random.Int( 8 )];
-				} while (!Dungeon.level.passable[newPlace] && !Dungeon.level.avoid[newPlace]);
-				Dungeon.level.drop( heap.pickUp(), newPlace ).sprite.drop( pos );
-				
-				return false;
-				
-			}
-			
-		} else {
-			
-			return false;
-			
-		}
-	}
+        Heap heap;
+        // Проверяем всех игроков: если на этой позиции есть герой, применяем эффект к нему
+        for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+            Hero hero = player.hero;
+            if (hero != null && hero.pos == pos) {
+                if (affectHero(hero)) {
+                    clear(pos);
+                    return true;
+                }
+            }
+        }
+
+        // Если героя нет, работаем с кучей на этой позиции
+        if ((heap = Dungeon.level.heaps.get( pos )) != null) {
+
+            Item oldItem = heap.peek();
+            Item newItem = affectItem( oldItem, pos );
+
+            if (newItem != null) {
+
+                if (newItem == oldItem) {
+                    // ничего не делаем, предмет не изменился
+                } else if (oldItem.quantity() > 1) {
+                    oldItem.quantity( oldItem.quantity() - 1 );
+                    heap.drop( newItem );
+                } else {
+                    heap.replace( oldItem, newItem );
+                }
+
+                heap.sprite.link();
+                clear(pos);
+                return true;
+
+            } else {
+                // предмет исчез – выбрасываем его в соседнюю клетку
+                int newPlace;
+                do {
+                    newPlace = pos + PathFinder.NEIGHBOURS8[Random.Int( 8 )];
+                } while (!Dungeon.level.passable[newPlace] && !Dungeon.level.avoid[newPlace]);
+                Dungeon.level.drop( heap.pickUp(), newPlace ).sprite.drop( pos );
+
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
 	
 	protected abstract boolean affectHero( Hero hero );
 	

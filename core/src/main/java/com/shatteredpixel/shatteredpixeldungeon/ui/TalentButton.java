@@ -21,6 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.ui;
 
+import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
@@ -39,6 +41,8 @@ import com.watabou.noosa.audio.Sample;
 import com.watabou.noosa.particles.Emitter;
 
 import java.util.LinkedHashMap;
+
+import network.Multiplayer;
 
 public class TalentButton extends Button {
 
@@ -113,10 +117,10 @@ public class TalentButton extends Button {
 
 		Window toAdd;
 		if (mode == Mode.UPGRADE
-				&& Dungeon.hero != null
-				&& Dungeon.hero.isAlive()
-				&& Dungeon.hero.talentPointsAvailable(tier) > 0
-				&& Dungeon.hero.pointsInTalent(talent) < talent.maxPoints()){
+				&& Multiplayer.Players.get(getLocalPlayerId()).hero != null
+				&& Multiplayer.Players.get(getLocalPlayerId()).hero.isAlive()
+				&& Multiplayer.Players.get(getLocalPlayerId()).hero.talentPointsAvailable(tier) > 0
+				&& Multiplayer.Players.get(getLocalPlayerId()).hero.pointsInTalent(talent) < talent.maxPoints()){
 			toAdd = new WndInfoTalent(talent, pointsInTalent, new WndInfoTalent.TalentButtonCallback() {
 
 				@Override
@@ -130,7 +134,7 @@ public class TalentButton extends Button {
 					Statistics.qualifiedForRandomVictoryBadge = false;
 				}
 			});
-		} else if (mode == Mode.METAMORPH_CHOOSE && Dungeon.hero != null && Dungeon.hero.isAlive()) {
+		} else if (mode == Mode.METAMORPH_CHOOSE && Multiplayer.Players.get(getLocalPlayerId()).hero != null && Multiplayer.Players.get(getLocalPlayerId()).hero.isAlive()) {
 			toAdd = new WndInfoTalent(talent, pointsInTalent, new WndInfoTalent.TalentButtonCallback() {
 
 				@Override
@@ -151,7 +155,7 @@ public class TalentButton extends Button {
 					GameScene.show(new ScrollOfMetamorphosis.WndMetamorphReplace(talent, tier));
 				}
 			});
-		} else if (mode == Mode.METAMORPH_REPLACE && Dungeon.hero != null && Dungeon.hero.isAlive()) {
+		} else if (mode == Mode.METAMORPH_REPLACE && Multiplayer.Players.get(getLocalPlayerId()).hero != null && Multiplayer.Players.get(getLocalPlayerId()).hero.isAlive()) {
 			toAdd = new WndInfoTalent(talent, pointsInTalent, new WndInfoTalent.TalentButtonCallback() {
 
 				@Override
@@ -168,27 +172,27 @@ public class TalentButton extends Button {
 				public void call() {
 					Talent replacing = ScrollOfMetamorphosis.WndMetamorphReplace.INSTANCE.replacing;
 
-					for (LinkedHashMap<Talent, Integer> tier : Dungeon.hero.talents){
+					for (LinkedHashMap<Talent, Integer> tier : Multiplayer.Players.get(getLocalPlayerId()).hero.talents){
 						if (tier.containsKey(replacing)){
 							LinkedHashMap<Talent, Integer> newTier = new LinkedHashMap<>();
 							for (Talent t : tier.keySet()){
 								if (t == replacing){
 									newTier.put(talent, tier.get(replacing));
 
-									if (!Dungeon.hero.metamorphedTalents.containsValue(replacing)){
-										Dungeon.hero.metamorphedTalents.put(replacing, talent);
+									if (!Multiplayer.Players.get(getLocalPlayerId()).hero.metamorphedTalents.containsValue(replacing)){
+										Multiplayer.Players.get(getLocalPlayerId()).hero.metamorphedTalents.put(replacing, talent);
 
 									//if what we're replacing is already a value, we need to simplify the data structure
 									} else {
 										//a->b->a, we can just remove the entry entirely
-										if (Dungeon.hero.metamorphedTalents.get(talent) == replacing){
-											Dungeon.hero.metamorphedTalents.remove(talent);
+										if (Multiplayer.Players.get(getLocalPlayerId()).hero.metamorphedTalents.get(talent) == replacing){
+											Multiplayer.Players.get(getLocalPlayerId()).hero.metamorphedTalents.remove(talent);
 
 										//a->b->c, we need to simplify to a->c
 										} else {
-											for (Talent t2 : Dungeon.hero.metamorphedTalents.keySet()){
-												if (Dungeon.hero.metamorphedTalents.get(t2) == replacing){
-													Dungeon.hero.metamorphedTalents.put(t2, talent);
+											for (Talent t2 : Multiplayer.Players.get(getLocalPlayerId()).hero.metamorphedTalents.keySet()){
+												if (Multiplayer.Players.get(getLocalPlayerId()).hero.metamorphedTalents.get(t2) == replacing){
+													Multiplayer.Players.get(getLocalPlayerId()).hero.metamorphedTalents.put(t2, talent);
 												}
 											}
 										}
@@ -198,7 +202,7 @@ public class TalentButton extends Button {
 									newTier.put(t, tier.get(t));
 								}
 							}
-							Dungeon.hero.talents.set(ScrollOfMetamorphosis.WndMetamorphReplace.INSTANCE.tier-1, newTier);
+							Multiplayer.Players.get(getLocalPlayerId()).hero.talents.set(ScrollOfMetamorphosis.WndMetamorphReplace.INSTANCE.tier-1, newTier);
 							break;
 						}
 					}
@@ -247,8 +251,8 @@ public class TalentButton extends Button {
 	}
 
 	public void upgradeTalent(){
-		if (Dungeon.hero.talentPointsAvailable(tier) > 0 && parent != null) {
-			Dungeon.hero.upgradeTalent(talent);
+		if (Multiplayer.Players.get(getLocalPlayerId()).hero.talentPointsAvailable(tier) > 0 && parent != null) {
+			Multiplayer.Players.get(getLocalPlayerId()).hero.upgradeTalent(talent);
 			float oldWidth = fill.width();
 			pointsInTalent++;
 			layout();

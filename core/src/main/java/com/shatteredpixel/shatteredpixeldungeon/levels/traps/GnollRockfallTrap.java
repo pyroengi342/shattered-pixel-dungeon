@@ -28,6 +28,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Paralysis;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.GnollGeomancer;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.GnollGuard;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
@@ -93,7 +94,7 @@ public class GnollRockfallTrap extends RockfallTrap {
 				//guards take full paralysis, otherwise just a little
 				Buff.prolong(ch, Paralysis.class, ch instanceof GnollGuard ? 10 : 3);
 
-				if (!ch.isAlive() && ch == Dungeon.hero){
+				if (!ch.isAlive() && ch instanceof Hero){
 					Dungeon.fail( this );
 					GLog.n( Messages.get(this, "ondeath") );
 					if (reclaimed) Badges.validateDeathFromFriendlyMagic();

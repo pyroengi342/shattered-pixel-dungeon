@@ -128,12 +128,12 @@ public class RingOfForce extends Ring {
 
 	@Override
 	public String statsInfo() {
-		float tier = tier(Dungeon.hero != null ? Dungeon.hero.STR() : 10);
+		float tier = tier(curUser != null ? curUser.STR() : 10);
 		if (isIdentified()) {
 			int level = soloBuffedBonus();
 			String info = Messages.get(this, "stats", min(level, tier), max(level, tier), level);
-			if (isEquipped(Dungeon.hero) && soloBuffedBonus() != combinedBuffedBonus(Dungeon.hero)){
-				level = combinedBuffedBonus(Dungeon.hero);
+			if (isEquipped(curUser) && soloBuffedBonus() != combinedBuffedBonus(curUser)){
+				level = combinedBuffedBonus(curUser);
 				info += "\n\n" + Messages.get(this, "combined_stats", min(level, tier), max(level, tier), level);
 			}
 			return info;
@@ -145,7 +145,7 @@ public class RingOfForce extends Ring {
 	@Override
 	public String upgradeStat1(int level) {
 		if (cursed && cursedKnown) level = Math.min(-1, level-3);
-		float tier = tier(Dungeon.hero != null ? Dungeon.hero.STR() : 10);
+		float tier = tier(curUser != null ? curUser.STR() : 10);
 		return min(level+1, tier) + "-" + max(level+1, tier);
 	}
 
@@ -158,8 +158,8 @@ public class RingOfForce extends Ring {
 	@Override
 	public String upgradeStat3(int level) {
 		if (cursed && cursedKnown) level = Math.min(-1, level-3);
-		if (Dungeon.hero != null && Dungeon.hero.heroClass == HeroClass.DUELIST){
-			float tier = tier(Dungeon.hero != null ? Dungeon.hero.STR() : 10);
+		if (curUser != null && curUser.heroClass == HeroClass.DUELIST){
+			float tier = tier(curUser != null ? curUser.STR() : 10);
 			int bonus = Math.round(3+tier+(level*((4+2*tier)/8f)));
 			return (min(level+1, tier) + bonus) + "-" + (max(level+1, tier) + bonus);
 		} else {
@@ -184,7 +184,7 @@ public class RingOfForce extends Ring {
 
 	@Override
 	public String defaultAction() {
-		if (Dungeon.hero != null && Dungeon.hero.heroClass == HeroClass.DUELIST){
+		if (curUser != null && curUser.heroClass == HeroClass.DUELIST){
 			return AC_ABILITY;
 		} else {
 			return super.defaultAction();
@@ -238,11 +238,11 @@ public class RingOfForce extends Ring {
 	public String info() {
 		String info = super.info();
 
-		if (Dungeon.hero != null && Dungeon.hero.heroClass == HeroClass.DUELIST
-			&& (anonymous || isIdentified() || isEquipped(Dungeon.hero))){
+		if (curUser != null && curUser.heroClass == HeroClass.DUELIST
+			&& (anonymous || isIdentified() || isEquipped(curUser))){
 			//0 if unidentified, solo level if unequipped, combined level if equipped
-			int level = isIdentified() ? (isEquipped(Dungeon.hero) ? getBuffedBonus(Dungeon.hero, Force.class) : soloBuffedBonus()) : 0;
-			float tier = tier(Dungeon.hero.STR());
+			int level = isIdentified() ? (isEquipped(curUser) ? getBuffedBonus(curUser, Force.class) : soloBuffedBonus()) : 0;
+			float tier = tier(curUser.STR());
 			int dmgBoost = Math.round(3+tier+(level*((4+2*tier)/8f)));
 			if (isIdentified()) {
 				info += "\n\n" + Messages.get(this, "ability_desc", min(level, tier)+dmgBoost, max(level, tier)+dmgBoost);

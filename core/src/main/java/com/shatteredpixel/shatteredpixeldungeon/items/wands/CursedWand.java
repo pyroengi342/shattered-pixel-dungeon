@@ -120,7 +120,7 @@ public class CursedWand {
 
 	public static void cursedZap(final Item origin, final Char user, final Ballistica bolt, final Callback afterZap){
 
-		boolean positiveOnly = user == Dungeon.hero && Random.Float() < WondrousResin.positiveCurseEffectChance();
+		boolean positiveOnly = user instanceof Hero && Random.Float() < WondrousResin.positiveCurseEffectChance();
 		CursedEffect effect = randomValidEffect(origin, user, bolt, positiveOnly);
 
 		effect.FX(origin, user, bolt, new Callback() {
@@ -133,7 +133,8 @@ public class CursedWand {
 	}
 
 	public static void tryForWandProc( Char target, Item origin ){
-		if (target != null && target != Dungeon.hero && origin instanceof Wand){
+        // proc
+		if (target != null && !(target instanceof Hero) && origin instanceof Wand){
 			Wand.wandProc(target, origin.buffedLvl(), 1);
 		}
 	}
@@ -492,10 +493,10 @@ public class CursedWand {
 				toDamage.damage(damage, new CursedWand());
 				toDamage.sprite.emitter().start(ShadowParticle.UP, 0.05f, 10);
 
-				if (toDamage == Dungeon.hero){
+				if (toDamage instanceof Hero){
 					Sample.INSTANCE.play(Assets.Sounds.CURSED);
 					if (!toDamage.isAlive()) {
-						if (user == Dungeon.hero && origin != null) {
+						if (user instanceof Hero && origin != null) {
 							Badges.validateDeathFromFriendlyMagic();
 							Dungeon.fail( origin );
 							GLog.n( Messages.get( CursedWand.class, "ondeath", origin.name() ) );
@@ -578,8 +579,8 @@ public class CursedWand {
 					ch.damage(Random.NormalIntRange(5 + Dungeon.scalingDepth() / 4, 10 + Dungeon.scalingDepth() / 4), new Electricity());
 					if (ch.isAlive()) {
 						Buff.affect(ch, Paralysis.class, Paralysis.DURATION / 2f);
-					} else if (ch == Dungeon.hero){
-						if (user == Dungeon.hero && origin != null) {
+					} else if (ch instanceof Hero){
+						if (user instanceof Hero && origin != null) {
 							Badges.validateDeathFromFriendlyMagic();
 							Dungeon.fail( origin );
 							GLog.n( Messages.get( CursedWand.class, "ondeath", origin.name() ) );
@@ -752,7 +753,7 @@ public class CursedWand {
 
 		@Override
 		public boolean effect(Item origin, Char user, Ballistica bolt, boolean positiveOnly) {
-			if (!positiveOnly && Dungeon.depth > 1 && Dungeon.interfloorTeleportAllowed() && user == Dungeon.hero) {
+			if (!positiveOnly && Dungeon.depth > 1 && Dungeon.interfloorTeleportAllowed( (Hero) user ) && user instanceof Hero) {
 
 				//starting from 10 floors up (or floor 1), each floor has 1 more weight
 				float[] depths = new float[Dungeon.depth-1];
@@ -783,8 +784,8 @@ public class CursedWand {
 		@Override
 		public boolean effect(Item origin, Char user, Ballistica bolt, boolean positiveOnly) {
 			//mirror images if positive only and user is hero
-			if (positiveOnly && user == Dungeon.hero){
-				ScrollOfMirrorImage.spawnImages(Dungeon.hero, bolt.collisionPos, 2);
+			if (positiveOnly && user instanceof Hero){
+				ScrollOfMirrorImage.spawnImages((Hero) user, bolt.collisionPos, 2);
 			} else {
 				new SummoningTrap().set(bolt.collisionPos).activate();
 			}
@@ -927,8 +928,8 @@ public class CursedWand {
 							break;
 					}
 
-					if (ch == Dungeon.hero && !ch.isAlive()){
-						if (user == Dungeon.hero && origin != null) {
+					if (ch instanceof Hero && !ch.isAlive()){
+						if (user instanceof Hero && origin != null) {
 							Badges.validateDeathFromFriendlyMagic();
 							Dungeon.fail( origin );
 							GLog.n( Messages.get( CursedWand.class, "ondeath", origin.name() ) );
@@ -973,7 +974,7 @@ public class CursedWand {
 
 		@Override
 		public boolean valid(Item origin, Char user, Ballistica bolt, boolean positiveOnly) {
-			return user == Dungeon.hero;
+			return user instanceof Hero;
 		}
 
 		@Override
@@ -1144,7 +1145,7 @@ public class CursedWand {
 		public boolean valid(Item origin, Char user, Ballistica bolt, boolean positiveOnly) {
 			if (positiveOnly){
 				return true;
-			} else if (origin == null || user != Dungeon.hero || !Dungeon.hero.belongings.contains(origin)){
+			} else if (origin == null || user != curUser || !curUser.belongings.contains(origin)){
 				return false;
 			} else {
 				return true;
@@ -1160,10 +1161,10 @@ public class CursedWand {
 			}
 
 			//skips this effect if there is no item to transmogrify
-			if (origin == null || user != Dungeon.hero || !Dungeon.hero.belongings.contains(origin)){
+			if (origin == null || user != curUser || !curUser.belongings.contains(origin)){
 				return false;
 			}
-			origin.detach(Dungeon.hero.belongings.backpack);
+			origin.detach(curUser.belongings.backpack);
 			Item result;
 			do {
 				result = Generator.randomUsingDefaults(Random.oneOf(Generator.Category.WEAPON, Generator.Category.ARMOR,
@@ -1206,7 +1207,7 @@ public class CursedWand {
 	public static class SuperNova extends CursedEffect {
 		@Override
 		public boolean effect(Item origin, Char user, Ballistica bolt, boolean positiveOnly) {
-			SuperNovaTracker nova = Buff.append(Dungeon.hero, SuperNovaTracker.class);
+			SuperNovaTracker nova = Buff.append(curUser, SuperNovaTracker.class);
 			nova.pos = bolt.collisionPos;
 			nova.harmsAllies = !positiveOnly;
 			if (positiveOnly){
@@ -1249,7 +1250,7 @@ public class CursedWand {
 					}
 				}
 			}
-			PitfallTrap.DelayedPit p = Buff.append(Dungeon.hero, PitfallTrap.DelayedPit.class, 1);
+			PitfallTrap.DelayedPit p = Buff.append(curUser, PitfallTrap.DelayedPit.class, 1);
 			p.depth = Dungeon.depth;
 			p.branch = Dungeon.branch;
 			p.setPositions(positions);

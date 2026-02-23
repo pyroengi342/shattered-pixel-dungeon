@@ -28,6 +28,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.StenchGas;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Ooze;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Ghost;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.FetidRatSprite;
@@ -67,7 +68,7 @@ public class FetidRat extends Rat {
 		if (Random.Int(3) == 0) {
 			Buff.affect(enemy, Ooze.class).set( Ooze.DURATION );
 			//score loss is on-hit instead of on-attack because it's tied to ooze
-			if (enemy == Dungeon.hero && !Dungeon.level.water[enemy.pos]){
+			if (enemy instanceof Hero && !Dungeon.level.water[enemy.pos]){
 				Statistics.questScores[0] -= 50;
 			}
 		}

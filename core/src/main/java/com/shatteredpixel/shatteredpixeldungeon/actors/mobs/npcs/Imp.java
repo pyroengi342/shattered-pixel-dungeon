@@ -21,11 +21,14 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs;
 
+import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AscensionChallenge;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Golem;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Monk;
@@ -47,6 +50,8 @@ import com.watabou.utils.Random;
 
 import java.util.ArrayList;
 
+import network.Multiplayer;
+
 public class Imp extends NPC {
 
 	{
@@ -64,19 +69,21 @@ public class Imp extends NPC {
 
 	@Override
 	protected boolean act() {
-		if (Dungeon.hero.buff(AscensionChallenge.class) != null){
-			die(null);
-			return true;
-		}
-		if (!Quest.given && Dungeon.level.visited[pos]) {
-			if (!seenBefore && Dungeon.level.heroFOV[pos]) {
-				yell(Messages.get(this, "hey", Messages.titleCase(Dungeon.hero.name())));
-				seenBefore = true;
-			}
-		} else {
-			seenBefore = false;
-		}
-		
+        for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+            if (player.hero.buff(AscensionChallenge.class) != null){
+                die(null);
+                return true;
+            }
+        }
+        // TODO heroFOV remake
+        if (!Quest.given && Dungeon.level.visited[pos]) {
+            if (!seenBefore && Dungeon.level.heroFOV[pos]) {
+                yell(Messages.get(this, "hey", Messages.titleCase(Multiplayer.Players.get(getLocalPlayerId()).hero.name())));
+                seenBefore = true;
+            }
+        } else {
+            seenBefore = false;
+        }
 		return super.act();
 	}
 	
@@ -102,33 +109,34 @@ public class Imp extends NPC {
 	
 	@Override
 	public boolean interact(Char c) {
-		
-		sprite.turnTo( pos, Dungeon.hero.pos );
-
-		if (c != Dungeon.hero){
+		if (c instanceof Hero){
 			return true;
 		}
 
-		if (Quest.given) {
-			
-			DwarfToken tokens = Dungeon.hero.belongings.getItem( DwarfToken.class );
-			if (tokens != null && (tokens.quantity() >= 5 || (!Quest.alternative && tokens.quantity() >= 4))) {
+        sprite.turnTo( pos, c.pos );
+        if (Quest.given) {
+            int quantity = 0;
+            for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+                DwarfToken tokens = player.hero.belongings.getItem( DwarfToken.class );
+                quantity += tokens.quantity();
+            }
+			if (quantity >= 5 || (!Quest.alternative && quantity >= 4)) {
 				Game.runOnRenderThread(new Callback() {
 					@Override
 					public void call() {
-						GameScene.show( new WndImp( Imp.this, tokens ) );
+						GameScene.show( new WndImp( Imp.this, ((Hero) c).belongings.getItem( DwarfToken.class ), (Hero) c) );
 					}
 				});
 			} else {
 				tell( Quest.alternative ?
-						Messages.get(this, "monks_2", Messages.titleCase(Dungeon.hero.name()))
-						: Messages.get(this, "golems_2", Messages.titleCase(Dungeon.hero.name())) );
+						Messages.get(this, "monks_2", Messages.titleCase(( c).name()))
+						: Messages.get(this, "golems_2", Messages.titleCase(( c).name())) );
 			}
 			
 		} else {
 			tell( Messages.get(this, "intro") + "\n\n" + (Quest.alternative ?
-					Messages.get(this, "monks_1", Messages.titleCase(Dungeon.hero.name()))
-					: Messages.get(this, "golems_1", Messages.titleCase(Dungeon.hero.name()))) );
+					Messages.get(this, "monks_1", Messages.titleCase((c).name()))
+					: Messages.get(this, "golems_1", Messages.titleCase((c).name()))) );
 			Quest.given = true;
 			Quest.completed = false;
 		}
@@ -144,10 +152,10 @@ public class Imp extends NPC {
 			}
 		});
 	}
-	
-	public void flee() {
+
+    public void flee(Hero hero) {
 		
-		yell( Messages.get(this, "cya", Messages.titleCase(Dungeon.hero.name())) );
+		yell( Messages.get(this, "cya", Messages.titleCase(hero.name())) );
 		
 		destroy();
 		sprite.die();

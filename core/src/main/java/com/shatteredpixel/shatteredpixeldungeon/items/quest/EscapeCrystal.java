@@ -136,7 +136,7 @@ public class EscapeCrystal extends Item {
 		Dungeon.quickslot.restorePlaceholders(storedItems.getBundle(QUICKSLOTS));
 		QuickSlotButton.reset();
 
-		Dungeon.hero.belongings.restoreFromBundle(storedItems.getBundle(BELONGINGS));
+		curUser.belongings.restoreFromBundle(storedItems.getBundle(BELONGINGS));
 
 		Dungeon.gold = storedItems.getInt(GOLD);
 		Dungeon.energy = storedItems.getInt(ENERGY);

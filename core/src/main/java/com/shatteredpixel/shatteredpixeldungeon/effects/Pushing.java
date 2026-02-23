@@ -24,6 +24,7 @@ package com.shatteredpixel.shatteredpixeldungeon.effects;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.watabou.noosa.Camera;
@@ -54,7 +55,7 @@ public class Pushing extends Actor {
 		this.to = to;
 		this.callback = null;
 
-		if (ch == Dungeon.hero){
+		if (ch instanceof Hero){
 			Camera.main.panFollow(ch.sprite, 20f);
 		}
 	}

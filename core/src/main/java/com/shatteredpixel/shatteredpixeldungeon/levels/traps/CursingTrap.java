@@ -41,6 +41,8 @@ import com.watabou.noosa.audio.Sample;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import network.Multiplayer;
+
 public class CursingTrap extends Trap {
 
 	{
@@ -62,10 +64,11 @@ public class CursingTrap extends Trap {
 					curse(item);
 			}
 		}
-
-		if (Dungeon.hero.pos == pos && !Dungeon.hero.flying){
-			curse(Dungeon.hero);
-		}
+        for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+            if (player.hero.pos == pos && !player.hero.flying){
+                curse(player.hero);
+            }
+        }
 	}
 
 	public static void curse(Hero hero){

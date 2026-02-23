@@ -69,7 +69,7 @@ public class Feint extends ArmorAbility {
 	}
 
 	@Override
-	public String targetingPrompt() {
+	public String targetingPrompt(Hero hero) {
 		return Messages.get(this, "prompt");
 	}
 
@@ -89,7 +89,7 @@ public class Feint extends ArmorAbility {
 			return;
 		}
 
-		if (Dungeon.hero.rooted){
+		if (hero.rooted){
 			PixelScene.shake( 1, 1f );
 			GLog.w(Messages.get(this, "bad_location"));
 			return;
@@ -116,7 +116,7 @@ public class Feint extends ArmorAbility {
 		});
 		hero.spend(1f);
 
-		AfterImage image = new AfterImage();
+		AfterImage image = new AfterImage( hero );
 		image.pos = hero.pos;
 		GameScene.add(image);
 		image.syncToHero(hero);
@@ -159,22 +159,28 @@ public class Feint extends ArmorAbility {
 
 	public static class AfterImage extends Mob {
 
-		{
-			spriteClass = AfterImageSprite.class;
-			defenseSkill = 0;
+        // Добавляем поле для хранения героя-владельца
+        private Hero owner;
 
-			properties.add(Property.IMMOVABLE);
+        // Конструктор с владельцем
+        public AfterImage(Hero owner) {
+            this.owner = owner;
+            spriteClass = AfterImageSprite.class;
+            defenseSkill = 0;
 
-			alignment = Alignment.ALLY;
-			state = PASSIVE;
+            properties.add(Property.IMMOVABLE);
 
-			HP = HT = 1;
+            alignment = Alignment.ALLY;
+            state = PASSIVE;
 
-			//fades just before the hero's next action
-			actPriority = Actor.HERO_PRIO+1;
-		}
+            HP = HT = 1;
 
-		@Override
+            //fades just before the hero's next action
+            actPriority = Actor.HERO_PRIO+1;
+        }
+
+
+        @Override
 		public String name() {
 			return ""; //shouldn't be examinable
 		}
@@ -207,27 +213,30 @@ public class Feint extends ArmorAbility {
 
 		}
 
-		@Override
-		public int defenseSkill(Char enemy) {
-			if (enemy.alignment == Alignment.ENEMY) {
-				if (enemy instanceof Mob) {
-					((Mob) enemy).clearEnemy();
-				}
-				Buff.affect(enemy, FeintConfusion.class, 1);
-				if (enemy.sprite != null) enemy.sprite.showLost();
-				if (Dungeon.hero.hasTalent(Talent.FEIGNED_RETREAT)) {
-					Buff.prolong(Dungeon.hero, Haste.class, 2f * Dungeon.hero.pointsInTalent(Talent.FEIGNED_RETREAT));
-				}
-				if (Dungeon.hero.hasTalent(Talent.EXPOSE_WEAKNESS)) {
-					Buff.prolong(enemy, Vulnerable.class, 2f * Dungeon.hero.pointsInTalent(Talent.EXPOSE_WEAKNESS));
-					Buff.prolong(enemy, Weakness.class, 2f * Dungeon.hero.pointsInTalent(Talent.EXPOSE_WEAKNESS));
-				}
-				if (Dungeon.hero.hasTalent(Talent.COUNTER_ABILITY)) {
-					Buff.prolong(Dungeon.hero, Talent.CounterAbilityTacker.class, 3f);
-				}
-			}
-			return 0;
-		}
+        @Override
+        public int defenseSkill(Char enemy) {
+            if (enemy.alignment == Alignment.ENEMY) {
+                if (enemy instanceof Mob) {
+                    ((Mob) enemy).clearEnemy();
+                }
+                Buff.affect(enemy, FeintConfusion.class, 1);
+                if (enemy.sprite != null) enemy.sprite.showLost();
+
+                if (owner != null) {
+                    if (owner.hasTalent(Talent.FEIGNED_RETREAT)) {
+                        Buff.prolong(owner, Haste.class, 2f * owner.pointsInTalent(Talent.FEIGNED_RETREAT), owner);
+                    }
+                    if (owner.hasTalent(Talent.EXPOSE_WEAKNESS)) {
+                        Buff.prolong(enemy, Vulnerable.class, 2f * owner.pointsInTalent(Talent.EXPOSE_WEAKNESS), owner);
+                        Buff.prolong(enemy, Weakness.class, 2f * owner.pointsInTalent(Talent.EXPOSE_WEAKNESS), owner);
+                    }
+                    if (owner.hasTalent(Talent.COUNTER_ABILITY)) {
+                        Buff.prolong(owner, Talent.CounterAbilityTacker.class, 3f, owner);
+                    }
+                }
+            }
+            return 0;
+        }
 
 		@Override
 		public boolean add( Buff buff ) {

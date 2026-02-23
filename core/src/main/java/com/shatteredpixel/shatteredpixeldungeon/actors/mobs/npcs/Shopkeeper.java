@@ -21,6 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs;
 
+import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
@@ -30,6 +32,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AscensionChallenge;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.BlobImmunity;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ElmoParticle;
@@ -59,6 +62,8 @@ import com.watabou.utils.PathFinder;
 
 import java.util.ArrayList;
 
+import network.Multiplayer;
+
 public class Shopkeeper extends NPC {
 
 	{
@@ -83,8 +88,8 @@ public class Shopkeeper extends NPC {
 		if (turnsSinceHarmed >= 0){
 			turnsSinceHarmed ++;
 		}
-
-		sprite.turnTo( pos, Dungeon.hero.pos );
+        // TODO turn to closest player
+		sprite.turnTo( pos, Multiplayer.Players.get(getLocalPlayerId()).hero.pos );
 		spend( TICK );
 		return super.act();
 	}
@@ -201,42 +206,42 @@ public class Shopkeeper extends NPC {
 	public static int sellPrice(Item item){
 		return item.value() * 5 * (Dungeon.depth / 5 + 1);
 	}
-	
-	public static WndBag sell() {
-		return GameScene.selectItem( itemSelector );
-	}
 
-	public static boolean canSell(Item item){
-		if (item.value() <= 0)                                              return false;
-		if (item.unique && !item.stackable)                                 return false;
-		if (item instanceof Armor && ((Armor) item).checkSeal() != null)    return false;
-		if (item.isEquipped(Dungeon.hero) && item.cursed)                   return false;
-		return true;
-	}
+    public static boolean canSell(Item item, Hero hero){
+        if (item.value() <= 0)                                              return false;
+        if (item.unique && !item.stackable)                                 return false;
+        if (item instanceof Armor && ((Armor) item).checkSeal() != null)    return false;
+        if (item.isEquipped(hero) && item.cursed)                           return false;
+        return true;
+    }
 
-	private static WndBag.ItemSelector itemSelector = new WndBag.ItemSelector() {
-		@Override
-		public String textPrompt() {
-			return Messages.get(Shopkeeper.class, "sell");
-		}
+    // Теперь sell принимает героя и создаёт селектор с ним
+    public static WndBag sell(Hero hero) {
+        return GameScene.selectItem(new WndBag.ItemSelector() {
+            @Override
+            public String textPrompt() {
+                return Messages.get(Shopkeeper.class, "sell");
+            }
 
-		@Override
-		public boolean itemSelectable(Item item) {
-			return Shopkeeper.canSell(item);
-		}
+            @Override
+            public boolean itemSelectable(Item item) {
+                return Shopkeeper.canSell(item, hero);
+            }
 
-		@Override
-		public void onSelect( Item item ) {
-			if (item != null) {
-				WndBag parentWnd = sell();
-				GameScene.show( new WndTradeItem( item, parentWnd ) );
-			}
-		}
-	};
+            @Override
+            public void onSelect(Item item) {
+                if (item != null) {
+                    WndBag parentWnd = sell(hero);
+                    GameScene.show(new WndTradeItem(item, parentWnd, hero));
+                }
+            }
+        });
+    }
+
 
 	@Override
-	public boolean interact(Char c) {
-		if (c != Dungeon.hero) {
+	public boolean interact(Char hero) {
+		if (hero instanceof Hero) {
 			return true;
 		}
 		Game.runOnRenderThread(new Callback() {
@@ -258,19 +263,19 @@ public class Shopkeeper extends NPC {
 					protected void onSelect(int index) {
 						super.onSelect(index);
 						if (index == 0){
-							sell();
+							sell((Hero) hero);
 						} else if (index == 1){
-							GameScene.show(new WndTitledMessage(sprite(), Messages.titleCase(name()), chatText()));
+							GameScene.show(new WndTitledMessage(sprite(), Messages.titleCase(name()), chatText((Hero) hero)));
 						} else if (index > 1){
 							GLog.i(Messages.get(Shopkeeper.this, "buyback"));
 							Item returned = buybackItems.remove(index-2);
 							Dungeon.gold -= returned.value();
 							Statistics.goldCollected -= returned.value();
 							if (returned instanceof MissileWeapon && returned.isUpgradable()){
-								Buff.affect(Dungeon.hero, MissileWeapon.UpgradedSetTracker.class).levelThresholds.put(((MissileWeapon) returned).setID, returned.level());
+								Buff.affect((Hero) hero, MissileWeapon.UpgradedSetTracker.class, null).levelThresholds.put(((MissileWeapon) returned).setID, returned.level());
 							}
-							if (!returned.doPickUp(Dungeon.hero)){
-								Dungeon.level.drop(returned, Dungeon.hero.pos);
+							if (!returned.doPickUp((Hero) hero)){
+								Dungeon.level.drop(returned, hero.pos);
 							}
 						}
 					}
@@ -308,13 +313,13 @@ public class Shopkeeper extends NPC {
 		return true;
 	}
 
-	public String chatText(){
-		if (Dungeon.hero.buff(AscensionChallenge.class) != null){
+	public String chatText(Hero hero){
+		if (hero.buff(AscensionChallenge.class) != null){
 			return Messages.get(this, "talk_ascent");
 		}
 		switch (Dungeon.depth){
 			case 6: default:
-				return Messages.get(this, "talk_prison_intro") + "\n\n" + Messages.get(this, "talk_prison_" + Dungeon.hero.heroClass.name());
+				return Messages.get(this, "talk_prison_intro") + "\n\n" + Messages.get(this, "talk_prison_" + hero.heroClass.name());
 			case 11:
 				return Messages.get(this, "talk_caves");
 			case 16:

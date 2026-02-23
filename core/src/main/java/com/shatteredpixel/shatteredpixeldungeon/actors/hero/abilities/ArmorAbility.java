@@ -38,7 +38,7 @@ public abstract class ArmorAbility implements Bundlable {
 	protected float baseChargeUse = 35;
 
 	public void use( ClassArmor armor, Hero hero ){
-		if (targetingPrompt() == null){
+		if (targetingPrompt(hero) == null){
 			activate(armor, hero, hero.pos);
 		} else {
 			GameScene.selectCell(new CellSelector.Listener() {
@@ -49,19 +49,19 @@ public abstract class ArmorAbility implements Bundlable {
 
 				@Override
 				public String prompt() {
-					return targetingPrompt();
+					return targetingPrompt( hero );
 				}
 			});
 		}
 	}
 
 	//leave null for no targeting
-	public String targetingPrompt(){
+	public String targetingPrompt( Hero hero){
 		return null;
 	}
 
-	public boolean useTargeting(){
-		return targetingPrompt() != null;
+	public boolean useTargeting(Hero hero){
+		return targetingPrompt(hero) != null;
 	}
 
 	public int targetedPos( Char user, int dst ){

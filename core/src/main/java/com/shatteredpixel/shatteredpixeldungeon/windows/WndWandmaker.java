@@ -21,6 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
+import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Wandmaker;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -36,6 +38,8 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.RedButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
+
+import network.Multiplayer;
 
 public class WndWandmaker extends Window {
 
@@ -77,7 +81,7 @@ public class WndWandmaker extends Window {
 		ItemButton btnWand1 = new ItemButton(){
 			@Override
 			protected void onClick() {
-				if (Dungeon.hero.belongings.contains(questItem) && item() != null) {
+				if (Multiplayer.Players.get(getLocalPlayerId()).hero.belongings.contains(questItem) && item() != null) {
 					GameScene.show(new RewardWindow(item()));
 				} else {
 					hide();
@@ -91,7 +95,7 @@ public class WndWandmaker extends Window {
 		ItemButton btnWand2 = new ItemButton(){
 			@Override
 			protected void onClick() {
-				if (Dungeon.hero.belongings.contains(questItem) && item() != null) {
+				if (Multiplayer.Players.get(getLocalPlayerId()).hero.belongings.contains(questItem) && item() != null) {
 					GameScene.show(new RewardWindow(item()));
 				} else {
 					hide();
@@ -113,16 +117,16 @@ public class WndWandmaker extends Window {
 
 		hide();
 
-		questItem.detach( Dungeon.hero.belongings.backpack );
+		questItem.detach( Multiplayer.Players.get(getLocalPlayerId()).hero.belongings.backpack );
 
 		reward.identify(false);
-		if (reward.doPickUp( Dungeon.hero )) {
-			GLog.i( Messages.capitalize(Messages.get(Dungeon.hero, "you_now_have", reward.name())) );
+		if (reward.doPickUp( Multiplayer.Players.get(getLocalPlayerId()).hero )) {
+			GLog.i( Messages.capitalize(Messages.get(Multiplayer.Players.get(getLocalPlayerId()).hero, "you_now_have", reward.name())) );
 		} else {
 			Dungeon.level.drop( reward, wandmaker.pos ).sprite.drop();
 		}
 		
-		wandmaker.yell( Messages.get(this, "farewell", Messages.titleCase(Dungeon.hero.name())) );
+		wandmaker.yell( Messages.get(this, "farewell", Messages.titleCase(Multiplayer.Players.get(getLocalPlayerId()).hero.name())) );
 		wandmaker.destroy();
 		
 		wandmaker.sprite.die();

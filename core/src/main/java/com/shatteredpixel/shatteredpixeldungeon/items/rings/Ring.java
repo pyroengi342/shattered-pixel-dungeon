@@ -161,7 +161,7 @@ public class Ring extends KindofMisc {
 				handler.know(this);
 			}
 
-			if (Dungeon.hero.isAlive()) {
+			if (curUser.isAlive()) {
 				Catalog.setSeen(getClass());
 				Statistics.itemTypesDiscovered.add(getClass());
 			}
@@ -190,7 +190,7 @@ public class Ring extends KindofMisc {
 			desc = super.info();
 		}
 
-		if (cursed && isEquipped( Dungeon.hero )) {
+		if (cursed && isEquipped( curUser )) {
 			desc += "\n\n" + Messages.get(Ring.class, "cursed_worn");
 			
 		} else if (cursed && cursedKnown) {
@@ -348,7 +348,7 @@ public class Ring extends KindofMisc {
 	@Override
 	public int buffedLvl() {
 		int lvl = super.buffedLvl();
-		if (Dungeon.hero.buff(EnhancedRings.class) != null){
+		if (curUser.buff(EnhancedRings.class) != null){
 			lvl++;
 		}
 		return lvl;
@@ -433,7 +433,7 @@ public class Ring extends KindofMisc {
 		public boolean attachTo( Char target ) {
 			if (super.attachTo( target )) {
 				//if we're loading in and the hero has partially spent a turn, delay for 1 turn
-				if (target instanceof Hero && Dungeon.hero == null && cooldown() == 0 && target.cooldown() > 0) {
+				if (target instanceof Hero && curUser == null && cooldown() == 0 && target.cooldown() > 0) {
 					spend(TICK);
 				}
 				return true;

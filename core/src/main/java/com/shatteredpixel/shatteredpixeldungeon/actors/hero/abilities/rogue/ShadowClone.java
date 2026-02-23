@@ -54,19 +54,21 @@ import com.watabou.utils.Random;
 
 import java.util.ArrayList;
 
+import network.Multiplayer;
+
 public class ShadowClone extends ArmorAbility {
 
 	@Override
-	public String targetingPrompt() {
+	public String targetingPrompt(Hero hero) {
 		if (getShadowAlly() == null) {
-			return super.targetingPrompt();
+			return super.targetingPrompt(hero);
 		} else {
 			return Messages.get(this, "prompt");
 		}
 	}
 
 	@Override
-	public boolean useTargeting(){
+	public boolean useTargeting(Hero hero){
 		return false;
 	}
 
@@ -106,7 +108,7 @@ public class ShadowClone extends ArmorAbility {
 				armor.charge -= chargeUse(hero);
 				armor.updateQuickslot();
 
-				ally = new ShadowAlly(hero.lvl);
+				ally = new ShadowAlly(hero.lvl, hero);
 				ally.pos = Random.element(spawnPoints);
 				GameScene.add(ally);
 
@@ -143,30 +145,33 @@ public class ShadowClone extends ArmorAbility {
 
 	public static class ShadowAlly extends DirectableAlly {
 
-		{
-			spriteClass = ShadowSprite.class;
+        private Hero owner;
 
-			HP = HT = 80;
+        {
+            spriteClass = ShadowSprite.class;
 
-			immunities.add(AllyBuff.class);
+            HP = HT = 80;
 
-			properties.add(Property.INORGANIC);
-		}
+            immunities.add(AllyBuff.class);
+
+            properties.add(Property.INORGANIC);
+        }
 
 		public ShadowAlly(){
 			super();
 		}
 
-		public ShadowAlly( int heroLevel ){
-			super();
-			int hpBonus = 15 + 5*heroLevel;
-			hpBonus = Math.round(0.1f * Dungeon.hero.pointsInTalent(Talent.PERFECT_COPY) * hpBonus);
-			if (hpBonus > 0){
-				HT += hpBonus;
-				HP += hpBonus;
-			}
-			defenseSkill = heroLevel + 4; //equal to base hero defense skill
-		}
+        public ShadowAlly(int heroLevel, Hero owner){
+            super();
+            this.owner = owner;
+            int hpBonus = 15 + 5*heroLevel;
+            hpBonus = Math.round(0.1f * owner.pointsInTalent(Talent.PERFECT_COPY) * hpBonus);
+            if (hpBonus > 0){
+                HT += hpBonus;
+                HP += hpBonus;
+            }
+            defenseSkill = heroLevel + 4; //equal to base hero defense skill
+        }
 
 		@Override
 		protected boolean act() {
@@ -202,90 +207,95 @@ public class ShadowClone extends ArmorAbility {
 			return defenseSkill+5; //equal to base hero attack skill
 		}
 
-		@Override
-		public int damageRoll() {
-			int damage = Random.NormalIntRange(10, 20);
-			int heroDamage = Dungeon.hero.damageRoll();
-			heroDamage /= Dungeon.hero.attackDelay(); //normalize hero damage based on atk speed
-			heroDamage = Math.round(0.08f * Dungeon.hero.pointsInTalent(Talent.SHADOW_BLADE) * heroDamage);
-			if (heroDamage > 0){
-				damage += heroDamage;
-			}
-			return damage;
-		}
+        @Override
+        public int damageRoll() {
+            int damage = Random.NormalIntRange(10, 20);
+            if (owner != null) {
+                int heroDamage = owner.damageRoll();
+                heroDamage /= owner.attackDelay(); //normalize hero damage based on atk speed
+                heroDamage = Math.round(0.08f * owner.pointsInTalent(Talent.SHADOW_BLADE) * heroDamage);
+                if (heroDamage > 0){
+                    damage += heroDamage;
+                }
+            }
+            return damage;
+        }
 
-		@Override
-		public int attackProc( Char enemy, int damage ) {
-			damage = super.attackProc( enemy, damage );
-			if (Random.Int(4) < Dungeon.hero.pointsInTalent(Talent.SHADOW_BLADE)
-					&& Dungeon.hero.belongings.weapon() != null){
-				return Dungeon.hero.belongings.weapon().proc( this, enemy, damage );
-			} else {
-				return damage;
-			}
-		}
+        @Override
+        public int attackProc(Char enemy, int damage) {
+            damage = super.attackProc(enemy, damage);
+            if (owner != null && Random.Int(4) < owner.pointsInTalent(Talent.SHADOW_BLADE)
+                    && owner.belongings.weapon() != null){
+                return owner.belongings.weapon().proc(this, enemy, damage);
+            } else {
+                return damage;
+            }
+        }
 
-		@Override
-		public int drRoll() {
-			int dr = super.drRoll();
-			int heroRoll = Dungeon.hero.drRoll();
-			heroRoll = Math.round(0.12f * Dungeon.hero.pointsInTalent(Talent.CLONED_ARMOR) * heroRoll);
-			if (heroRoll > 0){
-				dr += heroRoll;
-			}
-			return dr;
-		}
+        @Override
+        public int drRoll() {
+            int dr = super.drRoll();
+            if (owner != null) {
+                int heroRoll = owner.drRoll();
+                heroRoll = Math.round(0.12f * owner.pointsInTalent(Talent.CLONED_ARMOR) * heroRoll);
+                if (heroRoll > 0){
+                    dr += heroRoll;
+                }
+            }
+            return dr;
+        }
 
-		@Override
-		public int glyphLevel(Class<? extends Armor.Glyph> cls) {
-			if (Dungeon.hero != null && Random.Int(4) < Dungeon.hero.pointsInTalent(Talent.CLONED_ARMOR)){
-				return Math.max(super.glyphLevel(cls), Dungeon.hero.glyphLevel(cls));
-			} else {
-				return super.glyphLevel(cls);
-			}
-		}
+        @Override
+        public int glyphLevel(Class<? extends Armor.Glyph> cls) {
+            if (owner != null && Random.Int(4) < owner.pointsInTalent(Talent.CLONED_ARMOR)){
+                return Math.max(super.glyphLevel(cls), owner.glyphLevel(cls));
+            } else {
+                return super.glyphLevel(cls);
+            }
+        }
 
-		@Override
-		public int defenseProc(Char enemy, int damage) {
-			damage = super.defenseProc(enemy, damage);
-			if (Random.Int(4) < Dungeon.hero.pointsInTalent(Talent.CLONED_ARMOR)
-					&& Dungeon.hero.belongings.armor() != null){
-				return Dungeon.hero.belongings.armor().proc( enemy, this, damage );
-			} else {
-				return damage;
-			}
-		}
+        @Override
+        public int defenseProc(Char enemy, int damage) {
+            damage = super.defenseProc(enemy, damage);
+            if (owner != null && Random.Int(4) < owner.pointsInTalent(Talent.CLONED_ARMOR)
+                    && owner.belongings.armor() != null){
+                return owner.belongings.armor().proc(enemy, this, damage);
+            } else {
+                return damage;
+            }
+        }
 
-		@Override
-		public float speed() {
-			float speed = super.speed();
 
-			//moves 2 tiles at a time when returning to the hero
-			if (state == WANDERING
-					&& defendingPos == -1
-					&& Dungeon.level.distance(pos, Dungeon.hero.pos) > 1){
-				speed *= 2;
-			}
+        @Override
+        public float speed() {
+            float speed = super.speed();
 
-			return speed;
-		}
+            //moves 2 tiles at a time when returning to the hero
+            if (owner != null && state == WANDERING
+                    && defendingPos == -1
+                    && Dungeon.level.distance(pos, owner.pos) > 1){
+                speed *= 2;
+            }
 
-		@Override
-		public boolean canInteract(Char c) {
-			if (super.canInteract(c)){
-				return true;
-			} else if (Dungeon.level.distance(pos, c.pos) <= Dungeon.hero.pointsInTalent(Talent.PERFECT_COPY)) {
-				return true;
-			} else {
-				return false;
-			}
-		}
+            return speed;
+        }
+
+        @Override
+        public boolean canInteract(Char c) {
+            if (super.canInteract(c)){
+                return true;
+            } else if (c instanceof Hero && Dungeon.level.distance(pos, c.pos) <= ((Hero) c).pointsInTalent(Talent.PERFECT_COPY)) {
+                return true;
+            } else {
+                return false;
+            }
+        }
 
 		@Override
 		public boolean interact(Char c) {
-			if (!Dungeon.hero.hasTalent(Talent.PERFECT_COPY)){
-				return super.interact(c);
-			}
+            if (!(c instanceof Hero) || !((Hero) c).hasTalent(Talent.PERFECT_COPY)){
+                return super.interact(c);
+            }
 
 			//some checks from super.interact
 			if (!Dungeon.level.passable[pos] && !c.flying){
@@ -304,9 +314,9 @@ public class ShadowClone extends ArmorAbility {
 			if (PathFinder.distance[pos] == Integer.MAX_VALUE){
 				return true;
 			}
-			appear(this, Dungeon.hero.pos);
-			appear(Dungeon.hero, curPos);
-			Dungeon.observe();
+			appear(this, ((Hero) c).pos);
+			appear(((Hero) c), curPos);
+			Dungeon.observe( ((Hero) c) );
 			GameScene.updateFog();
 			return true;
 		}
@@ -315,31 +325,51 @@ public class ShadowClone extends ArmorAbility {
 
 			ch.sprite.interruptMotion();
 
-			if (Dungeon.level.heroFOV[pos] || Dungeon.level.heroFOV[ch.pos]){
-				Sample.INSTANCE.play(Assets.Sounds.PUFF);
-			}
+            // Используем fieldOfView текущего героя вместо Dungeon.level.heroFOV
+            boolean visibleToAnyHero = false;
+            for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+                if (player.hero.fieldOfView[pos] || player.hero.fieldOfView[ch.pos]) {
+                    visibleToAnyHero = true;
+                    break;
+                }
+            }
 
-			ch.move( pos );
-			if (ch.pos == pos) ch.sprite.place( pos );
+            if (visibleToAnyHero) {
+                Sample.INSTANCE.play(Assets.Sounds.PUFF);
+            }
 
-			if (Dungeon.level.heroFOV[pos] || ch == Dungeon.hero ) {
-				ch.sprite.emitter().burst(SmokeParticle.FACTORY, 10);
-			}
+            ch.move(pos);
+            if (ch.pos == pos) ch.sprite.place(pos);
+
+            if (visibleToAnyHero || ch instanceof Hero) {
+                ch.sprite.emitter().burst(SmokeParticle.FACTORY, 10);
+            }
 		}
 
 		private static final String DEF_SKILL = "def_skill";
+        private static final String OWNER = "owner";
 
-		@Override
-		public void storeInBundle(Bundle bundle) {
-			super.storeInBundle(bundle);
-			bundle.put(DEF_SKILL, defenseSkill);
-		}
+        @Override
+        public void storeInBundle(Bundle bundle) {
+            super.storeInBundle(bundle);
+            bundle.put(DEF_SKILL, defenseSkill);
+            if (owner != null) {
+                bundle.put(OWNER, owner.id());
+            }
+        }
 
-		@Override
-		public void restoreFromBundle(Bundle bundle) {
-			super.restoreFromBundle(bundle);
-			defenseSkill = bundle.getInt(DEF_SKILL);
-		}
+        @Override
+        public void restoreFromBundle(Bundle bundle) {
+            super.restoreFromBundle(bundle);
+            defenseSkill = bundle.getInt(DEF_SKILL);
+            if (bundle.contains(OWNER)) {
+                int ownerId = bundle.getInt(OWNER);
+                Actor actor = Actor.findById(ownerId);
+                if (actor instanceof Hero) {
+                    owner = (Hero) actor;
+                }
+            }
+        }
 	}
 
 	public static class ShadowSprite extends MobSprite {

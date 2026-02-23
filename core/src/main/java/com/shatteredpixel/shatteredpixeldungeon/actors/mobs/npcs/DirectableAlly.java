@@ -24,6 +24,7 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.watabou.utils.Bundle;
 
@@ -88,7 +89,7 @@ public class DirectableAlly extends NPC {
 			return;
 		}
 
-		if (Actor.findChar(cell) == Dungeon.hero){
+		if (Actor.findChar(cell) instanceof Hero){
 			followHero();
 
 		} else if (Actor.findChar(cell).alignment == Char.Alignment.ENEMY){

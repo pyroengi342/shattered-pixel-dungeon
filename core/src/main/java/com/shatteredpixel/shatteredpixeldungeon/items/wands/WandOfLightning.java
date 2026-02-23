@@ -28,6 +28,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FlavourBuff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DwarfKing;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Lightning;
@@ -84,7 +85,7 @@ public class WandOfLightning extends DamageWand {
 		if (Dungeon.level.water[bolt.collisionPos]) multiplier = 1f;
 
 		for (Char ch : affected){
-			if (ch == Dungeon.hero) PixelScene.shake( 2, 0.3f );
+			if (ch instanceof Hero) PixelScene.shake( 2, 0.3f );
 			ch.sprite.centerEmitter().burst( SparkParticle.FACTORY, 3 );
 			ch.sprite.flash();
 
@@ -153,7 +154,7 @@ public class WandOfLightning extends DamageWand {
 		for (int i = 0; i < PathFinder.distance.length; i++) {
 			if (PathFinder.distance[i] < Integer.MAX_VALUE){
 				Char n = Actor.findChar( i );
-				if (n == Dungeon.hero && PathFinder.distance[i] > 1)
+				if (n == curUser && PathFinder.distance[i] > 1)
 					//the hero is only zapped if they are adjacent
 					continue;
 				else if (n != null && !affected.contains( n )) {

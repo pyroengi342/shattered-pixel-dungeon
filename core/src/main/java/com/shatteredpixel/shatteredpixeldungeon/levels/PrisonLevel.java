@@ -25,6 +25,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Wandmaker;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.FlameParticle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.WindParticle;
@@ -142,7 +143,7 @@ public class PrisonLevel extends RegularLevel {
 	@Override
 	public void occupyCell(Char ch) {
 		super.occupyCell(ch);
-		if (ch == Dungeon.hero) {
+		if (ch instanceof Hero) {
 			updateWandmakerQuestMusic();
 		}
 	}

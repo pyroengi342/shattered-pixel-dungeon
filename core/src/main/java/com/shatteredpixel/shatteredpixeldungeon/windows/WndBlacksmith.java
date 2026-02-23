@@ -21,6 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
+import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
@@ -50,6 +52,8 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
 
 import java.util.ArrayList;
+
+import network.Multiplayer;
 
 public class WndBlacksmith extends Window {
 
@@ -90,10 +94,10 @@ public class WndBlacksmith extends Window {
 					@Override
 					protected void onSelect(int index) {
 						if (index == 0){
-							if (Blacksmith.Quest.pickaxe.doPickUp( Dungeon.hero )) {
-								GLog.i( Messages.capitalize(Messages.get(Dungeon.hero, "you_now_have", Blacksmith.Quest.pickaxe.name()) ));
+							if (Blacksmith.Quest.pickaxe.doPickUp( Multiplayer.Players.get(getLocalPlayerId()).hero )) {
+								GLog.i( Messages.capitalize(Messages.get(Multiplayer.Players.get(getLocalPlayerId()).hero, "you_now_have", Blacksmith.Quest.pickaxe.name()) ));
 							} else {
-								Dungeon.level.drop( Blacksmith.Quest.pickaxe, Dungeon.hero.pos ).sprite.drop();
+								Dungeon.level.drop( Blacksmith.Quest.pickaxe, Multiplayer.Players.get(getLocalPlayerId()).hero.pos ).sprite.drop();
 							}
 							Blacksmith.Quest.favor -= pickaxeCost;
 							Blacksmith.Quest.pickaxe = null;
@@ -178,7 +182,7 @@ public class WndBlacksmith extends Window {
 					@Override
 					protected void onSelect(int index) {
 						if (index == 0){
-							new Gold(Blacksmith.Quest.favor).doPickUp(Dungeon.hero, Dungeon.hero.pos);
+							new Gold(Blacksmith.Quest.favor).doPickUp(Multiplayer.Players.get(getLocalPlayerId()).hero, Multiplayer.Players.get(getLocalPlayerId()).hero.pos);
 							Blacksmith.Quest.favor = 0;
 							WndBlacksmith.this.hide();
 						}
@@ -266,21 +270,21 @@ public class WndBlacksmith extends Window {
 					}
 
 					Sample.INSTANCE.play( Assets.Sounds.EVOKE );
-					ScrollOfUpgrade.upgrade( Dungeon.hero );
-					Item.evoke( Dungeon.hero );
+					ScrollOfUpgrade.upgrade( Multiplayer.Players.get(getLocalPlayerId()).hero );
+					Item.evoke( Multiplayer.Players.get(getLocalPlayerId()).hero );
 
-					if (second.isEquipped( Dungeon.hero )) {
-						((EquipableItem)second).doUnequip( Dungeon.hero, false );
+					if (second.isEquipped( Multiplayer.Players.get(getLocalPlayerId()).hero )) {
+						((EquipableItem)second).doUnequip( Multiplayer.Players.get(getLocalPlayerId()).hero, false );
 					}
-					second.detachAll( Dungeon.hero.belongings.backpack );
+					second.detachAll( Multiplayer.Players.get(getLocalPlayerId()).hero.belongings.backpack );
 
 					if (second instanceof Armor){
 						BrokenSeal seal = ((Armor) second).checkSeal();
 						if (seal != null){
-							Dungeon.level.drop( seal, Dungeon.hero.pos );
+							Dungeon.level.drop( seal, Multiplayer.Players.get(getLocalPlayerId()).hero.pos );
 						}
 					} else if (second instanceof MissileWeapon){
-						Buff.affect(Dungeon.hero, MissileWeapon.UpgradedSetTracker.class)
+						Buff.affect(Multiplayer.Players.get(getLocalPlayerId()).hero, MissileWeapon.UpgradedSetTracker.class, null)
 								.levelThresholds.put(((MissileWeapon) second).setID, Integer.MAX_VALUE);
 					}
 
@@ -397,7 +401,7 @@ public class WndBlacksmith extends Window {
 				WndBlacksmith.this.hide();
 
 				Sample.INSTANCE.play(Assets.Sounds.EVOKE);
-				Item.evoke( Dungeon.hero );
+				Item.evoke( Multiplayer.Players.get(getLocalPlayerId()).hero );
 
 				if (!Blacksmith.Quest.rewardsAvailable()){
 					Notes.remove( Notes.Landmark.TROLL );
@@ -437,8 +441,8 @@ public class WndBlacksmith extends Window {
 				WndBlacksmith.this.hide();
 
 				Sample.INSTANCE.play(Assets.Sounds.EVOKE);
-				ScrollOfUpgrade.upgrade( Dungeon.hero );
-				Item.evoke( Dungeon.hero );
+				ScrollOfUpgrade.upgrade( Multiplayer.Players.get(getLocalPlayerId()).hero );
+				Item.evoke( Multiplayer.Players.get(getLocalPlayerId()).hero );
 
 				Badges.validateItemLevelAquired( item );
 
@@ -522,11 +526,11 @@ public class WndBlacksmith extends Window {
 
 						item.identify(false);
 						Sample.INSTANCE.play(Assets.Sounds.EVOKE);
-						Item.evoke( Dungeon.hero );
-						if (item.doPickUp( Dungeon.hero )) {
-							GLog.i( Messages.capitalize(Messages.get(Dungeon.hero, "you_now_have", item.name())) );
+						Item.evoke( hero );
+						if (item.doPickUp( hero )) {
+							GLog.i( Messages.capitalize(Messages.get(hero, "you_now_have", item.name())) );
 						} else {
-							Dungeon.level.drop( item, Dungeon.hero.pos ).sprite.drop();
+							Dungeon.level.drop( item, hero.pos ).sprite.drop();
 						}
 						WndSmith.this.hide();
 						Blacksmith.Quest.smithRewards = null;

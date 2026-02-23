@@ -21,6 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.spells;
 
+import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
@@ -62,6 +64,8 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
 import com.shatteredpixel.shatteredpixeldungeon.ui.QuickSlotButton;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
+
+import network.Multiplayer;
 
 public class MnemonicPrayer extends TargetedClericSpell {
 
@@ -166,7 +170,7 @@ public class MnemonicPrayer extends TargetedClericSpell {
 			Sample.INSTANCE.play(Assets.Sounds.DEBUFF);
 			ch.sprite.emitter().start(Speck.factory(Speck.DOWN), 0.15f, 4);
 
-			Buff.affect(ch, GuidingLight.Illuminated.class);
+			Buff.affect(ch, GuidingLight.Illuminated.class, null);
 
 			for (Buff b : ch.buffs()){
 				if (b.type != Buff.buffType.NEGATIVE || b.mnemonicExtended){
@@ -190,8 +194,8 @@ public class MnemonicPrayer extends TargetedClericSpell {
 		}
 	}
 
-	public String desc(){
-		return Messages.get(this, "desc", 2 + Dungeon.hero.pointsInTalent(Talent.MNEMONIC_PRAYER)) + "\n\n" + Messages.get(this, "charge_cost", (int)chargeUse(Dungeon.hero));
+	public String desc(Hero hero){
+		return Messages.get(this, "desc", 2 + hero.pointsInTalent(Talent.MNEMONIC_PRAYER)) + "\n\n" + Messages.get(this, "charge_cost", (int)chargeUse(hero));
 	}
 
 }

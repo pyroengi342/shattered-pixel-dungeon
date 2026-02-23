@@ -21,6 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.spells;
 
+import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
@@ -36,6 +38,8 @@ import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
 
 import java.util.ArrayList;
+
+import network.Multiplayer;
 
 public abstract class ClericSpell {
 
@@ -53,12 +57,12 @@ public abstract class ClericSpell {
 		return Messages.get(this, "name");
 	}
 
-	public String shortDesc(){
-		return Messages.get(this, "short_desc") + " " + Messages.get(this, "charge_cost", (int)chargeUse(Dungeon.hero));
+	public String shortDesc(Hero hero){
+		return Messages.get(this, "short_desc") + " " + Messages.get(this, "charge_cost", (int)chargeUse(hero));
 	}
 
-	public String desc(){
-		return Messages.get(this, "desc") + "\n\n" + Messages.get(this, "charge_cost", (int)chargeUse(Dungeon.hero));
+	public String desc(Hero hero){
+		return Messages.get(this, "desc") + "\n\n" + Messages.get(this, "charge_cost", (int)chargeUse(hero));
 	}
 
 	public boolean usesTargeting(){
@@ -77,10 +81,10 @@ public abstract class ClericSpell {
 		Invisibility.dispel();
 		if (hero.hasTalent(Talent.SATIATED_SPELLS) && hero.buff(Talent.SatiatedSpellsTracker.class) != null){
 			int amount = 1 + 2*hero.pointsInTalent(Talent.SATIATED_SPELLS);
-			Buff.affect(hero, Barrier.class).setShield(amount);
+			Buff.affect(hero, Barrier.class, hero).setShield(amount);
 			Char ally = PowerOfMany.getPoweredAlly();
 			if (ally != null && ally.buff(LifeLinkSpell.LifeLinkSpellBuff.class) != null){
-				Buff.affect(ally, Barrier.class).setShield(amount);
+				Buff.affect(ally, Barrier.class, hero).setShield(amount);
 			}
 			hero.buff(Talent.SatiatedSpellsTracker.class).detach();
 		}

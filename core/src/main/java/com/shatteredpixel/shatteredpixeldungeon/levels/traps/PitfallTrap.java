@@ -21,11 +21,14 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.levels.traps;
 
+import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FlavourBuff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.PitfallParticle;
@@ -39,6 +42,8 @@ import com.watabou.utils.Bundle;
 import com.watabou.utils.PathFinder;
 
 import java.util.ArrayList;
+
+import network.Multiplayer;
 
 public class PitfallTrap extends Trap {
 
@@ -68,7 +73,8 @@ public class PitfallTrap extends Trap {
 		}
 		p.setPositions(positions);
 
-		if (pos == Dungeon.hero.pos){
+
+		if (pos == Multiplayer.Players.get(getLocalPlayerId()).hero.pos){
 			GLog.n(Messages.get(this, "triggered_hero"));
 		} else if (Dungeon.level.heroFOV[pos]){
 			GLog.n(Messages.get(this, "triggered"));
@@ -92,6 +98,7 @@ public class PitfallTrap extends Trap {
 		public boolean act() {
 
 			boolean herofell = false;
+            Hero hero = null;
 			if (depth == Dungeon.depth && branch == Dungeon.branch && positions != null) {
 				for (int cell : positions) {
 
@@ -107,8 +114,9 @@ public class PitfallTrap extends Trap {
 					if (ch != null && !ch.flying
 							&& !(ch.alignment == Char.Alignment.NEUTRAL && Char.hasProp(ch, Char.Property.IMMOVABLE))
 							&& !(ch.alignment == Char.Alignment.ALLY && ignoreAllies)) {
-						if (ch == Dungeon.hero) {
+						if (ch instanceof Hero) {
 							herofell = true;
+                            hero = (Hero) ch;
 						} else {
 							Chasm.mobFall((Mob) ch);
 						}
@@ -133,7 +141,7 @@ public class PitfallTrap extends Trap {
 
 			//process hero falling last
 			if (herofell){
-				Chasm.heroFall(Dungeon.hero.pos);
+				Chasm.heroFall(hero.pos, hero);
 			}
 
 			detach();

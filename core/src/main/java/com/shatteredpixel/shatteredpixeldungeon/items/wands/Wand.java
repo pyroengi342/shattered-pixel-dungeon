@@ -208,36 +208,36 @@ public abstract class Wand extends Item {
 
 	//TODO Consider externalizing char awareness buff
 	protected static void wandProc(Char target, int wandLevel, int chargesUsed){
-		if (Dungeon.hero.hasTalent(Talent.ARCANE_VISION)) {
-			int dur = 5 + 5*Dungeon.hero.pointsInTalent(Talent.ARCANE_VISION);
-			Buff.append(Dungeon.hero, TalismanOfForesight.CharAwareness.class, dur).charID = target.id();
+		if (curUser.hasTalent(Talent.ARCANE_VISION)) {
+			int dur = 5 + 5*curUser.pointsInTalent(Talent.ARCANE_VISION);
+			Buff.append(curUser, TalismanOfForesight.CharAwareness.class, dur).charID = target.id();
 		}
 
-		if (target != Dungeon.hero &&
-				Dungeon.hero.subClass == HeroSubClass.WARLOCK &&
+		if (target != curUser &&
+				curUser.subClass == HeroSubClass.WARLOCK &&
 				//standard 1 - 0.92^x chance, plus 7%. Starts at 15%
 				Random.Float() > (Math.pow(0.92f, (wandLevel*chargesUsed)+1) - 0.07f)){
 			SoulMark.prolong(target, SoulMark.class, SoulMark.DURATION + wandLevel);
 		}
 
-		if (Dungeon.hero.subClass == HeroSubClass.PRIEST && target.buff(GuidingLight.Illuminated.class) != null) {
+		if (curUser.subClass == HeroSubClass.PRIEST && target.buff(GuidingLight.Illuminated.class) != null) {
 			target.buff(GuidingLight.Illuminated.class).detach();
-			target.damage(Dungeon.hero.lvl+5, GuidingLight.INSTANCE);
+			target.damage(curUser.lvl+5, GuidingLight.INSTANCE);
 		}
 
 		if (target.alignment != Char.Alignment.ALLY
-				&& Dungeon.hero.heroClass != HeroClass.CLERIC
-				&& Dungeon.hero.hasTalent(Talent.SEARING_LIGHT)
-				&& Dungeon.hero.buff(Talent.SearingLightCooldown.class) == null){
+				&& curUser.heroClass != HeroClass.CLERIC
+				&& curUser.hasTalent(Talent.SEARING_LIGHT)
+				&& curUser.buff(Talent.SearingLightCooldown.class) == null){
 			Buff.affect(target, GuidingLight.Illuminated.class);
-			Buff.affect(Dungeon.hero, Talent.SearingLightCooldown.class, 20f);
+			Buff.affect(curUser, Talent.SearingLightCooldown.class, 20f);
 		}
 
 		if (target.alignment != Char.Alignment.ALLY
-				&& Dungeon.hero.heroClass != HeroClass.CLERIC
-				&& Dungeon.hero.hasTalent(Talent.SUNRAY)){
+				&& curUser.heroClass != HeroClass.CLERIC
+				&& curUser.hasTalent(Talent.SUNRAY)){
 			// 15/25% chance
-			if (Random.Int(20) < 1 + 2*Dungeon.hero.pointsInTalent(Talent.SUNRAY)){
+			if (Random.Int(20) < 1 + 2*curUser.pointsInTalent(Talent.SUNRAY)){
 				Buff.prolong(target, Blindness.class, 4f);
 			}
 		}
@@ -305,7 +305,7 @@ public abstract class Wand extends Item {
 			desc += "\n\n" + Messages.get(Wand.class, "not_cursed");
 		}
 
-		if (Dungeon.hero != null && Dungeon.hero.subClass == HeroSubClass.BATTLEMAGE){
+		if (curUser != null && curUser.subClass == HeroSubClass.BATTLEMAGE){
 			desc += "\n\n" + Messages.get(this, "bmage_desc");
 		}
 
@@ -391,9 +391,9 @@ public abstract class Wand extends Item {
 		if (charger != null && charger.target != null) {
 
 			//inside staff, still need to apply degradation
-			if (charger.target == Dungeon.hero
-					&& !Dungeon.hero.belongings.contains(this)
-					&& Dungeon.hero.buff( Degrade.class ) != null){
+			if (charger.target == curUser
+					&& !curUser.belongings.contains(this)
+					&& curUser.buff( Degrade.class ) != null){
 				lvl = Degrade.reduceLevel(lvl);
 			}
 
@@ -456,10 +456,10 @@ public abstract class Wand extends Item {
 
 	public void wandUsed() {
 		if (!isIdentified()) {
-			float uses = Math.min( availableUsesToID, Talent.itemIDSpeedFactor(Dungeon.hero, this) );
+			float uses = Math.min( availableUsesToID, Talent.itemIDSpeedFactor(curUser, this) );
 			availableUsesToID -= uses;
 			usesLeftToID -= uses;
-			if (usesLeftToID <= 0 || Dungeon.hero.pointsInTalent(Talent.SCHOLARS_INTUITION) == 2) {
+			if (usesLeftToID <= 0 || curUser.pointsInTalent(Talent.SCHOLARS_INTUITION) == 2) {
 				if (ShardOfOblivion.passiveIDDisabled()){
 					if (usesLeftToID > -1){
 						GLog.p(Messages.get(ShardOfOblivion.class, "identify_ready"), name());
@@ -477,11 +477,11 @@ public abstract class Wand extends Item {
 		}
 
 		//inside staff
-		if (charger != null && charger.target == Dungeon.hero && !Dungeon.hero.belongings.contains(this)){
-			if (Dungeon.hero.hasTalent(Talent.EXCESS_CHARGE) && curCharges >= maxCharges){
-				int shieldToGive = Math.round(buffedLvl()*0.67f*Dungeon.hero.pointsInTalent(Talent.EXCESS_CHARGE));
-				Buff.affect(Dungeon.hero, Barrier.class).setShield(shieldToGive);
-				Dungeon.hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(shieldToGive), FloatingText.SHIELDING);
+		if (charger != null && charger.target == curUser && !curUser.belongings.contains(this)){
+			if (curUser.hasTalent(Talent.EXCESS_CHARGE) && curCharges >= maxCharges){
+				int shieldToGive = Math.round(buffedLvl()*0.67f*curUser.pointsInTalent(Talent.EXCESS_CHARGE));
+				Buff.affect(curUser, Barrier.class).setShield(shieldToGive);
+				curUser.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(shieldToGive), FloatingText.SHIELDING);
 			}
 		}
 		
@@ -503,37 +503,37 @@ public abstract class Wand extends Item {
 		}
 
 		//If hero owns wand but it isn't in belongings it must be in the staff
-		if (Dungeon.hero.hasTalent(Talent.EMPOWERED_STRIKE)
-				&& charger != null && charger.target == Dungeon.hero
-				&& !Dungeon.hero.belongings.contains(this)){
+		if (curUser.hasTalent(Talent.EMPOWERED_STRIKE)
+				&& charger != null && charger.target == curUser
+				&& !curUser.belongings.contains(this)){
 
-			Buff.prolong(Dungeon.hero, Talent.EmpoweredStrikeTracker.class, 10f);
+			Buff.prolong(curUser, Talent.EmpoweredStrikeTracker.class, 10f);
 		}
 
-		if (Dungeon.hero.hasTalent(Talent.LINGERING_MAGIC)
-				&& charger != null && charger.target == Dungeon.hero){
+		if (curUser.hasTalent(Talent.LINGERING_MAGIC)
+				&& charger != null && charger.target == curUser){
 
-			Buff.prolong(Dungeon.hero, Talent.LingeringMagicTracker.class, 5f);
+			Buff.prolong(curUser, Talent.LingeringMagicTracker.class, 5f);
 		}
 
-		if (Dungeon.hero.heroClass != HeroClass.CLERIC
-				&& Dungeon.hero.hasTalent(Talent.DIVINE_SENSE)){
-			Buff.prolong(Dungeon.hero, DivineSense.DivineSenseTracker.class, Dungeon.hero.cooldown()+1);
+		if (curUser.heroClass != HeroClass.CLERIC
+				&& curUser.hasTalent(Talent.DIVINE_SENSE)){
+			Buff.prolong(curUser, DivineSense.DivineSenseTracker.class, curUser.cooldown()+1);
 		}
 
 		// 10/20/30%
-		if (Dungeon.hero.heroClass != HeroClass.CLERIC
-				&& Dungeon.hero.hasTalent(Talent.CLEANSE)
-				&& Random.Int(10) < Dungeon.hero.pointsInTalent(Talent.CLEANSE)){
+		if (curUser.heroClass != HeroClass.CLERIC
+				&& curUser.hasTalent(Talent.CLEANSE)
+				&& Random.Int(10) < curUser.pointsInTalent(Talent.CLEANSE)){
 			boolean removed = false;
-			for (Buff b : Dungeon.hero.buffs()) {
+			for (Buff b : curUser.buffs()) {
 				if (b.type == Buff.buffType.NEGATIVE
 						&& !(b instanceof LostInventory)) {
 					b.detach();
 					removed = true;
 				}
 			}
-			if (removed) new Flare( 6, 32 ).color(0xFF4CD2, true).show( Dungeon.hero.sprite, 2f );
+			if (removed) new Flare( 6, 32 ).color(0xFF4CD2, true).show( curUser.sprite, 2f );
 		}
 
 		Invisibility.dispel();
@@ -728,9 +728,9 @@ public abstract class Wand extends Item {
 						//regular. If hero owns wand but it isn't in belongings it must be in the staff
 						if (curUser.heroClass == HeroClass.MAGE && !curUser.belongings.contains(curWand)){
 							//grants 3/5 shielding
-							int shieldToGive = 1 + 2 * Dungeon.hero.pointsInTalent(Talent.BACKUP_BARRIER);
-							Buff.affect(Dungeon.hero, Barrier.class).setShield(shieldToGive);
-							Dungeon.hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(shieldToGive), FloatingText.SHIELDING);
+							int shieldToGive = 1 + 2 * curUser.pointsInTalent(Talent.BACKUP_BARRIER);
+							Buff.affect(curUser, Barrier.class).setShield(shieldToGive);
+							curUser.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(shieldToGive), FloatingText.SHIELDING);
 
 						//metamorphed. Triggers if wand is highest level hero has
 						} else if (curUser.heroClass != HeroClass.MAGE) {
@@ -742,9 +742,9 @@ public abstract class Wand extends Item {
 							}
 							if (highest){
 								//grants 3/5 shielding
-								int shieldToGive = 1 + 2 * Dungeon.hero.pointsInTalent(Talent.BACKUP_BARRIER);
-								Buff.affect(Dungeon.hero, Barrier.class).setShield(shieldToGive);
-								Dungeon.hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(shieldToGive), FloatingText.SHIELDING);
+								int shieldToGive = 1 + 2 * curUser.pointsInTalent(Talent.BACKUP_BARRIER);
+								Buff.affect(curUser, Barrier.class).setShield(shieldToGive);
+								curUser.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(shieldToGive), FloatingText.SHIELDING);
 							}
 						}
 					}
@@ -811,7 +811,7 @@ public abstract class Wand extends Item {
 		public boolean attachTo( Char target ) {
 			if (super.attachTo( target )) {
 				//if we're loading in and the hero has partially spent a turn, delay for 1 turn
-				if (target instanceof Hero && Dungeon.hero == null && cooldown() == 0 && target.cooldown() > 0) {
+				if (target instanceof Hero && curUser == null && cooldown() == 0 && target.cooldown() > 0) {
 					spend(TICK);
 				}
 				return true;

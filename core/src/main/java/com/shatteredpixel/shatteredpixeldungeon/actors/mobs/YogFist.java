@@ -42,6 +42,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.LockedFloor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Ooze;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Roots;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Sleep;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
@@ -309,7 +310,8 @@ public abstract class YogFist extends Mob {
 				}
 			}
 
-			Dungeon.observe();
+            // Terrain gen - all player change
+			Dungeon.observeAll();
 
 			for (int i : PathFinder.NEIGHBOURS9) {
 				int cell = pos + i;
@@ -369,7 +371,9 @@ public abstract class YogFist extends Mob {
 					CellEmitter.get( cell ).burst( LeafParticle.GENERAL, 10 );
 				}
 			}
-			Dungeon.observe();
+
+            // Terrain gen - all player change
+			Dungeon.observeAll();
 
 		}
 
@@ -512,7 +516,7 @@ public abstract class YogFist extends Mob {
 				enemy.damage( Random.NormalIntRange(10, 20), new LightBeam() );
 				Buff.prolong( enemy, Blindness.class, Blindness.DURATION/2f );
 
-				if (!enemy.isAlive() && enemy == Dungeon.hero) {
+				if (!enemy.isAlive() && enemy instanceof Hero) {
 					Badges.validateDeathFromEnemyMagic();
 					Dungeon.fail( this );
 					GLog.n( Messages.get(Char.class, "kill", name()) );
@@ -582,7 +586,7 @@ public abstract class YogFist extends Mob {
 					l.weaken(50);
 				}
 
-				if (!enemy.isAlive() && enemy == Dungeon.hero) {
+				if (!enemy.isAlive() && enemy instanceof Hero) {
 					Badges.validateDeathFromEnemyMagic();
 					Dungeon.fail( this );
 					GLog.n( Messages.get(Char.class, "kill", name()) );

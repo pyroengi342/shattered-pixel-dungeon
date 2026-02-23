@@ -21,6 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon;
 
+import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Belongings;
@@ -57,6 +59,8 @@ import java.util.Locale;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import network.Multiplayer;
 
 public enum Rankings {
 	
@@ -99,9 +103,13 @@ public enum Rankings {
 
 		rec.cause = cause instanceof Class ? (Class)cause : cause.getClass();
 		rec.win		= win;
-		rec.heroClass	= Dungeon.hero.heroClass;
-		rec.armorTier	= Dungeon.hero.tier();
-		rec.herolevel	= Dungeon.hero.lvl;
+        // TODO only display local player
+        Hero hero = Multiplayer.Players.get(getLocalPlayerId()).hero;
+
+		rec.heroClass	= hero.heroClass;
+		rec.armorTier	= hero.tier();
+		rec.herolevel	= hero.lvl;
+
 		if (Statistics.highestAscent == 0){
 			rec.depth = Statistics.deepestFloor;
 			rec.ascending = false;
@@ -166,18 +174,19 @@ public enum Rankings {
 	}
 
 	private int score( boolean win ) {
-		return (Statistics.goldCollected + Dungeon.hero.lvl * (win ? 26 : Dungeon.depth ) * 100) * (win ? 2 : 1);
+        Hero hero = Multiplayer.Players.get(getLocalPlayerId()).hero;
+		return (Statistics.goldCollected + hero.lvl * (win ? 26 : Dungeon.depth ) * 100) * (win ? 2 : 1);
 	}
 
 	//assumes a ranking is loaded, or game is ending
 	public int calculateScore(){
-
+        Hero hero = Multiplayer.Players.get(getLocalPlayerId()).hero;
 		if (Dungeon.initialVersion > ShatteredPixelDungeon.v1_2_3){
-			Statistics.progressScore = Dungeon.hero.lvl * Statistics.deepestFloor * 65;
+			Statistics.progressScore = hero.lvl * Statistics.deepestFloor * 65;
 			Statistics.progressScore = Math.min(Statistics.progressScore, 50_000);
 
 			if (Statistics.heldItemValue == 0) {
-				for (Item i : Dungeon.hero.belongings) {
+				for (Item i : hero.belongings) {
 					Statistics.heldItemValue += i.value();
 					if (i instanceof CorpseDust && Statistics.deepestFloor >= 10){
 						// in case player kept the corpse dust, for a necromancer run
@@ -213,7 +222,7 @@ public enum Rankings {
 		//only progress and treasure score, and they are each up to 50% bigger
 		//win multiplier is a simple 2x if run was a win, challenge multi is the same as 1.3.0
 		} else {
-			Statistics.progressScore = Dungeon.hero.lvl * Statistics.deepestFloor * 100;
+			Statistics.progressScore = hero.lvl * Statistics.deepestFloor * 100;
 			Statistics.treasureScore = Math.min(Statistics.goldCollected, 30_000);
 
 			Statistics.exploreScore = Statistics.totalBossScore = Statistics.totalQuestScore = 0;
@@ -245,14 +254,15 @@ public enum Rankings {
 	public static final String DAILY_REPLAY	= "daily_replay";
 
 	public void saveGameData(Record rec){
-		if (Dungeon.hero == null){
+        Hero hero = Multiplayer.Players.get(getLocalPlayerId()).hero;
+		if (hero == null){
 			rec.gameData = null;
 			return;
 		}
 
 		rec.gameData = new Bundle();
 
-		Belongings belongings = Dungeon.hero.belongings;
+		Belongings belongings = hero.belongings;
 
 		//save the hero and belongings
 		ArrayList<Item> allItems = (ArrayList<Item>) belongings.backpack.items.clone();
@@ -272,14 +282,14 @@ public enum Rankings {
 		}
 
 		//remove all buffs (ones tied to equipment will be re-applied)
-		for(Buff b : Dungeon.hero.buffs()){
+		for(Buff b : hero.buffs()){
 			//except Duelist's melee weapon charge buff
 			if (!(b instanceof MeleeWeapon.Charger)) {
-				Dungeon.hero.remove(b);
+				hero.remove(b);
 			}
 		}
 
-		rec.gameData.put( HERO, Dungeon.hero );
+		rec.gameData.put( HERO, hero );
 
 		//save stats
 		Bundle stats = new Bundle();
@@ -316,6 +326,8 @@ public enum Rankings {
 	}
 
 	public void loadGameData(Record rec){
+        // TODO Insane error fest incoming, not even trying rn
+        // Hero hero = Multiplayer.Players.get(getLocalPlayerId()).hero;
 		Bundle data = rec.gameData;
 
 		Actor.clear();
