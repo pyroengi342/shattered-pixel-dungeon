@@ -1275,7 +1275,7 @@ public class CursedWand {
 
 		@Override
 		public boolean effect(Item origin, Char user, Ballistica bolt, boolean positiveOnly) {
-			Buff.append(user, GravityChaosTracker.class).positiveOnly = positiveOnly;
+			Buff.append(user, GravityChaosTracker.class, this).positiveOnly = positiveOnly;
 			Sample.INSTANCE.play(Assets.Sounds.TELEPORT);
 			if (positiveOnly){
 				GLog.p(Messages.get(CursedWand.class, "gravity_positive"));

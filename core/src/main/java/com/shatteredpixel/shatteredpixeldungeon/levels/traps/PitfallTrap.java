@@ -52,35 +52,34 @@ public class PitfallTrap extends Trap {
 		shape = DIAMOND;
 	}
 
-	@Override
-	public void activate() {
-		
-		if( Dungeon.bossLevel() || Dungeon.depth > 25 || Dungeon.branch != 0){
-			GLog.w(Messages.get(this, "no_pit"));
-			return;
-		}
+    @Override
+    public void activate() {
+        if (Dungeon.bossLevel() || Dungeon.depth > 25 || Dungeon.branch != 0) {
+            GLog.w(Messages.get(this, "no_pit"));
+            return;
+        }
 
-		DelayedPit p = Buff.append(Dungeon.hero, DelayedPit.class, 1);
-		p.depth = Dungeon.depth;
-		p.branch = Dungeon.branch;
+        ArrayList<Integer> positions = new ArrayList<>();
+        for (int i : PathFinder.NEIGHBOURS9) {
+            if (!Dungeon.level.solid[pos + i] || Dungeon.level.passable[pos + i]) {
+                CellEmitter.floor(pos + i).burst(PitfallParticle.FACTORY4, 8);
+                positions.add(pos + i);
+            }
+        }
 
-		ArrayList<Integer> positions = new ArrayList<>();
-		for (int i : PathFinder.NEIGHBOURS9){
-			if (!Dungeon.level.solid[pos+i] || Dungeon.level.passable[pos+i]){
-				CellEmitter.floor(pos+i).burst(PitfallParticle.FACTORY4, 8);
-				positions.add(pos+i);
-			}
-		}
-		p.setPositions(positions);
+        PitfallArea area = new PitfallArea();
+        area.depth = Dungeon.depth;
+        area.branch = Dungeon.branch;
+        area.setPositions(positions);
+        Actor.add(area);
 
-
-		if (pos == Multiplayer.Players.get(getLocalPlayerId()).hero.pos){
-			GLog.n(Messages.get(this, "triggered_hero"));
-		} else if (Dungeon.level.heroFOV[pos]){
-			GLog.n(Messages.get(this, "triggered"));
-		}
-
-	}
+        // Сообщения для героя, наступившего на ловушку (если нужно, можно позже адаптировать под мультиплеер)
+        if (pos == Dungeon.hero.pos) {
+            GLog.n(Messages.get(this, "triggered_hero"));
+        } else if (Dungeon.level.heroFOV[pos]) {
+            GLog.n(Messages.get(this, "triggered"));
+        }
+    }
 
 	public static class DelayedPit extends FlavourBuff {
 

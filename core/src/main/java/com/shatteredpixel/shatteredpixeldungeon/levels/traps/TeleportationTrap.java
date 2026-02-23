@@ -52,7 +52,7 @@ public class TeleportationTrap extends Trap {
 				if (ScrollOfTeleportation.teleportChar(ch)) {
 					if (ch instanceof Mob && ((Mob) ch).state == ((Mob) ch).HUNTING) {
 						((Mob) ch).state = ((Mob) ch).WANDERING;
-						Buff.prolong(ch, Trap.HazardAssistTracker.class, HazardAssistTracker.DURATION);
+						Buff.prolong(ch, Trap.HazardAssistTracker.class, HazardAssistTracker.DURATION, this);
 					}
 				}
 			}
