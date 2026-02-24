@@ -67,7 +67,7 @@ public class MeleeWeapon extends Weapon {
 	public void activate(Char ch) {
 		super.activate(ch);
 		if (ch instanceof Hero && ((Hero) ch).heroClass == HeroClass.DUELIST){
-			Buff.affect(ch, Charger.class);
+			Buff.affect(ch, Charger.class, ch);
 		}
 	}
 
@@ -120,7 +120,7 @@ public class MeleeWeapon extends Weapon {
 				//do nothing
 			} else if (STRReq() > hero.STR()){
 				GLog.w(Messages.get(this, "ability_low_str"));
-			} else if ((Buff.affect(hero, Charger.class).charges + Buff.affect(hero, Charger.class).partialCharge) < abilityChargeUse(hero, null)) {
+			} else if ((Buff.affect(hero, Charger.class, hero).charges + Buff.affect(hero, Charger.class, hero).partialCharge) < abilityChargeUse(hero, null)) {
 				GLog.w(Messages.get(this, "ability_no_charge"));
 			} else {
 
@@ -168,7 +168,7 @@ public class MeleeWeapon extends Weapon {
 
 	protected void beforeAbilityUsed(Hero hero, Char target){
 		hero.belongings.abilityWeapon = this;
-		Charger charger = Buff.affect(hero, Charger.class);
+		Charger charger = Buff.affect(hero, Charger.class, hero);
 
 		charger.partialCharge -= abilityChargeUse(hero, target);
 		while (charger.partialCharge < 0 && charger.charges > 0) {
@@ -180,7 +180,7 @@ public class MeleeWeapon extends Weapon {
 				&& hero.hasTalent(Talent.AGGRESSIVE_BARRIER)
 				&& (hero.HP / (float)hero.HT) <= 0.5f){
 			int shieldAmt = 1 + 2*hero.pointsInTalent(Talent.AGGRESSIVE_BARRIER);
-			Buff.affect(hero, Barrier.class).setShield(shieldAmt);
+			Buff.affect(hero, Barrier.class, hero).setShield(shieldAmt);
 			hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(shieldAmt), FloatingText.SHIELDING);
 		}
 
@@ -190,15 +190,15 @@ public class MeleeWeapon extends Weapon {
 	protected void afterAbilityUsed( Hero hero ){
 		hero.belongings.abilityWeapon = null;
 		if (hero.hasTalent(Talent.PRECISE_ASSAULT)){
-			Buff.prolong(hero, Talent.PreciseAssaultTracker.class, hero.cooldown()+4f);
+			Buff.prolong(hero, Talent.PreciseAssaultTracker.class, hero.cooldown()+4f, hero);
 		}
 		if (hero.hasTalent(Talent.VARIED_CHARGE)){
 			Talent.VariedChargeTracker tracker = hero.buff(Talent.VariedChargeTracker.class);
 			if (tracker == null || tracker.weapon == getClass() || tracker.weapon == null){
-				Buff.affect(hero, Talent.VariedChargeTracker.class).weapon = getClass();
+				Buff.affect(hero, Talent.VariedChargeTracker.class, hero).weapon = getClass();
 			} else {
 				tracker.detach();
-				Charger charger = Buff.affect(hero, Charger.class);
+				Charger charger = Buff.affect(hero, Charger.class, hero);
 				charger.gainCharge(hero.pointsInTalent(Talent.VARIED_CHARGE) / 6f);
 				ScrollOfRecharging.charge(hero);
 			}
@@ -215,14 +215,14 @@ public class MeleeWeapon extends Weapon {
 		if (hero.hasTalent(Talent.COMBINED_ENERGY)){
 			Talent.CombinedEnergyAbilityTracker tracker = hero.buff(Talent.CombinedEnergyAbilityTracker.class);
 			if (tracker == null || !tracker.monkAbilused){
-				Buff.prolong(hero, Talent.CombinedEnergyAbilityTracker.class, 5f).wepAbilUsed = true;
+				Buff.prolong(hero, Talent.CombinedEnergyAbilityTracker.class, 5f, hero).wepAbilUsed = true;
 			} else {
 				tracker.wepAbilUsed = true;
-				Buff.affect(hero, MonkEnergy.class).processCombinedEnergy(tracker);
+				Buff.affect(hero, MonkEnergy.class, hero).processCombinedEnergy(tracker);
 			}
 		}
 		if (hero.buff(Talent.CounterAbilityTacker.class) != null){
-			Charger charger = Buff.affect(hero, Charger.class);
+			Charger charger = Buff.affect(hero, Charger.class, hero);
 			charger.gainCharge(hero.pointsInTalent(Talent.COUNTER_ABILITY)*0.375f);
 			hero.buff(Talent.CounterAbilityTacker.class).detach();
 		}
@@ -231,7 +231,7 @@ public class MeleeWeapon extends Weapon {
 	public static void onAbilityKill( Hero hero, Char killed ){
 		if (killed.alignment == Char.Alignment.ENEMY && hero.hasTalent(Talent.LETHAL_HASTE)){
 			//effectively 3/5 turns of greater haste
-			Buff.affect(hero, GreaterHaste.class).set(2 + 2*hero.pointsInTalent(Talent.LETHAL_HASTE));
+			Buff.affect(hero, GreaterHaste.class, hero).set(2 + 2*hero.pointsInTalent(Talent.LETHAL_HASTE));
 		}
 	}
 

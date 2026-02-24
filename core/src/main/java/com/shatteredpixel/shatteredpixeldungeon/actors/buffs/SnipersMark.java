@@ -90,7 +90,11 @@ public class SnipersMark extends FlavourBuff implements ActionIndicator.Action {
 
 	@Override
 	public String actionName() {
-		SpiritBow bow = Dungeon.hero.belongings.getItem(SpiritBow.class);
+        SpiritBow bow = null;
+        if (target instanceof Hero)
+        {
+            bow = ((Hero) target).belongings.getItem(SpiritBow.class);
+        }
 
 		if (bow == null) return null;
 
@@ -116,27 +120,29 @@ public class SnipersMark extends FlavourBuff implements ActionIndicator.Action {
 
 	@Override
 	public void doAction() {
-		
-		Hero hero = Dungeon.hero;
-		if (hero == null) return;
-		
-		SpiritBow bow = hero.belongings.getItem(SpiritBow.class);
-		if (bow == null) return;
-		
-		SpiritBow.SpiritArrow arrow = bow.knockArrow();
-		if (arrow == null) return;
-		
-		Char ch = (Char) Actor.findById(object);
-		if (ch == null) return;
-		
-		int cell = QuickSlotButton.autoAim(ch, arrow);
-		if (cell == -1) return;
-		
-		bow.sniperSpecial = true;
-		bow.sniperSpecialBonusDamage = percentDmgBonus;
-		
-		arrow.cast(hero, cell);
+		if (target instanceof Hero)
+        {
+            Hero hero = (Hero) target;
+            if (hero == null) return;
+
+            SpiritBow bow = hero.belongings.getItem(SpiritBow.class);
+            if (bow == null) return;
+
+            SpiritBow.SpiritArrow arrow = bow.knockArrow();
+            if (arrow == null) return;
+
+            Char ch = (Char) Actor.findById(object);
+            if (ch == null) return;
+
+            int cell = QuickSlotButton.autoAim(ch, arrow);
+            if (cell == -1) return;
+
+            bow.sniperSpecial = true;
+            bow.sniperSpecialBonusDamage = percentDmgBonus;
+
+            arrow.cast(hero, cell);
+        }
+
 		detach();
-		
 	}
 }

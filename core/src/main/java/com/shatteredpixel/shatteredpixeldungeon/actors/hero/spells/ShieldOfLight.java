@@ -80,7 +80,9 @@ public class ShieldOfLight extends TargetedClericSpell {
 		hero.sprite.operate(hero.pos);
 
 		//1 turn less as the casting is instant
-		Buff.prolong( hero, ShieldOfLightTracker.class, 4f, hero).object = ch.id();
+        ShieldOfLightTracker tracker = Buff.prolong(hero, ShieldOfLightTracker.class, 4f, hero);
+        tracker.object = ch.id();
+        tracker.casterID = hero.id();
 
 		if (hero.subClass == HeroSubClass.PRIEST) {
 			Buff.affect(ch, GuidingLight.Illuminated.class, hero);
@@ -90,18 +92,20 @@ public class ShieldOfLight extends TargetedClericSpell {
 		hero.sprite.operate(hero.pos);
 		hero.sprite.emitter().start(Speck.factory(Speck.LIGHT), 0.15f, 6);
 
-		Char ally = PowerOfMany.getPoweredAlly();
-		if (ally != null && ally.buff(LifeLinkSpell.LifeLinkSpellBuff.class) != null){
-			Buff.prolong( ally, ShieldOfLightTracker.class, 3f, hero).object = ch.id();
-			ally.sprite.emitter().start(Speck.factory(Speck.LIGHT), 0.15f, 6);
-		}
+        Char ally = PowerOfMany.getPoweredAlly();
+        if (ally != null && ally.buff(LifeLinkSpell.LifeLinkSpellBuff.class) != null) {
+            ShieldOfLightTracker allyTracker = Buff.prolong(ally, ShieldOfLightTracker.class, 3f, hero);
+            allyTracker.object = ch.id();
+            allyTracker.casterID = hero.id();
+            ally.sprite.emitter().start(Speck.factory(Speck.LIGHT), 0.15f, 6);
+        }
 
 		onSpellCast(tome, hero);
 
 	}
 
 	@Override
-public String desc(Hero hero){
+    public String desc(Hero hero){
 		int min = 1 + hero.pointsInTalent(Talent.SHIELD_OF_LIGHT);
 		int max = 2*min;
 		return Messages.get(this, "desc", min, max) + "\n\n" + Messages.get(this, "charge_cost", (int)chargeUse(hero));
@@ -110,6 +114,7 @@ public String desc(Hero hero){
 	public static class ShieldOfLightTracker extends FlavourBuff {
 
 		public int object = 0;
+        public int casterID = 0;        // ID героя-кастера
 
 		private static final float DURATION = 5;
 
@@ -127,19 +132,22 @@ public String desc(Hero hero){
 			return Math.max(0, (DURATION - visualcooldown()) / DURATION);
 		}
 
-		private static final String OBJECT  = "object";
+        private static final String OBJECT  = "object";
+        private static final String CASTER  = "caster";
 
-		@Override
-		public void storeInBundle( Bundle bundle ) {
-			super.storeInBundle( bundle );
-			bundle.put( OBJECT, object );
-		}
+        @Override
+        public void storeInBundle(Bundle bundle) {
+            super.storeInBundle(bundle);
+            bundle.put(OBJECT, object);
+            bundle.put(CASTER, casterID);
+        }
 
-		@Override
-		public void restoreFromBundle( Bundle bundle ) {
-			super.restoreFromBundle( bundle );
-			object = bundle.getInt( OBJECT );
-		}
+        @Override
+        public void restoreFromBundle(Bundle bundle) {
+            super.restoreFromBundle(bundle);
+            object = bundle.getInt(OBJECT);
+            casterID = bundle.getInt(CASTER);
+        }
 
 	}
 

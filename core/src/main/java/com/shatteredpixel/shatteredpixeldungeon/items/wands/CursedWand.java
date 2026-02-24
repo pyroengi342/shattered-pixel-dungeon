@@ -223,10 +223,10 @@ public class CursedWand {
 			Char target = Actor.findChar(bolt.collisionPos);
 			//doesn't affect caster if positive only
 			if (Random.Int(2) == 0) {
-				if (target != null) Buff.affect(target, Burning.class).reignite(target);
+				if (target != null) Buff.affect(target, Burning.class, this).reignite(target);
 				if (!positiveOnly) Buff.affect(user, Frost.class, Frost.DURATION);
 			} else {
-				if (!positiveOnly)Buff.affect(user, Burning.class).reignite(user);
+				if (!positiveOnly)Buff.affect(user, Burning.class, this).reignite(user);
 				if (target != null) Buff.affect(target, Frost.class, Frost.DURATION);
 			}
 			tryForWandProc(target, origin);
@@ -399,7 +399,7 @@ public class CursedWand {
 					Char ch = Actor.findChar(  i );
 					//does not harm hero or allies when positive only
 					if (ch != null && (!positiveOnly || ch.alignment != Char.Alignment.ALLY)){
-						Buff.affect(ch, Ooze.class).set( Ooze.DURATION );
+						Buff.affect(ch, Ooze.class, this).set( Ooze.DURATION );
 					}
 				}
 			}
@@ -569,7 +569,7 @@ public class CursedWand {
 
 			for (Char ch : affected){
 				if (ch instanceof Hero) {
-					Buff.prolong(ch, Recharging.class, Recharging.DURATION/3f);
+					Buff.prolong(ch, Recharging.class, Recharging.DURATION/3f, this);
 					ScrollOfRecharging.charge(ch);
 					SpellSprite.show(ch, SpellSprite.CHARGE);
 				}
@@ -650,7 +650,7 @@ public class CursedWand {
 			}
 			user.sprite.centerEmitter().start( Speck.factory( Speck.SCREAM ), 0.3f, 3 );
 			if (positiveOnly){
-				Buff.affect(user, ScrollOfChallenge.ChallengeArena.class).setup(user.pos);
+				Buff.affect(user, ScrollOfChallenge.ChallengeArena.class, this).setup(user.pos);
 				Sample.INSTANCE.play( Assets.Sounds.CHALLENGE );
 			} else {
 				Sample.INSTANCE.play(Assets.Sounds.ALERT);
@@ -814,7 +814,7 @@ public class CursedWand {
 					CellEmitter.get(i).burst(FlameParticle.FACTORY, 10);
 					if (Actor.findChar(i) != null){
 						Char ch = Actor.findChar(i);
-						Burning burning = Buff.affect(ch, Burning.class);
+						Burning burning = Buff.affect(ch, Burning.class, this);
 						burning.reignite(ch);
 						int dmg = Random.NormalIntRange(5 + Dungeon.scalingDepth(), 10 + Dungeon.scalingDepth()*2);
 						ch.damage(dmg, burning);
@@ -899,7 +899,7 @@ public class CursedWand {
 					int dmg = Random.NormalIntRange(5 + Dungeon.scalingDepth(), 10 + Dungeon.scalingDepth()*2);
 					switch (Random.Int(5)){
 						case 0: default:
-							Burning burning = Buff.affect(ch, Burning.class);
+							Burning burning = Buff.affect(ch, Burning.class, this);
 							burning.reignite(ch);
 							ch.damage(dmg, burning);
 							ch.sprite.emitter().burst(FlameParticle.FACTORY, 20);
@@ -910,13 +910,13 @@ public class CursedWand {
 							Splash.at( ch.sprite.center(), 0xFFB2D6FF, 20 );
 							break;
 						case 2:
-							Poison poison = Buff.affect(ch, Poison.class);
+							Poison poison = Buff.affect(ch, Poison.class, this);
 							poison.set(3 + Dungeon.scalingDepth() / 2);
 							ch.damage(dmg, poison);
 							ch.sprite.emitter().burst(PoisonParticle.SPLASH, 20);
 							break;
 						case 3:
-							Ooze ooze = Buff.affect(ch, Ooze.class);
+							Ooze ooze = Buff.affect(ch, Ooze.class, this);
 							ooze.set(Ooze.DURATION);
 							ch.damage(dmg, ooze);
 							Splash.at( ch.sprite.center(), 0x000000, 20 );
@@ -1075,7 +1075,7 @@ public class CursedWand {
 
 			//mimic is enthralled, but also contains no extra reward, if positive only
 			if (positiveOnly){
-				Buff.affect(mimic, ScrollOfSirensSong.Enthralled.class);
+				Buff.affect(mimic, ScrollOfSirensSong.Enthralled.class, null);
 			} else {
 				Item reward;
 				do {
@@ -1145,7 +1145,7 @@ public class CursedWand {
 		public boolean valid(Item origin, Char user, Ballistica bolt, boolean positiveOnly) {
 			if (positiveOnly){
 				return true;
-			} else if (origin == null || user != curUser || !curUser.belongings.contains(origin)){
+			} else if (origin == null  || !((Hero) user).belongings.contains(origin)){
 				return false;
 			} else {
 				return true;
@@ -1161,10 +1161,10 @@ public class CursedWand {
 			}
 
 			//skips this effect if there is no item to transmogrify
-			if (origin == null || user != curUser || !curUser.belongings.contains(origin)){
+			if (origin == null || !((Hero) user).belongings.contains(origin)){
 				return false;
 			}
-			origin.detach(curUser.belongings.backpack);
+			origin.detach(((Hero) user).belongings.backpack);
 			Item result;
 			do {
 				result = Generator.randomUsingDefaults(Random.oneOf(Generator.Category.WEAPON, Generator.Category.ARMOR,
@@ -1207,7 +1207,7 @@ public class CursedWand {
 	public static class SuperNova extends CursedEffect {
 		@Override
 		public boolean effect(Item origin, Char user, Ballistica bolt, boolean positiveOnly) {
-			SuperNovaTracker nova = Buff.append(curUser, SuperNovaTracker.class);
+			SuperNovaTracker nova = Buff.append(user, SuperNovaTracker.class, this);
 			nova.pos = bolt.collisionPos;
 			nova.harmsAllies = !positiveOnly;
 			if (positiveOnly){
@@ -1250,7 +1250,7 @@ public class CursedWand {
 					}
 				}
 			}
-			PitfallTrap.DelayedPit p = Buff.append(curUser, PitfallTrap.DelayedPit.class, 1);
+			PitfallTrap.DelayedPit p = Buff.append(user, PitfallTrap.DelayedPit.class, 1);
 			p.depth = Dungeon.depth;
 			p.branch = Dungeon.branch;
 			p.setPositions(positions);

@@ -47,10 +47,10 @@ public class Invisibility extends FlavourBuff {
 		if (super.attachTo( target )) {
 			target.invisible++;
 			if (target instanceof Hero && ((Hero) target).subClass == HeroSubClass.ASSASSIN){
-				Buff.affect(target, Preparation.class);
+				Buff.affect(target, Preparation.class, this);
 			}
 			if (target instanceof Hero && ((Hero) target).hasTalent(Talent.PROTECTIVE_SHADOWS)){
-				Buff.affect(target, Talent.ProtectiveShadowsTracker.class);
+				Buff.affect(target, Talent.ProtectiveShadowsTracker.class, this);
 			}
 			return true;
 		} else {
@@ -81,10 +81,10 @@ public class Invisibility extends FlavourBuff {
 		else if (target.invisible == 0) target.sprite.remove( CharSprite.State.INVISIBLE );
 	}
 
-	public static void dispel() {
-		if (Dungeon.hero == null) return;
+	public static void dispel(Hero hero) {
+		if (hero == null) return;
 
-		dispel(Dungeon.hero);
+		dispel(hero);
 	}
 
 	public static void dispel(Char ch){

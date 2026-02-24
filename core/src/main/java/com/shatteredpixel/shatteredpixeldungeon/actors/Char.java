@@ -734,9 +734,13 @@ public abstract class Char extends Actor {
 
 		ShieldOfLight.ShieldOfLightTracker shield = buff( ShieldOfLight.ShieldOfLightTracker.class);
 		if (shield != null && shield.object == enemy.id()){
-			int min = 1 + Dungeon.hero.pointsInTalent(Talent.SHIELD_OF_LIGHT);
-			damage -= Random.NormalIntRange(min, 2*min);
-			damage = Math.max(damage, 0);
+            Char caster = (Char) Actor.findById(shield.casterID);
+            if (caster instanceof Hero) {
+                Hero heroCaster = (Hero) caster;
+                int min = 1 + heroCaster.pointsInTalent(Talent.SHIELD_OF_LIGHT);
+                damage -= Random.NormalIntRange(min, 2 * min);
+                damage = Math.max(damage, 0);
+            }
 		} else if (this instanceof Hero
 				&& ((Hero) this).heroClass != HeroClass.CLERIC
 				&& ((Hero) this).hasTalent(Talent.SHIELD_OF_LIGHT)
@@ -747,14 +751,36 @@ public abstract class Char extends Actor {
 			}
 		}
 
-		// hero and pris images skip this as they already benefit from hero's armor glyph proc
-		if (!(this instanceof Hero || this instanceof PrismaticImage)) {
-			if (Dungeon.hero.alignment == alignment && Dungeon.hero.belongings.armor() != null
-					&& Dungeon.hero.buff(AuraOfProtection.AuraBuff.class) != null
-					&& (Dungeon.level.distance(pos, Dungeon.hero.pos) <= 2 || buff(LifeLinkSpell.LifeLinkSpellBuff.class) != null)) {
-				damage = Dungeon.hero.belongings.armor().proc( enemy, this, damage );
-			}
-		}
+        // hero and pris images skip this as they already benefit from hero's armor glyph proc
+        if (!(this instanceof Hero || this instanceof PrismaticImage)) {
+            Hero source = null;
+
+            // 1. Проверяем LifeLink
+            LifeLink link = buff(LifeLink.class);
+            if (link != null) {
+                Char ch = (Char) Actor.findById(link.object);
+                if (ch instanceof Hero && ch.alignment == alignment && ch.buff(AuraOfProtection.AuraBuff.class) != null) {
+                    source = (Hero) ch;
+                }
+            }
+
+            // 2. Если нет LifeLink, ищем в радиусе 2
+            if (source == null) {
+                for (Char ch : Actor.chars()) {
+                    if (ch instanceof Hero && ch.alignment == alignment
+                            && ch.buff(AuraOfProtection.AuraBuff.class) != null
+                            && Dungeon.level.distance(pos, ch.pos) <= 2) {
+                        source = (Hero) ch;
+                        break;
+                    }
+                }
+            }
+
+            // 3. Применяем эффект
+            if (source != null && source.belongings.armor() != null) {
+                damage = source.belongings.armor().proc(enemy, this, damage);
+            }
+        }
 
 		return damage;
 	}
@@ -1269,7 +1295,7 @@ public abstract class Char extends Actor {
 
 		pos = step;
 		
-		if (this != Dungeon.hero) {
+		if (this instanceof Hero) {
 			sprite.visible = Dungeon.level.heroFOV[pos];
 		}
 		

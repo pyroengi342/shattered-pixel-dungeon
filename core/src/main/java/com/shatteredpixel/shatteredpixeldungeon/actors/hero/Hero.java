@@ -2168,6 +2168,7 @@ public class Hero extends Char {
 				Game.runOnRenderThread(new Callback() {
 					@Override
 					public void call() {
+                        // TODO show only for local hero
 						GameScene.show( new WndResurrect(finalAnkh) );
 					}
 				});

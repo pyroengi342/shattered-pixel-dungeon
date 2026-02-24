@@ -25,6 +25,7 @@ import static network.NetworkManager.getLocalPlayerId;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MonkEnergy;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -36,7 +37,7 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import network.Multiplayer;
 
 public class WndMonkAbilities extends Window {
-
+    private MonkEnergy energyBuffed;
 	private static final int WIDTH_P = 120;
 	private static final int WIDTH_L = 180;
 
@@ -44,7 +45,7 @@ public class WndMonkAbilities extends Window {
 
 	public WndMonkAbilities( MonkEnergy energyBuff ){
 		super();
-
+        energyBuffed = energyBuff;
 		int width = PixelScene.landscape() ? WIDTH_L : WIDTH_P;
 
 		float pos = MARGIN;
@@ -67,7 +68,7 @@ public class WndMonkAbilities extends Window {
 						abilityBeingUsed = abil;
 						GameScene.selectCell(listener);
 					} else {
-						abil.doAbility(Dungeon.hero, null);
+						abil.doAbility((Hero) energyBuff.target, null);
 					}
 				}
 			};
@@ -87,10 +88,9 @@ public class WndMonkAbilities extends Window {
 	MonkEnergy.MonkAbility abilityBeingUsed;
 
 	private CellSelector.Listener listener = new CellSelector.Listener() {
-
-		@Override
+        @Override
 		public void onSelect(Integer cell) {
-			abilityBeingUsed.doAbility(Multiplayer.Players.get(getLocalPlayerId()).hero, cell);
+            abilityBeingUsed.doAbility((Hero) energyBuffed.target, cell);
 		}
 
 		@Override

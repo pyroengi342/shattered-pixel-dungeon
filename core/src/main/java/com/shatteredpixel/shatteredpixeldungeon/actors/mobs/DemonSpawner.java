@@ -38,6 +38,8 @@ import com.watabou.utils.Random;
 
 import java.util.ArrayList;
 
+import network.Multiplayer;
+
 public class DemonSpawner extends Mob {
 
 	{
@@ -87,9 +89,13 @@ public class DemonSpawner extends Mob {
 			spawnRecorded = true;
 		}
 
-		if (Dungeon.hero.buff(AscensionChallenge.class) != null && spawnCooldown > 20){
-			spawnCooldown = 20;
-		}
+        for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+            if(player.hero.buff(AscensionChallenge.class) != null && spawnCooldown > 20)
+            {
+                spawnCooldown = 20;
+                break;
+            }
+        }
 
 		spawnCooldown--;
 		if (spawnCooldown <= 0){

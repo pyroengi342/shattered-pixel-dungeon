@@ -22,6 +22,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.buffs;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
@@ -74,7 +75,7 @@ public class GreaterHaste extends Buff {
 	@Override
 	public float iconFadePercent() {
 		//currently tied to the lethal haste talent, as that's the only source
-		float duration = 1 + 2*Dungeon.hero.pointsInTalent(Talent.LETHAL_HASTE);
+		float duration = 1 + 2*((Hero) target).pointsInTalent(Talent.LETHAL_HASTE);
 		return Math.max(0, (duration - left) / duration);
 	}
 

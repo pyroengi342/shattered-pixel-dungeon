@@ -535,7 +535,7 @@ public abstract class RegularLevel extends Level {
 		Random.pushGenerator( Random.Long() );
         // TODO for each hero we need to check this
 			if (hasAnyHeroTalent(Talent.CACHED_RATIONS)){
-				Talent.CachedRationsDropped dropped = Buff.affect(Dungeon.hero, Talent.CachedRationsDropped.class);
+				Talent.CachedRationsDropped dropped = Buff.affect(Dungeon.hero, Talent.CachedRationsDropped.class, Talent.CachedRationsDropped.class);
 				int targetFloor = (int)(2 + dropped.count());
 				if (dropped.count() > 4) targetFloor++;
 				if (Dungeon.depth >= targetFloor && dropped.count() < 2 + 2*Dungeon.hero.pointsInTalent(Talent.CACHED_RATIONS)){

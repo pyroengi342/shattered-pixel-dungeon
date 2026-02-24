@@ -104,7 +104,7 @@ public class PitfallTrap extends Trap {
 
 		@Override
 		public boolean act() {
-
+            // TODO remake completely
 			boolean herofell = false;
             Hero hero = null;
 			if (depth == Dungeon.depth && branch == Dungeon.branch && positions != null) {

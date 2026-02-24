@@ -322,7 +322,7 @@ public class Berserk extends ShieldBuff implements ActionIndicator.Action {
 				return 1f - shielding() / (float)maxShieldBoost();
 			case RECOVERING:
 				if (levelRecovery > 0) {
-					return levelRecovery/(LEVEL_RECOVER_START-Dungeon.hero.pointsInTalent(Talent.DEATHLESS_FURY));
+					return levelRecovery/(LEVEL_RECOVER_START-((Hero) target).pointsInTalent(Talent.DEATHLESS_FURY));
 				} else {
 					return turnRecovery/(float)TURN_RECOVERY_START;
 				}
