@@ -106,12 +106,12 @@ public class Sickle extends MeleeWeapon {
 				wep.beforeAbilityUsed(hero, enemy);
 				AttackIndicator.target(enemy);
 
-				Buff.affect(enemy, HarvestBleedTracker.class, 0);
+				Buff.affect(enemy, HarvestBleedTracker.class, hero);
 				if (hero.attack(enemy, bleedMulti, bleedBoost, Char.INFINITE_ACCURACY)){
 					Sample.INSTANCE.play(Assets.Sounds.HIT_STRONG);
 				}
 
-				Invisibility.dispel();
+				Invisibility.dispel(hero);
 				hero.spendAndNext(hero.attackDelay());
 				if (!enemy.isAlive()){
 					wep.onAbilityKill(hero, enemy);
