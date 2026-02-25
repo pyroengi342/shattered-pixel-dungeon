@@ -25,6 +25,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Corruption;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.spells.ClericSpell;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.PhantomMeat;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTeleportation;
@@ -34,6 +35,8 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.PhantomPiranhaSprite;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
+
+import network.Multiplayer;
 
 import java.util.ArrayList;
 
@@ -50,7 +53,8 @@ public class PhantomPiranha extends Piranha {
 	public void damage(int dmg, Object src) {
 		Char dmgSource = null;
 		if (src instanceof Char) dmgSource = (Char)src;
-		if (src instanceof Wand || src instanceof ClericSpell) dmgSource = Dungeon.hero;
+		// TODO remake logic
+		if (src instanceof Wand || src instanceof ClericSpell) dmgSource = src.curUser;
 
 		if (dmgSource == null || !Dungeon.level.adjacent(pos, dmgSource.pos)){
 			dmg = Math.round(dmg/2f); //halve damage taken if we are going to teleport
@@ -91,17 +95,36 @@ public class PhantomPiranha extends Piranha {
 		}
 	}
 
-	private boolean teleportAway(){
-
-		if (flying){
+	private boolean teleportAway() {
+		if (flying) {
 			return false;
+		}
+
+		// Проверяем, видит ли кто-нибудь текущую позицию моба
+		boolean visibleToAny = false;
+		for (Multiplayer.PlayerInfo info : Multiplayer.Players.getAll()) {
+			Hero h = info.hero;
+			if (h != null && h.isAlive() && h.fieldOfView != null && h.fieldOfView[pos]) {
+				visibleToAny = true;
+				break;
+			}
 		}
 
 		ArrayList<Integer> inFOVCandidates = new ArrayList<>();
 		ArrayList<Integer> outFOVCandidates = new ArrayList<>();
-		for (int i = 0; i < Dungeon.level.length(); i++){
-			if (Dungeon.level.water[i] && Actor.findChar(i) == null){
-				if (Dungeon.level.heroFOV[i]){
+
+		for (int i = 0; i < Dungeon.level.length(); i++) {
+			if (Dungeon.level.water[i] && Actor.findChar(i) == null) {
+				// Проверяем, видит ли эту клетку хоть один герой
+				boolean cellVisible = false;
+				for (Multiplayer.PlayerInfo info : Multiplayer.Players.getAll()) {
+					Hero h = info.hero;
+					if (h != null && h.isAlive() && h.fieldOfView != null && h.fieldOfView[i]) {
+						cellVisible = true;
+						break;
+					}
+				}
+				if (cellVisible) {
 					inFOVCandidates.add(i);
 				} else {
 					outFOVCandidates.add(i);
@@ -109,16 +132,20 @@ public class PhantomPiranha extends Piranha {
 			}
 		}
 
-		if (!outFOVCandidates.isEmpty()){
-			if (Dungeon.level.heroFOV[pos]) GLog.i(Messages.get(this, "teleport_away"));
+		if (!outFOVCandidates.isEmpty()) {
+			// Сообщение о телепортации показываем только локальному игроку,
+			// если его герой видел моба
+			Hero local = Multiplayer.localHero();
+			if (visibleToAny && local != null && local.fieldOfView != null && local.fieldOfView[pos]) {
+				GLog.i(Messages.get(this, "teleport_away"));
+			}
 			ScrollOfTeleportation.appear(this, Random.element(outFOVCandidates));
 			return true;
-		} else if (!inFOVCandidates.isEmpty()){
+		} else if (!inFOVCandidates.isEmpty()) {
 			ScrollOfTeleportation.appear(this, Random.element(inFOVCandidates));
 			return true;
 		}
 
 		return false;
-
 	}
 }

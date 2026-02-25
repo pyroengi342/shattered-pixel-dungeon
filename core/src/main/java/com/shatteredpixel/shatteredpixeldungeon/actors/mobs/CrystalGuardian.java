@@ -43,6 +43,8 @@ import com.watabou.utils.Bundle;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
+import network.Multiplayer;
+
 public class CrystalGuardian extends Mob{
 
 	{
@@ -75,7 +77,8 @@ public class CrystalGuardian extends Mob{
 			}
 			throwItems();
 			HP = Math.min(HT, HP+5);
-			if (Dungeon.level.heroFOV[pos]) {
+			Hero local = Multiplayer.localHero();
+			if (local != null && local.fieldOfView != null && local.fieldOfView[pos]) {
 				sprite.showStatusWithIcon(CharSprite.POSITIVE, "5", FloatingText.HEALING);
 			}
 			if (HP == HT){
@@ -215,7 +218,7 @@ public class CrystalGuardian extends Mob{
 		if (Dungeon.level.map[pos] == Terrain.MINE_CRYSTAL){
 			Level.set(pos, Terrain.EMPTY);
 			GameScene.updateMap(pos);
-			if (Dungeon.level.heroFOV[pos]){
+			if (Multiplayer.localHero().fieldOfView[pos]){
 				Splash.at(pos, 0xFFFFFF, 5);
 				Sample.INSTANCE.play( Assets.Sounds.SHATTER );
 			}

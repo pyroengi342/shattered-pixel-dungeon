@@ -41,6 +41,6 @@ public class BusyIndicator extends Image {
 	@Override
 	public void update() {
 		super.update();
-		visible = Multiplayer.Players.get(getLocalPlayerId()).hero.isAlive() && !Multiplayer.Players.get(getLocalPlayerId()).hero.ready;
+		visible = Multiplayer.localHero().isAlive() && !Multiplayer.localHero().ready;
 	}
 }

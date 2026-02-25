@@ -78,7 +78,7 @@ public abstract class ClericSpell {
 	}
 
 	public void onSpellCast(HolyTome tome, Hero hero){
-		Invisibility.dispel();
+		Invisibility.dispel(hero);
 		if (hero.hasTalent(Talent.SATIATED_SPELLS) && hero.buff(Talent.SatiatedSpellsTracker.class) != null){
 			int amount = 1 + 2*hero.pointsInTalent(Talent.SATIATED_SPELLS);
 			Buff.affect(hero, Barrier.class, hero).setShield(amount);

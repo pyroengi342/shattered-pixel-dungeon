@@ -28,6 +28,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bleeding;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Light;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Pushing;
 import com.shatteredpixel.shatteredpixeldungeon.effects.TargetedCell;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
@@ -41,6 +42,8 @@ import com.watabou.utils.Callback;
 import com.watabou.utils.GameMath;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
+
+import network.Multiplayer;
 
 public class RipperDemon extends Mob {
 
@@ -119,12 +122,10 @@ public class RipperDemon extends Mob {
 		boolean result = super.act();
 		if (paralysed <= 0) leapCooldown --;
 
-		//if state changed from wandering to hunting, we haven't acted yet, don't update.
+		// Если состояние не сменилось с WANDERING на HUNTING (т.е. не было перехода, который требует отдельной обработки)
 		if (!(lastState == WANDERING && state == HUNTING)) {
 			if (enemy != null) {
 				lastEnemyPos = enemy.pos;
-			} else {
-				lastEnemyPos = Dungeon.hero.pos;
 			}
 		}
 
@@ -185,18 +186,20 @@ public class RipperDemon extends Mob {
 				}
 
 				//do leap
-				sprite.visible = Dungeon.level.heroFOV[pos] || Dungeon.level.heroFOV[leapPos] || Dungeon.level.heroFOV[endPos];
+				Hero local = Multiplayer.localHero();
+				boolean visibleToLocal = local != null && local.fieldOfView != null &&
+						(local.fieldOfView[pos] || local.fieldOfView[leapPos] || local.fieldOfView[endPos]);
+				sprite.visible = visibleToLocal;
 				sprite.jump(pos, leapPos, new Callback() {
 					@Override
 					public void call() {
-
 						if (leapVictim != null && alignment != leapVictim.alignment){
 							if (hit(RipperDemon.this, leapVictim, Char.INFINITE_ACCURACY, false)) {
-								Buff.affect(leapVictim, Bleeding.class).set(0.75f * damageRoll());
+								Buff.affect(leapVictim, Bleeding.class, this).set(0.75f * damageRoll());
 								leapVictim.sprite.flash();
 								Sample.INSTANCE.play(Assets.Sounds.HIT);
 							} else {
-								leapVictim.sprite.showStatus( CharSprite.NEUTRAL, leapVictim.defenseVerb() );
+								leapVictim.sprite.showStatus(CharSprite.NEUTRAL, leapVictim.defenseVerb());
 								Sample.INSTANCE.play(Assets.Sounds.MISS);
 							}
 						}
@@ -254,16 +257,30 @@ public class RipperDemon extends Mob {
 						b = new Ballistica(pos, targetPos, Ballistica.STOP_TARGET | Ballistica.STOP_SOLID);
 					}
 					if (b.collisionPos == targetPos){
-						//get ready to leap
+						//готовимся к прыжку
 						leapPos = targetPos;
-						//don't want to overly punish players with slow move or attack speed
+						//не хотим слишком наказывать игроков с медленной скоростью атаки/передвижения
 						spend(GameMath.gate(attackDelay(), (int)Math.ceil(enemy.cooldown()), 3*attackDelay()));
-						if (Dungeon.level.heroFOV[pos] || Dungeon.level.heroFOV[leapPos]){
+
+						Hero local = Multiplayer.localHero();
+						boolean visibleToLocal = local != null && local.fieldOfView != null &&
+								(local.fieldOfView[pos] || local.fieldOfView[leapPos]);
+
+						if (visibleToLocal){
 							GLog.w(Messages.get(RipperDemon.this, "leap"));
 							sprite.parent.addToBack(new TargetedCell(leapPos, 0xFF0000));
-							((RipperSprite)sprite).leapPrep( leapPos );
-							Dungeon.hero.interrupt();
+							((RipperSprite)sprite).leapPrep(leapPos);
 						}
+
+						// Прерываем всех героев, которые видят моба или точку прыжка
+						for (Multiplayer.PlayerInfo info : Multiplayer.Players.getAll()) {
+							Hero h = info.hero;
+							if (h != null && h.isAlive() && h.fieldOfView != null &&
+									(h.fieldOfView[pos] || h.fieldOfView[leapPos])) {
+								h.interrupt();
+							}
+						}
+
 						return true;
 					}
 				}

@@ -78,7 +78,7 @@ public class Imp extends NPC {
         // TODO heroFOV remake
         if (!Quest.given && Dungeon.level.visited[pos]) {
             if (!seenBefore && Dungeon.level.heroFOV[pos]) {
-                yell(Messages.get(this, "hey", Messages.titleCase(Multiplayer.Players.get(getLocalPlayerId()).hero.name())));
+                yell(Messages.get(this, "hey", Messages.titleCase(Multiplayer.localHero().name())));
                 seenBefore = true;
             }
         } else {

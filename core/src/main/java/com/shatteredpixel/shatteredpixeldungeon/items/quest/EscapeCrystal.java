@@ -117,13 +117,13 @@ public class EscapeCrystal extends Item {
 		storedItems.put(BELONGINGS, belongings);
 
 		Bundle quickslots = new Bundle();
-		Dungeon.quickslot.storePlaceholders(quickslots);
+		hero.quickslot.storePlaceholders(quickslots);
 		storedItems.put(QUICKSLOTS, quickslots);
 
 		storedItems.put(GOLD, Dungeon.gold);
 		storedItems.put(ENERGY, Dungeon.energy);
 
-		Dungeon.quickslot.reset();
+		hero.quickslot.reset();
 		QuickSlotButton.reset();
 		Dungeon.gold = Dungeon.energy = 0;
 		hero.belongings.clear();
@@ -132,8 +132,8 @@ public class EscapeCrystal extends Item {
 	public void restoreHeroBelongings( Hero hero ){
 		hero.belongings.clear();
 
-		Dungeon.quickslot.reset();
-		Dungeon.quickslot.restorePlaceholders(storedItems.getBundle(QUICKSLOTS));
+		hero.quickslot.reset();
+		hero.quickslot.restorePlaceholders(storedItems.getBundle(QUICKSLOTS));
 		QuickSlotButton.reset();
 
 		curUser.belongings.restoreFromBundle(storedItems.getBundle(BELONGINGS));

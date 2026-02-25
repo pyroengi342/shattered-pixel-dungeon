@@ -21,8 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.ui;
 
-import static network.NetworkManager.getLocalPlayerId;
-
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.QuickSlot;
 import com.shatteredpixel.shatteredpixeldungeon.SPDAction;
@@ -57,6 +55,11 @@ public class QuickSlotButton extends Button {
 	
 	public static int targetingSlot = -1;
 	public static Char lastTarget = null;
+
+	// Вспомогательный метод для доступа к быстрым слотам локального героя
+	private static QuickSlot quickslot() {
+		return Multiplayer.localHero().quickslot;
+	}
 	
 	public QuickSlotButton( int slotNum ) {
 		super();
@@ -69,13 +72,11 @@ public class QuickSlotButton extends Button {
 	@Override
 	public void destroy() {
 		super.destroy();
-		
 		reset();
 	}
 
 	public static void reset() {
 		instance = new QuickSlotButton[QuickSlot.SIZE];
-
 		lastTarget = null;
 		targetingSlot = -1;
 	}
@@ -87,7 +88,8 @@ public class QuickSlotButton extends Button {
 		slot = new ItemSlot() {
 			@Override
 			protected void onClick() {
-				if (!Multiplayer.Players.get(getLocalPlayerId()).hero.isAlive() || !Multiplayer.Players.get(getLocalPlayerId()).hero.ready){
+				// Используем локального героя
+				if (!Multiplayer.localHero().isAlive() || !Multiplayer.localHero().ready){
 					return;
 				}
 				if (targetingSlot == slotNum && lastTarget != null) {
@@ -96,14 +98,13 @@ public class QuickSlotButton extends Button {
 					if (cell != -1){
 						GameScene.handleCell(cell);
 					} else {
-						//couldn't auto-aim, just target the position and hope for the best.
 						GameScene.handleCell( lastTarget.pos );
 					}
 				} else {
 					Item item = select(slotNum);
-					if (Multiplayer.Players.get(getLocalPlayerId()).hero.belongings.contains(item) && !GameScene.cancel()) {
+					if (Multiplayer.localHero().belongings.contains(item) && !GameScene.cancel()) {
 						GameScene.centerNextWndOnInvPane();
-						item.execute(Multiplayer.Players.get(getLocalPlayerId()).hero);
+						item.execute(Multiplayer.localHero());
 						if (item.usesTargeting) {
 							useTargeting();
 						}
@@ -221,7 +222,7 @@ public class QuickSlotButton extends Button {
 	
 	@Override
 	protected void onClick() {
-		if (Multiplayer.Players.get(getLocalPlayerId()).hero.ready && !GameScene.cancel()) {
+		if (Multiplayer.localHero().ready && !GameScene.cancel()) {
 			GameScene.selectItem(itemSelector);
 		}
 	}
@@ -275,7 +276,7 @@ public class QuickSlotButton extends Button {
 	}
 
 	public static void set(int slotNum, Item item){
-		Dungeon.quickslot.setSlot( slotNum , item );
+		quickslot().setSlot( slotNum , item );
 		refresh();
 
 		//Remember if the player adds the waterskin as one of their first actions.
@@ -289,7 +290,7 @@ public class QuickSlotButton extends Button {
 	}
 
 	private static Item select(int slotNum){
-		return Dungeon.quickslot.getItem( slotNum );
+		return quickslot().getItem( slotNum );
 	}
 	
 	public void item( Item item ) {
@@ -307,8 +308,8 @@ public class QuickSlotButton extends Button {
 	}
 	
 	private void enableSlot() {
-		slot.enable(Dungeon.quickslot.isNonePlaceholder( slotNum )
-				&& (!Multiplayer.Players.get(getLocalPlayerId()).hero.belongings.lostInventory() || Dungeon.quickslot.getItem(slotNum).keptThroughLostInventory()));
+		slot.enable( quickslot().isNonePlaceholder( slotNum )
+				&& (!Multiplayer.localHero().belongings.lostInventory() || quickslot().getItem(slotNum).keptThroughLostInventory()) );
 	}
 
 	public void slotMargins( int left, int top, int right, int bottom){
@@ -354,12 +355,12 @@ public class QuickSlotButton extends Button {
 
 	//FIXME: this is currently very expensive, should either optimize ballistica or this, or both
 	public static int autoAim(Char target, Item item){
-		if (Multiplayer.Players.get(getLocalPlayerId()).hero == null || target == null){
+		if (Multiplayer.localHero() == null || target == null){
 			return -1;
 		}
 
 		//first try to directly target
-		if (item.targetingPos(Multiplayer.Players.get(getLocalPlayerId()).hero, target.pos) == target.pos) {
+		if (item.targetingPos(Multiplayer.localHero(), target.pos) == target.pos) {
 			return target.pos;
 		}
 
@@ -367,7 +368,7 @@ public class QuickSlotButton extends Button {
 		PathFinder.buildDistanceMap( target.pos, BArray.not( new boolean[Dungeon.level.length()], null ), 2 );
 		for (int i = 0; i < PathFinder.distance.length; i++) {
 			if (PathFinder.distance[i] < Integer.MAX_VALUE
-					&& item.targetingPos(Multiplayer.Players.get(getLocalPlayerId()).hero, i) == target.pos)
+					&& item.targetingPos(Multiplayer.localHero(), i) == target.pos)
 				return i;
 		}
 

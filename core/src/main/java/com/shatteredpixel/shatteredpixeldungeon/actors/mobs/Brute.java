@@ -37,6 +37,8 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Random;
 
+import network.Multiplayer;
+
 public class Brute extends Mob {
 	
 	{
@@ -101,10 +103,10 @@ public class Brute extends Mob {
 	}
 	
 	protected void triggerEnrage(){
-		rage = Buff.affect(this, BruteRage.class);
+		rage = Buff.affect(this, BruteRage.class, this);
 		rage.setShield(HT/2 + 4);
 		sprite.showStatusWithIcon( CharSprite.POSITIVE, Integer.toString(HT/2), FloatingText.SHIELDING );
-		if (Dungeon.level.heroFOV[pos]) {
+		if (Multiplayer.localHero().fieldOfView[pos]) {
 			SpellSprite.show( this, SpellSprite.BERSERK);
 		}
 		spend( TICK );

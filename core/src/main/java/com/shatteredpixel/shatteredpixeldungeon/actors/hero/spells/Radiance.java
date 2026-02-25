@@ -66,7 +66,7 @@ public class Radiance extends ClericSpell {
 		}
 
 		for (Mob mob : Dungeon.level.mobs.toArray( new Mob[0] )) {
-			if (mob.alignment != Char.Alignment.ALLY && Dungeon.level.heroFOV[mob.pos]) {
+			if (mob.alignment != Char.Alignment.ALLY && hero.fieldOfView[mob.pos]) {
 
 				if (mob.buff(GuidingLight.Illuminated.class) != null){
 					mob.damage(hero.lvl+5, GuidingLight.class);

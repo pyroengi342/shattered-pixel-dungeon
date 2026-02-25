@@ -26,6 +26,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.SacrificialFire;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.duelist.Challenge;
 import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Pushing;
@@ -37,6 +38,8 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.GhoulSprite;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
+
+import network.Multiplayer;
 
 import java.util.ArrayList;
 
@@ -307,7 +310,10 @@ public class Ghoul extends Mob {
 
 		public void updateVisibility(){
 			if (ghoul != null && ghoul.sprite != null){
-				ghoul.sprite.visible = Dungeon.level.heroFOV[ghoul.pos];
+				Hero local = Multiplayer.localHero();
+				if (local != null && local.fieldOfView != null) {
+					ghoul.sprite.visible = local.fieldOfView[ghoul.pos];
+				}
 			}
 		}
 

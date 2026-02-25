@@ -127,7 +127,7 @@ public abstract class Plant implements Bundlable {
 
     public String desc() {
         String desc = Messages.get(this, "desc");
-        Hero localHero = Multiplayer.Players.get(getLocalPlayerId()).hero;
+        Hero localHero = Multiplayer.localHero();
         if (localHero != null && localHero.subClass == HeroSubClass.WARDEN){
             desc += "\n\n" + Messages.get(this, "warden_desc");
         }

@@ -82,7 +82,7 @@ public class PitfallTrap extends Trap {
 		p.setPositions(positions);
 
 
-		if (pos == Multiplayer.Players.get(getLocalPlayerId()).hero.pos){
+		if (pos == Multiplayer.localHero().pos){
 			GLog.n(Messages.get(this, "triggered_hero"));
 		} else if (Dungeon.level.heroFOV[pos]){
 			GLog.n(Messages.get(this, "triggered"));

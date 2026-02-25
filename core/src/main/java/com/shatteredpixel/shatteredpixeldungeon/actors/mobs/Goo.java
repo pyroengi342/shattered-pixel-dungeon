@@ -49,6 +49,8 @@ import com.watabou.utils.GameMath;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
+import network.Multiplayer;
+
 public class Goo extends Mob {
 
 	{
@@ -111,19 +113,28 @@ public class Goo extends Mob {
 			HP += healInc;
 			Statistics.qualifiedForBossChallengeBadge = false;
 
-			LockedFloor lock = Dungeon.hero.buff(LockedFloor.class);
-			if (lock != null){
-				if (Dungeon.isChallenged(Challenges.STRONGER_BOSSES))   lock.removeTime(healInc);
-				else                                                    lock.removeTime(healInc*1.5f);
+			// Уменьшаем время LockedFloor у всех живых героев
+			float lockReduction = Dungeon.isChallenged(Challenges.STRONGER_BOSSES) ? healInc : healInc * 1.5f;
+			for (Multiplayer.PlayerInfo info : Multiplayer.Players.getAll()) {
+				Hero h = info.hero;
+				if (h != null && h.isAlive()) {
+					LockedFloor lock = h.buff(LockedFloor.class);
+					if (lock != null) {
+						lock.removeTime(lockReduction);
+					}
+				}
 			}
 
-			if (Dungeon.level.heroFOV[pos] ){
-				sprite.showStatusWithIcon( CharSprite.POSITIVE, Integer.toString(healInc), FloatingText.HEALING );
+			// Визуальный эффект лечения только для локального игрока
+			Hero local = Multiplayer.localHero();
+			if (local != null && local.fieldOfView != null && local.fieldOfView[pos]) {
+				sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(healInc), FloatingText.HEALING);
 			}
+
 			if (Dungeon.isChallenged(Challenges.STRONGER_BOSSES) && healInc < 3) {
 				healInc++;
 			}
-			if (HP*2 > HT) {
+			if (HP * 2 > HT) {
 				BossHealthBar.bleed(false);
 				((GooSprite)sprite).spray(false);
 				HP = Math.min(HP, HT);
@@ -131,7 +142,7 @@ public class Goo extends Mob {
 		} else {
 			healInc = 1;
 		}
-		
+
 		if (state != SLEEPING){
 			Dungeon.level.seal();
 		}
@@ -156,7 +167,7 @@ public class Goo extends Mob {
 	public int attackProc( Char enemy, int damage ) {
 		damage = super.attackProc( enemy, damage );
 		if (Random.Int( 3 ) == 0) {
-			Buff.affect( enemy, Ooze.class ).set( Ooze.DURATION );
+			Buff.affect( enemy, Ooze.class, this ).set( Ooze.DURATION );
 			enemy.sprite.burst( 0x000000, 5 );
 		}
 
@@ -178,20 +189,19 @@ public class Goo extends Mob {
 
 	@Override
 	protected boolean doAttack( Char enemy ) {
+		Hero local = Multiplayer.localHero();
+		boolean visibleToLocal = local != null && local.fieldOfView != null && local.fieldOfView[pos];
+
 		if (pumpedUp == 1) {
 			pumpedUp++;
-			((GooSprite)sprite).pumpUp( pumpedUp );
-
-			spend( attackDelay() );
-
+			((GooSprite)sprite).pumpUp(pumpedUp);
+			spend(attackDelay());
 			return true;
-		} else if (pumpedUp >= 2 || Random.Int( (HP*2 <= HT) ? 2 : 5 ) > 0) {
+		} else if (pumpedUp >= 2 || Random.Int((HP*2 <= HT) ? 2 : 5) > 0) {
 
-			boolean visible = Dungeon.level.heroFOV[pos];
-
-			if (visible) {
+			if (visibleToLocal) {
 				if (pumpedUp >= 2) {
-					((GooSprite) sprite).pumpAttack();
+					((GooSprite)sprite).pumpAttack();
 				} else {
 					sprite.attack(enemy.pos);
 				}
@@ -199,29 +209,28 @@ public class Goo extends Mob {
 				if (pumpedUp >= 2){
 					((GooSprite)sprite).triggerEmitters();
 				}
-				attack( enemy );
+				attack(enemy);
 				Invisibility.dispel(this);
-				spend( attackDelay() );
+				spend(attackDelay());
 			}
 
-			return !visible;
+			return !visibleToLocal;
 
 		} else {
 
 			if (Dungeon.isChallenged(Challenges.STRONGER_BOSSES)){
 				pumpedUp += 2;
-				//don't want to overly punish players with slow move or attack speed
 				spend(GameMath.gate(attackDelay(), (int)Math.ceil(enemy.cooldown()), 3*attackDelay()));
 			} else {
 				pumpedUp++;
-				spend( attackDelay() );
+				spend(attackDelay());
 			}
 
-			((GooSprite)sprite).pumpUp( pumpedUp );
+			((GooSprite)sprite).pumpUp(pumpedUp);
 
-			if (Dungeon.level.heroFOV[pos]) {
-				sprite.showStatus( CharSprite.WARNING, Messages.get(this, "!!!") );
-				GLog.n( Messages.get(this, "pumpup") );
+			if (visibleToLocal) {
+				sprite.showStatus(CharSprite.WARNING, Messages.get(this, "!!!"));
+				GLog.n(Messages.get(this, "pumpup"));
 			}
 
 			return true;
@@ -273,10 +282,16 @@ public class Goo extends Mob {
 			((GooSprite)sprite).spray(true);
 			yell(Messages.get(this, "gluuurp"));
 		}
-		LockedFloor lock = Dungeon.hero.buff(LockedFloor.class);
-		if (lock != null && !isImmune(src.getClass()) && !isInvulnerable(src.getClass())){
-			if (Dungeon.isChallenged(Challenges.STRONGER_BOSSES))   lock.addTime(dmg);
-			else                                                    lock.addTime(dmg*1.5f);
+		// Увеличиваем LockedFloor у всех живых героев
+		float lockIncrease = dmg * (Dungeon.isChallenged(Challenges.STRONGER_BOSSES) ? 1f : 1.5f);
+		for (Multiplayer.PlayerInfo info : Multiplayer.Players.getAll()) {
+			Hero h = info.hero;
+			if (h != null && h.isAlive()) {
+				LockedFloor lock = h.buff(LockedFloor.class);
+				if (lock != null && !isImmune(src.getClass()) && !isInvulnerable(src.getClass())) {
+					lock.addTime(lockIncrease);
+				}
+			}
 		}
 	}
 

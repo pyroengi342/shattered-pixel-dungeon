@@ -24,6 +24,7 @@ package com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Regeneration;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.LeafParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
@@ -59,7 +60,7 @@ public class Blooming extends Weapon.Enchantment {
 				plants = (float)Math.floor(plants);
 			}
 			
-			if (plantGrass(defender.pos)){
+			if (plantGrass(defender.pos, defender)){
 				plants--;
 				if (plants <= 0){
 					return damage;
@@ -80,7 +81,7 @@ public class Blooming extends Weapon.Enchantment {
 			}
 
 			for (int i : positions){
-				if (plantGrass(i)){
+				if (plantGrass(i, attacker)){
 					plants--;
 					if (plants <= 0) {
 						return damage;
@@ -93,12 +94,12 @@ public class Blooming extends Weapon.Enchantment {
 		return damage;
 	}
 	
-	private boolean plantGrass(int cell){
+	private boolean plantGrass(int cell, Char user){
 		int t = Dungeon.level.map[cell];
 		if ((t == Terrain.EMPTY || t == Terrain.EMPTY_DECO || t == Terrain.EMBERS
 				|| t == Terrain.GRASS || t == Terrain.FURROWED_GRASS)
 				&& Dungeon.level.plants.get(cell) == null){
-			if (!Regeneration.regenOn()){
+			if (user instanceof Hero && !Regeneration.regenOn((Hero) user)){
 				Level.set(cell, Terrain.FURROWED_GRASS);
 			} else {
 				Level.set(cell, Terrain.HIGH_GRASS);

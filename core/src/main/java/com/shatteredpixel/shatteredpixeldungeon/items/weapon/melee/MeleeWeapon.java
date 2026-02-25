@@ -422,7 +422,7 @@ public class MeleeWeapon extends Weapon {
 		@Override
 		public boolean act() {
 			if (charges < chargeCap()){
-				if (Regeneration.regenOn()){
+				if (Regeneration.regenOn(curUser)){
 					//60 to 45 turns per charge
 					float chargeToGain = 1/(60f-1.5f*(chargeCap()-charges));
 

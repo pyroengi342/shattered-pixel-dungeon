@@ -41,6 +41,8 @@ import com.watabou.utils.Bundle;
 import com.watabou.utils.Callback;
 import com.watabou.utils.Random;
 
+import network.Multiplayer;
+
 public class Guard extends Mob {
 
 	//they can only use their chains once
@@ -125,18 +127,20 @@ public class Guard extends Mob {
 		enemy.pos = pullPos;
 		enemy.sprite.place(pullPos);
 		Dungeon.level.occupyCell(enemy);
-		Cripple.prolong(enemy, Cripple.class, 4f);
-
-        // TODO remove instanceof Hero instances!!!!!!!
+		Cripple.prolong(enemy, Cripple.class, 4f, this);
 		if (enemy instanceof Hero) {
-			Dungeon.hero.interrupt();
-			Dungeon.observe((Hero) enemy);
+			Hero h = (Hero) enemy;
+			h.interrupt(); // Прерывание всегда выполняется (на сервере и клиенте)
+			Dungeon.observe(h);
 			GameScene.updateFog();
 		} else {
-			enemy.sprite.visible = Dungeon.level.heroFOV[pullPos];
+			// Для не-героев видимость спрайта зависит от локального игрока
+			if (enemy.sprite != null) {
+				Hero local = Multiplayer.localHero();
+				enemy.sprite.visible = local != null && local.fieldOfView != null && local.fieldOfView[pullPos];
+			}
 		}
 	}
-
 	@Override
 	public int attackSkill( Char target ) {
 		return 12;

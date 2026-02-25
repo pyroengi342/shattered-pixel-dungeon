@@ -27,6 +27,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Eye;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.NPC;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Beam;
@@ -54,6 +55,8 @@ import com.watabou.utils.Bundle;
 import com.watabou.utils.Point;
 import com.watabou.utils.Random;
 import com.watabou.utils.Rect;
+
+import network.Multiplayer;
 
 public class SentryRoom extends SpecialRoom {
 
@@ -241,9 +244,10 @@ public class SentryRoom extends SpecialRoom {
 		private float curChargeDelay;
 
 		private EmptyRoom room;
+    	private Hero targetHero = null; // текущая цель
 
 		@Override
-		protected boolean act() {
+    	protected boolean act() {
 			if (Dungeon.level.heroFOV[pos]){
 				Bestiary.setSeen(getClass());
 			}
@@ -257,54 +261,74 @@ public class SentryRoom extends SpecialRoom {
 				throwItems();
 			}
 
-			if (Dungeon.hero != null){
-				if (fieldOfView[Dungeon.hero.pos]
-						&& Dungeon.level.map[Dungeon.hero.pos] == Terrain.EMPTY_SP
-						&& room.inside(Dungeon.level.cellToPoint(Dungeon.hero.pos))
-						&& !Dungeon.hero.belongings.lostInventory()){
+			// Ищем игрока в опасной зоне
+			Hero newTarget = null;
+			for (Multiplayer.PlayerInfo pi : Multiplayer.Players.getAll()) {
+				Hero h = pi.hero;
+				if (h == null || !h.isAlive()) continue;
 
-					if (curChargeDelay > 0.001f){ //helps prevent rounding errors
+				if (fieldOfView[h.pos]
+						&& Dungeon.level.map[h.pos] == Terrain.EMPTY_SP
+						&& room.inside(Dungeon.level.cellToPoint(h.pos))
+						&& !h.belongings.lostInventory()) {
+
+					newTarget = h;
+					break; // берём первого
+				}
+			}
+
+			if (newTarget != null) {
+				if (targetHero == null) {
+					targetHero = newTarget;
+				} else if (targetHero != newTarget) {
+					// можно сменить цель или оставить текущую
+					// для простоты оставим текущую, пока она в опасной зоне
+					// но если текущая вышла, а новая есть, нужно переключиться
+					if (!fieldOfView[targetHero.pos] || !room.inside(Dungeon.level.cellToPoint(targetHero.pos))) {
+						targetHero = newTarget;
+					}
+				}
+
+				if (targetHero != null) {
+					if (curChargeDelay > 0.001f) {
 						if (curChargeDelay == initialChargeDelay) {
 							((SentrySprite) sprite).charge();
 						}
-						curChargeDelay -= Dungeon.hero.cooldown();
-						//pity mechanic so mistaps don't get people instakilled
-						if (Dungeon.hero.cooldown() >= 0.34f){
-							Dungeon.hero.interrupt();
+						curChargeDelay -= targetHero.cooldown();
+						if (targetHero.cooldown() >= 0.34f) {
+							targetHero.interrupt();
 						}
 					}
 
-					if (curChargeDelay <= .001f){
+					if (curChargeDelay <= .001f) {
 						curChargeDelay = 1f;
-						sprite.zap(Dungeon.hero.pos);
+						sprite.zap(targetHero.pos);
 						((SentrySprite) sprite).charge();
 					}
 
-					spend(Dungeon.hero.cooldown());
+					spend(targetHero.cooldown());
 					return true;
-
-				} else {
-					curChargeDelay = initialChargeDelay;
-					sprite.idle();
 				}
-
-				spend(Dungeon.hero.cooldown());
-			} else {
-				spend(1f);
 			}
+
+			// Если игроков в опасной зоне нет
+			targetHero = null;
+			curChargeDelay = initialChargeDelay;
+			sprite.idle();
+			spend(1f);
 			return true;
-		}
+    	}
 
 		public void onZapComplete(){
-			if (hit(this, Dungeon.hero, true)) {
-				Dungeon.hero.damage(Random.NormalIntRange(2 + Dungeon.depth / 2, 4 + Dungeon.depth), new Eye.DeathGaze());
-				if (!Dungeon.hero.isAlive()) {
+			if (targetHero != null && hit(this, targetHero, true)) {
+				targetHero.damage(Random.NormalIntRange(2 + Dungeon.depth / 2, 4 + Dungeon.depth), new Eye.DeathGaze());
+				if (!targetHero.isAlive()) {
 					Badges.validateDeathFromEnemyMagic();
-					Dungeon.fail(this);
+					Dungeon.fail(this); // TODO: в будущем передавать конкретного героя
 					GLog.n(Messages.capitalize(Messages.get(Char.class, "kill", name())));
 				}
-			} else {
-				Dungeon.hero.sprite.showStatus( CharSprite.NEUTRAL,  Dungeon.hero.defenseVerb() );
+			} else if (targetHero != null) {
+				targetHero.sprite.showStatus( CharSprite.NEUTRAL,  targetHero.defenseVerb() );
 			}
 		}
 

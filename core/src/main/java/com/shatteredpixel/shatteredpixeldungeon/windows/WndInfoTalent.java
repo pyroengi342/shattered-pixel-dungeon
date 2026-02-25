@@ -60,7 +60,7 @@ public class WndInfoTalent extends Window {
 		add( titlebar );
 
 		boolean metaDesc = (buttonCallback != null && buttonCallback.metamorphDesc()) ||
-				(Multiplayer.Players.get(getLocalPlayerId()).hero != null && Multiplayer.Players.get(getLocalPlayerId()).hero.metamorphedTalents.containsValue(talent));
+				(Multiplayer.localHero() != null && Multiplayer.localHero().metamorphedTalents.containsValue(talent));
 
 		RenderedTextBlock txtInfo = PixelScene.renderTextBlock(talent.desc(metaDesc), 6);
 		txtInfo.maxWidth(width);

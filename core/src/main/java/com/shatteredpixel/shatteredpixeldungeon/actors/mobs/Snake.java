@@ -24,11 +24,14 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.mobs;
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Document;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.SnakeSprite;
 import com.watabou.utils.Random;
+
+import network.Multiplayer;
 
 public class Snake extends Mob {
 	
@@ -59,7 +62,8 @@ public class Snake extends Mob {
 
 	@Override
 	public String defenseVerb() {
-		if (Dungeon.level.heroFOV[pos]) {
+        Hero local = Multiplayer.localHero();
+        if (local != null && local.fieldOfView != null && local.fieldOfView[pos]) {
 			dodges++;
 		}
 		if ((dodges >= 2 && !Document.ADVENTURERS_GUIDE.isPageRead(Document.GUIDE_SURPRISE_ATKS))

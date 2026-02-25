@@ -49,6 +49,8 @@ import com.watabou.noosa.Group;
 import com.watabou.noosa.Image;
 import com.watabou.noosa.ui.Component;
 
+import network.Multiplayer;
+
 import java.util.ArrayList;
 import java.util.Locale;
 
@@ -152,7 +154,7 @@ public class WndHero extends WndTabbed {
 			}
 			clear();
 			
-			Hero hero = Dungeon.hero;
+			Hero hero = Multiplayer.localHero();
 
 			IconTitle title = new IconTitle();
 			title.icon( HeroSprite.avatar(hero) );
@@ -300,7 +302,7 @@ public class WndHero extends WndTabbed {
 		
 		private void setupList() {
 			Component content = buffList.content();
-			for (Buff buff : Dungeon.hero.buffs()) {
+			for (Buff buff : Multiplayer.localHero().buffs()) {
 				if (buff.icon() != BuffIndicator.NONE) {
 					BuffSlot slot = new BuffSlot(buff);
 					slot.setRect(0, pos, WIDTH, slot.icon.height());

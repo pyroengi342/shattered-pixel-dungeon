@@ -24,6 +24,7 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.mobs;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem;
@@ -40,6 +41,8 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.MimicSprite;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Random;
+
+import network.Multiplayer;
 
 public class GoldenMimic extends Mimic {
 
@@ -72,10 +75,22 @@ public class GoldenMimic extends Mimic {
 	public void stopHiding(){
 		state = HUNTING;
 		if (sprite != null) sprite.idle();
-		if (Actor.chars().contains(this) && Dungeon.level.heroFOV[pos]) {
-			enemy = Dungeon.hero;
-			target = Dungeon.hero.pos;
-			GLog.w(Messages.get(this, "reveal") );
+
+		// Находим ближайшего героя, который видит мимика или находится рядом
+		Hero nearest = Multiplayer.findNearestHero(pos);
+		if (nearest != null) {
+			enemy = nearest;
+			target = nearest.pos;
+		} else {
+			// Если никого нет, сбрасываем цель
+			enemy = null;
+			target = -1;
+		}
+
+		// Локальные эффекты показываем только если локальный герой видит мимика
+		Hero local = Multiplayer.localHero();
+		if (local != null && local.fieldOfView != null && local.fieldOfView[pos]) {
+			GLog.w(Messages.get(this, "reveal"));
 			CellEmitter.get(pos).burst(Speck.factory(Speck.STAR), 10);
 			Sample.INSTANCE.play(Assets.Sounds.MIMIC, 1, 0.85f);
 		}

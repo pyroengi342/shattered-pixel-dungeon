@@ -448,7 +448,7 @@ public class ElementalBlast extends ArmorAbility {
 	public String desc() {
 		String desc = Messages.get(this, "desc");
 		if (Game.scene() instanceof GameScene){
-			MagesStaff staff = Multiplayer.Players.get(getLocalPlayerId()).hero.belongings.getItem(MagesStaff.class);
+			MagesStaff staff = Multiplayer.localHero().belongings.getItem(MagesStaff.class);
 			if (staff != null && staff.wandClass() != null){
 				desc += "\n\n" + Messages.get(staff.wandClass(), "eleblast_desc");
 			} else {

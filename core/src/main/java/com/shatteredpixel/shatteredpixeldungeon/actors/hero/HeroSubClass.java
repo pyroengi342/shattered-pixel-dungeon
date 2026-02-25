@@ -73,7 +73,7 @@ public enum HeroSubClass {
 		if (this == BATTLEMAGE){
 			String desc = Messages.get(this, name() + "_desc");
 			if (Game.scene() instanceof GameScene){
-				MagesStaff staff = Multiplayer.Players.get(getLocalPlayerId()).hero.belongings.getItem(MagesStaff.class);
+				MagesStaff staff = Multiplayer.localHero().belongings.getItem(MagesStaff.class);
 				if (staff != null && staff.wandClass() != null){
 					desc += "\n\n" + Messages.get(staff.wandClass(), "bmage_desc");
 					desc = desc.replaceAll("_", "");

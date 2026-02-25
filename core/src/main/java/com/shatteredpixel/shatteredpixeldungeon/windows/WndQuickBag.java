@@ -21,14 +21,20 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import static network.NetworkManager.getLocalPlayerId;
 import com.shatteredpixel.shatteredpixeldungeon.Chrome;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.Artifact;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.CloakOfShadows;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.HolyTome;
+import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.HornOfPlenty.hornRecharge;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -39,13 +45,11 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.watabou.noosa.Game;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
+import network.Multiplayer;
 
 public class WndQuickBag extends Window {
 
-	private static Item bag;
+	private Item bag; // убрали static
 
 	public WndQuickBag(Bag bag){
 		super(0, 0, Chrome.get(Chrome.Type.TOAST_TR));
@@ -55,7 +59,7 @@ public class WndQuickBag extends Window {
 		}
 		WndBag.INSTANCE = this;
 
-		WndQuickBag.bag = bag;
+		this.bag = bag; // присваиваем нестатическому полю
 
 		float width = 0, height = 0;
 		int maxWidth = PixelScene.landscape() ? 240 : 135;
@@ -64,7 +68,10 @@ public class WndQuickBag extends Window {
 
 		ArrayList<Item> items = new ArrayList<>();
 
-		for (Item i : bag == null ? Dungeon.hero.belongings : bag){
+		// Local hero for ui
+		Hero hero = Multiplayer.localHero();
+
+		for (Item i : bag == null ? hero.belongings : bag){
 			if (i.defaultAction() == null){
 				continue;
 			}
@@ -72,15 +79,27 @@ public class WndQuickBag extends Window {
 				continue;
 			}
 			if (i instanceof Artifact
-					&& !i.isEquipped(Dungeon.hero)
-					&& (!(i instanceof CloakOfShadows) || !Dungeon.hero.hasTalent(Talent.LIGHT_CLOAK))
-					&& (!(i instanceof HolyTome) || !Dungeon.hero.hasTalent(Talent.LIGHT_READING))){
+					&& !i.isEquipped(hero)
+					&& (!(i instanceof CloakOfShadows) || !hero.hasTalent(Talent.LIGHT_CLOAK))
+					&& (!(i instanceof HolyTome) || !hero.hasTalent(Talent.LIGHT_READING))){
 				continue;
 			}
 			items.add(i);
 		}
 
-		Collections.sort(items, quickBagComparator);
+		// Сортируем с использованием локального героя
+		Collections.sort(items, new Comparator<Item>() {
+			@Override
+			public int compare(Item lhs, Item rhs) {
+				if (lhs.isEquipped(hero) && !rhs.isEquipped(hero)){
+					return -1;
+				} else if (!lhs.isEquipped(hero) && rhs.isEquipped(hero)){
+					return 1;
+				} else {
+					return Generator.Category.order(lhs) - Generator.Category.order(rhs);
+				}
+			}
+		});
 
 		int btnWidth = 16;
 		int btnHeight = 20;
@@ -98,15 +117,15 @@ public class WndQuickBag extends Window {
 			InventorySlot slot = new InventorySlot(i){
 				@Override
 				protected void onClick() {
-					if (Dungeon.hero == null || !Dungeon.hero.isAlive() || !Dungeon.hero.belongings.contains(item)){
+					if (hero == null || !hero.isAlive() || !hero.belongings.contains(item)){
 						Game.scene().addToFront(new WndUseItem(WndQuickBag.this, item));
 						return;
 					}
 
 					hide();
-					item.execute(Dungeon.hero);
+					item.execute(hero);
 					if (item.usesTargeting && bag != null){
-						int idx = Dungeon.quickslot.getSlot(WndQuickBag.bag);
+						int idx = hero.quickslot.getSlot(bag); // используем this.bag (нестатическое)
 						if (idx != -1){
 							QuickSlotButton.useTargeting(idx);
 							bag.quickUseItem = item;
@@ -160,18 +179,7 @@ public class WndQuickBag extends Window {
 
 	}
 
-	public static final Comparator<Item> quickBagComparator = new Comparator<Item>() {
-		@Override
-		public int compare( Item lhs, Item rhs ) {
-			if (lhs.isEquipped(Dungeon.hero) && !rhs.isEquipped(Dungeon.hero)){
-				return -1;
-			} else if (!lhs.isEquipped(Dungeon.hero) && rhs.isEquipped(Dungeon.hero)){
-				return 1;
-			} else {
-				return Generator.Category.order(lhs) - Generator.Category.order(rhs);
-			}
-		}
-	};
+	// Статический компаратор удалён
 
 	@Override
 	public void hide() {

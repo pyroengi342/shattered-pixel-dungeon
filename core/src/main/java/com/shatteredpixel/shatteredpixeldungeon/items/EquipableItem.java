@@ -74,16 +74,16 @@ public abstract class EquipableItem extends Item {
 		if (action.equals( AC_EQUIP )) {
 			//In addition to equipping itself, item reassigns itself to the quickslot
 			//This is a special case as the item is being removed from inventory, but is staying with the hero.
-			int slot = Dungeon.quickslot.getSlot( this );
+			int slot = hero.quickslot.getSlot( this );
 			slotOfUnequipped = -1;
 			doEquip(hero);
 			if (slot != -1) {
-				Dungeon.quickslot.setSlot( slot, this );
+				hero.quickslot.setSlot( slot, this );
 				updateQuickslot();
 			//if this item wasn't quickslotted, but the item it is replacing as equipped was
 			//then also have the item occupy the unequipped item's quickslot
 			} else if (slotOfUnequipped != -1 && defaultAction() != null) {
-				Dungeon.quickslot.setSlot( slotOfUnequipped, this );
+				hero.quickslot.setSlot( slotOfUnequipped, this );
 				updateQuickslot();
 			}
 		} else if (action.equals( AC_UNEQUIP )) {
@@ -136,14 +136,14 @@ public abstract class EquipableItem extends Item {
 			hero.spend( timeToEquip( hero ) );
 		}
 
-		slotOfUnequipped = Dungeon.quickslot.getSlot(this);
+		slotOfUnequipped = hero.quickslot.getSlot(this);
 
 		//temporarily keep this item so it can be collected
 		boolean wasKept = keptThoughLostInvent;
 		keptThoughLostInvent = true;
 		if (!collect || !collect( hero.belongings.backpack )) {
 			onDetach();
-			Dungeon.quickslot.clearItem(this);
+			hero.quickslot.clearItem(this);
 			updateQuickslot();
 			if (collect) Dungeon.level.drop( this, hero.pos ).sprite.drop();
 		}

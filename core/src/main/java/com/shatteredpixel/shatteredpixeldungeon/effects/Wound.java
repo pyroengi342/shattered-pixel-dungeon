@@ -93,7 +93,7 @@ public class Wound extends Image {
 	}
 
 	public static void hit( int pos, float angle ) {
-		Group parent = Multiplayer.Players.get(getLocalPlayerId()).hero.sprite.parent;
+		Group parent = Multiplayer.localHero().sprite.parent;
 		Wound w = (Wound)parent.recycle( Wound.class );
 		parent.bringToFront( w );
 		w.reset( pos );

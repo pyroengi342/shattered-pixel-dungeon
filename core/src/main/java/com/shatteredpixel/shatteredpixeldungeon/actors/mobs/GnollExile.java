@@ -26,6 +26,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -34,6 +35,8 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.BArray;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
+
+import network.Multiplayer;
 
 import java.util.ArrayList;
 
@@ -147,32 +150,35 @@ public class GnollExile extends Gnoll {
 
 			for (Buff b : buffs()){
 				if (b.type == Buff.buffType.NEGATIVE){
-					//swap to aggro if we've been debuffed
+					// переходим в агрессию при негативном баффе
 					state = WANDERING;
 					return true;
 				}
 			}
 
-			if (fieldOfView[Dungeon.hero.pos] && Dungeon.level.heroFOV[pos]){
-				if (seenNotifyCooldown <= 0){
-					GLog.p(Messages.get(GnollExile.class, "seen_passive"));
+			Hero local = Multiplayer.localHero();
+			if (local != null && local.isAlive() && local.fieldOfView != null) {
+				// проверяем, видит ли моб локального героя И видит ли локальный герой моба
+				if (fieldOfView[local.pos] && local.fieldOfView[pos]) {
+					if (seenNotifyCooldown <= 0){
+						GLog.p(Messages.get(GnollExile.class, "seen_passive"));
+					}
+					seenNotifyCooldown = 10;
+				} else {
+					seenNotifyCooldown--;
 				}
-				seenNotifyCooldown = 10;
 			} else {
 				seenNotifyCooldown--;
 			}
 
 			if (enemyInFOV && justAlerted) {
-
-				if (Dungeon.level.heroFOV[pos]) {
+				// сообщение об агрессии показываем только если локальный герой видит моба
+				if (local != null && local.fieldOfView != null && local.fieldOfView[pos]) {
 					GLog.w(Messages.get(GnollExile.class, "seen_aggro"));
 				}
 				return noticeEnemy();
-
 			} else {
-
 				return continueWandering();
-
 			}
 		}
 	}

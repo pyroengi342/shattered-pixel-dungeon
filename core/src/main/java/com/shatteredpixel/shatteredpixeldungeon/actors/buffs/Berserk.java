@@ -145,7 +145,7 @@ public class Berserk extends ShieldBuff implements ActionIndicator.Action {
 					detach();
 				}
 			}
-		} else if (state == State.RECOVERING && levelRecovery == 0 && Regeneration.regenOn()){
+		} else if (state == State.RECOVERING && levelRecovery == 0 && Regeneration.regenOn(((Hero) target))){
 			turnRecovery--;
 			if (turnRecovery <= 0){
 				turnRecovery = 0;

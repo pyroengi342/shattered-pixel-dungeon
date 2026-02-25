@@ -48,6 +48,8 @@ import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.PathFinder;
 
+import network.Multiplayer;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -273,7 +275,7 @@ public class Preparation extends Buff implements ActionIndicator.Action {
 		public void onSelect(Integer cell) {
 			if (cell == null) return;
 			final Char enemy = Actor.findChar( cell );
-			if (enemy == null || ((Hero) target).isCharmedBy(enemy) || enemy instanceof NPC || !Dungeon.level.heroFOV[cell] || enemy instanceof Hero){
+			if (enemy == null || ((Hero) target).isCharmedBy(enemy) || enemy instanceof NPC || !Multiplayer.localHero().fieldOfView[cell] || enemy instanceof Hero){
 				GLog.w(Messages.get(Preparation.class, "no_target"));
 			} else {
 

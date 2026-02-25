@@ -20,14 +20,16 @@
  */
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.buffs;
-
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Random;
+
+import network.Multiplayer;
 
 public class Paralysis extends FlavourBuff {
 
@@ -52,11 +54,11 @@ public class Paralysis extends FlavourBuff {
 		if (target == null) return;
 		ParalysisResist resist = target.buff(ParalysisResist.class);
 		if (resist == null){
-			resist = Buff.affect(target, ParalysisResist.class);
+			resist = Buff.affect(target, ParalysisResist.class, this);
 		}
 		resist.damage += damage;
 		if (Random.NormalIntRange(0, resist.damage) >= Random.NormalIntRange(0, target.HP)){
-			if (Dungeon.level.heroFOV[target.pos]) {
+			if (Multiplayer.localHero().fieldOfView[target.pos]) {
 				target.sprite.showStatus(CharSprite.NEUTRAL, Messages.get(this, "out"));
 			}
 			detach();

@@ -80,7 +80,7 @@ public class InventorySlot extends ItemSlot {
 		bg.visible = !(item instanceof Gold || item instanceof Bag);
 
 		if (item != null) {
-            Hero hero = Multiplayer.Players.get(getLocalPlayerId()).hero;
+            Hero hero = Multiplayer.localHero();
 			boolean equipped = item.isEquipped(hero) ||
 					item == hero.belongings.weapon ||
 					item == hero.belongings.armor ||

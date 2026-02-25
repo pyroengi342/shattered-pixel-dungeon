@@ -53,8 +53,8 @@ public class LootIndicator extends Tag {
 		slot = new ItemSlot() {
 			protected void onClick() {
 				LootIndicator.this.onClick();
-				if (Multiplayer.Players.get(getLocalPlayerId()).hero.ready && Multiplayer.Players.get(getLocalPlayerId()).hero.handle(Multiplayer.Players.get(getLocalPlayerId()).hero.pos)){
-					Multiplayer.Players.get(getLocalPlayerId()).hero.next();
+				if (Multiplayer.localHero().ready && Multiplayer.localHero().handle(Multiplayer.localHero().pos)){
+					Multiplayer.localHero().next();
 				}
 
 			}
@@ -90,8 +90,8 @@ public class LootIndicator extends Tag {
 	@Override
 	public void update() {
 		
-		if (Multiplayer.Players.get(getLocalPlayerId()).hero.ready) {
-			Heap heap = Dungeon.level.heaps.get( Multiplayer.Players.get(getLocalPlayerId()).hero.pos );
+		if (Multiplayer.localHero().ready) {
+			Heap heap = Dungeon.level.heaps.get( Multiplayer.localHero().pos );
 			if (heap != null) {
 				
 				Item item =
@@ -119,7 +119,7 @@ public class LootIndicator extends Tag {
 			}
 		}
 		
-		slot.enable( visible && Multiplayer.Players.get(getLocalPlayerId()).hero.ready );
+		slot.enable( visible && Multiplayer.localHero().ready );
 		
 		super.update();
 	}

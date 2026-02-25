@@ -69,7 +69,7 @@ public class ShieldOfLight extends TargetedClericSpell {
 		}
 
 		Char ch = Actor.findChar(target);
-		if (ch == null || ch.alignment == Char.Alignment.ALLY || !Dungeon.level.heroFOV[target]){
+		if (ch == null || ch.alignment == Char.Alignment.ALLY || !hero.fieldOfView[target]){
 			GLog.w(Messages.get(this, "no_target"));
 			return;
 		}

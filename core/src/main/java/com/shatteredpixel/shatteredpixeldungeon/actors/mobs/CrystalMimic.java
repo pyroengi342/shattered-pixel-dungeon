@@ -45,7 +45,10 @@ import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
+import network.Multiplayer;
+
 import java.util.ArrayList;
+import java.util.List;
 
 public class CrystalMimic extends Mimic {
 
@@ -114,9 +117,17 @@ public class CrystalMimic extends Mimic {
 		} else {
 			Buff.affect(this, Haste.class, 1f);
 		}
-		if (Actor.chars().contains(this) && Dungeon.level.heroFOV[pos]) {
-			enemy = Dungeon.hero;
-			target = Dungeon.hero.pos;
+
+		// TODO min distance find
+		for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+			if (Actor.chars().contains(this) && player.hero.fieldOfView[pos]) {
+				enemy = player.hero;
+				target = player.hero.pos;
+				break;
+			}
+		}
+		if(Multiplayer.localHero().fieldOfView[pos])
+		{
 			GLog.w(Messages.get(this, "reveal") );
 			CellEmitter.get(pos).burst(Speck.factory(Speck.STAR), 10);
 			Sample.INSTANCE.play(Assets.Sounds.MIMIC, 1, 1.25f);
@@ -126,7 +137,7 @@ public class CrystalMimic extends Mimic {
 	@Override
 	public int attackProc(Char enemy, int damage) {
 		if (alignment == Alignment.NEUTRAL && enemy instanceof Hero){
-			steal( Dungeon.hero );
+			steal( (Hero) enemy );
 
 		} else {
 			ArrayList<Integer> candidates = new ArrayList<>();
@@ -157,7 +168,7 @@ public class CrystalMimic extends Mimic {
 
 			GLog.w( Messages.get(this, "ate", item.name()) );
 			if (!item.stackable) {
-				Dungeon.quickslot.convertToPlaceholder(item);
+				hero.quickslot.convertToPlaceholder(item);
 			}
 			item.updateQuickslot();
 
@@ -183,16 +194,18 @@ public class CrystalMimic extends Mimic {
 	}
 
 	private class Fleeing extends Mob.Fleeing {
-		@Override
-		protected void escaped() {
-			if (!Dungeon.level.heroFOV[pos] && Dungeon.level.distance(Dungeon.hero.pos, pos) >= 6) {
-				GLog.n(Messages.get(CrystalMimic.class, "escaped"));
-				destroy();
-				sprite.killAndErase();
-			} else {
-				state = WANDERING;
-			}
-		}
+    @Override
+    protected void escaped() {
+        // Находим ближайшего героя, который видит мимика или находится в радиусе 6
+        Hero nearest = Multiplayer.findNearestHero(pos, 6);
+        if (nearest == null) {
+            // Никто не видит и нет близких героев → побег
+            // TODO: в мультиплеере это сообщение должно отправляться всем игрокам через сеть
+            GLog.n(Messages.get(CrystalMimic.class, "escaped"));
+            destroy();
+            sprite.killAndErase();
+        }
+    }
 
 		@Override
 		protected void nowhereToRun() {

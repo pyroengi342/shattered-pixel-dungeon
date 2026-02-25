@@ -72,8 +72,8 @@ public class ResumeIndicator extends Tag {
 	@Override
 	protected void onClick() {
 		super.onClick();
-		if (Multiplayer.Players.get(getLocalPlayerId()).hero.ready) {
-			Multiplayer.Players.get(getLocalPlayerId()).hero.resume();
+		if (Multiplayer.localHero().ready) {
+			Multiplayer.localHero().resume();
 		}
 	}
 
@@ -84,10 +84,10 @@ public class ResumeIndicator extends Tag {
 
 	@Override
 	public void update() {
-		if (!Multiplayer.Players.get(getLocalPlayerId()).hero.isAlive())
+		if (!Multiplayer.localHero().isAlive())
 			visible = false;
-		else if (visible == (Multiplayer.Players.get(getLocalPlayerId()).hero.lastAction == null)){
-			visible = Multiplayer.Players.get(getLocalPlayerId()).hero.lastAction != null;
+		else if (visible == (Multiplayer.localHero().lastAction == null)){
+			visible = Multiplayer.localHero().lastAction != null;
 			if (visible)
 				flash();
 		}

@@ -114,7 +114,7 @@ public abstract class ChampionEnemy extends Buff {
 			if (m instanceof Guard && Dungeon.scalingDepth() <= 7) return;
 			if (m instanceof Bat   && Dungeon.scalingDepth() <= 9) return;
 
-			Buff.affect(m, buffCls);
+			Buff.affect(m, buffCls, null);
 			//numbers of mobs until a champion scales from 1/8 to 1/6 as depths increases
 			Dungeon.mobsToChampion += 8 - Math.min(20, Dungeon.scalingDepth()-1)/10f;
 			if (m.state != m.PASSIVE) {
@@ -133,7 +133,7 @@ public abstract class ChampionEnemy extends Buff {
 		@Override
 		public void onAttackProc(Char enemy) {
 			if (!Dungeon.level.water[enemy.pos]) {
-				Buff.affect(enemy, Burning.class).reignite(enemy);
+				Buff.affect(enemy, Burning.class, this).reignite(enemy);
 			}
 		}
 

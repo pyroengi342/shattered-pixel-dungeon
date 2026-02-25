@@ -104,9 +104,9 @@ public class AttackIndicator extends Tag {
 			active = true;
 			if (bg.width > 0 && sprite != null)sprite.visible = true;
 
-			if (Multiplayer.Players.get(getLocalPlayerId()).hero.isAlive()) {
+			if (Multiplayer.localHero().isAlive()) {
 
-				enable(Multiplayer.Players.get(getLocalPlayerId()).hero.ready);
+				enable(Multiplayer.localHero().ready);
 
 			} else {
 				visible( false );
@@ -118,10 +118,10 @@ public class AttackIndicator extends Tag {
 	private synchronized void checkEnemies() {
 
 		candidates.clear();
-		int v = Multiplayer.Players.get(getLocalPlayerId()).hero.visibleEnemies();
+		int v = Multiplayer.localHero().visibleEnemies();
 		for (int i=0; i < v; i++) {
-			Mob mob = Multiplayer.Players.get(getLocalPlayerId()).hero.visibleEnemy( i );
-			if ( Multiplayer.Players.get(getLocalPlayerId()).hero.canAttack( mob) ) {
+			Mob mob = Multiplayer.localHero().visibleEnemy( i );
+			if ( Multiplayer.localHero().canAttack( mob) ) {
 				candidates.add( mob );
 			}
 		}
@@ -184,9 +184,9 @@ public class AttackIndicator extends Tag {
 	@Override
 	protected void onClick() {
 		super.onClick();
-		if (enabled && Multiplayer.Players.get(getLocalPlayerId()).hero.ready) {
-			if (Multiplayer.Players.get(getLocalPlayerId()).hero.handle( lastTarget.pos )) {
-                Multiplayer.Players.get(getLocalPlayerId()).hero.next();
+		if (enabled && Multiplayer.localHero().ready) {
+			if (Multiplayer.localHero().handle( lastTarget.pos )) {
+                Multiplayer.localHero().next();
 			}
 		}
 	}

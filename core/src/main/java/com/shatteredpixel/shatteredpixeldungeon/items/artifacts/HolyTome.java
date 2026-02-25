@@ -287,7 +287,7 @@ public class HolyTome extends Artifact {
 		@Override
 		public boolean act() {
 			if (charge < chargeCap && !cursed && target.buff(MagicImmune.class) == null) {
-				if (Regeneration.regenOn()) {
+				if (Regeneration.regenOn(curUser)) {
 					float missing = (chargeCap - charge);
 					if (level() > 7) missing += 5*(level() - 7)/3f;
 					float turnsToCharge = (45 - missing);
@@ -348,9 +348,8 @@ public class HolyTome extends Artifact {
 				GLog.w(Messages.get(HolyTome.this, "no_spell"));
 				return;
 			}
-
 			if (QuickSlotButton.targetingSlot != -1 &&
-					Dungeon.quickslot.getItem(QuickSlotButton.targetingSlot) == HolyTome.this) {
+					curUser.quickslot.getItem(QuickSlotButton.targetingSlot) == HolyTome.this) {
 				targetingSpell = quickSpell;
 				int cell = QuickSlotButton.autoAim(QuickSlotButton.lastTarget, HolyTome.this);
 
@@ -363,9 +362,9 @@ public class HolyTome extends Artifact {
 			} else {
 				quickSpell.onCast(HolyTome.this, curUser);
 
-				if (quickSpell.targetingFlags() != -1 && Dungeon.quickslot.contains(HolyTome.this)){
+				if (quickSpell.targetingFlags() != -1 && curUser.quickslot.contains(HolyTome.this)){
 					targetingSpell = quickSpell;
-					QuickSlotButton.useTargeting(Dungeon.quickslot.getSlot(HolyTome.this));
+					QuickSlotButton.useTargeting(curUser.quickslot.getSlot(HolyTome.this));
 				}
 			}
 		}

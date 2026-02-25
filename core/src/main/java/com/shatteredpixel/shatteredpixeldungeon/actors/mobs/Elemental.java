@@ -63,6 +63,8 @@ import com.watabou.utils.GameMath;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
+import network.Multiplayer;
+
 import java.util.ArrayList;
 
 public abstract class Elemental extends Mob {
@@ -271,23 +273,26 @@ public abstract class Elemental extends Mob {
 
 		@Override
 		protected boolean act() {
-			//fire a charged attack instead of any other action, as long as it is possible to do so
-			if (targetingPos != -1 && state == HUNTING){
+			// Совершаем заряженную атаку, если есть цель и мы в состоянии охоты
+			if (targetingPos != -1 && state == HUNTING) {
 				//account for bolt hitting walls, in case position suddenly changed
-				targetingPos = new Ballistica( pos, targetingPos, Ballistica.STOP_SOLID | Ballistica.STOP_TARGET ).collisionPos;
-				if (sprite != null && (sprite.visible || Dungeon.level.heroFOV[targetingPos])) {
-					sprite.zap( targetingPos );
+				targetingPos = new Ballistica(pos, targetingPos, Ballistica.STOP_SOLID | Ballistica.STOP_TARGET).collisionPos;
+
+				// Определяем, видит ли локальный игрок эту клетку
+				Hero local = Multiplayer.localHero();
+				boolean visibleToLocal = local != null && local.fieldOfView != null && local.fieldOfView[targetingPos];
+				// Показываем анимацию выстрела, если спрайт существует и моб или точка видны локально
+				if (sprite != null && (sprite.visible || visibleToLocal)) {
+					sprite.zap(targetingPos);
 					return false;
 				} else {
 					zap();
 					return true;
 				}
 			} else {
-
-				if (state != HUNTING){
+				if (state != HUNTING) {
 					targetingPos = -1;
 				}
-
 				return super.act();
 			}
 		}
@@ -304,9 +309,7 @@ public abstract class Elemental extends Mob {
 		protected boolean doAttack( Char enemy ) {
 
 			if (rangedCooldown > 0) {
-
 				return super.doAttack( enemy );
-
 			} else if (new Ballistica( pos, enemy.pos, Ballistica.STOP_SOLID | Ballistica.STOP_TARGET ).collisionPos == enemy.pos) {
 
 				//set up an attack for next turn
@@ -328,25 +331,29 @@ public abstract class Elemental extends Mob {
 					}
 
 					GLog.n(Messages.get(this, "charging"));
-					spend(GameMath.gate(attackDelay(), (int)Math.ceil(Dungeon.hero.cooldown()), 3*attackDelay()));
-					Dungeon.hero.interrupt();
+					// Используем cooldown цели для расчёта времени подготовки
+					spend(GameMath.gate(attackDelay(), (int)Math.ceil(enemy.cooldown()), 3*attackDelay()));
+					// Прерываем действие цели (важно для мультиплеера)
+					if (enemy instanceof Hero) {
+						((Hero) enemy).interrupt();
+					}
 					return true;
 				} else {
 					rangedCooldown = 1;
 					return super.doAttack(enemy);
 				}
 
-
 			} else {
-
-				if (sprite != null && (sprite.visible || Dungeon.level.heroFOV[targetingPos])) {
+				// Проверяем видимость точки прицеливания локальным героем для анимации
+				Hero local = Multiplayer.localHero();
+				boolean visibleToLocal = local != null && local.fieldOfView != null && local.fieldOfView[targetingPos];
+				if (sprite != null && (sprite.visible || visibleToLocal)) {
 					sprite.zap( targetingPos );
 					return false;
 				} else {
 					zap();
 					return true;
 				}
-
 			}
 		}
 
@@ -368,7 +375,7 @@ public abstract class Elemental extends Mob {
 
 						Char target = Actor.findChar(targetingPos + i);
 						if (target != null && target != this) {
-							Buff.affect(target, Burning.class).reignite(target);
+							Buff.affect(target, Burning.class, this).reignite(target);
 							if (target instanceof Hero){
 								Statistics.questScores[1] -= 200;
 							}

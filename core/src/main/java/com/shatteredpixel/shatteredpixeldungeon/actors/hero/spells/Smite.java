@@ -90,7 +90,7 @@ public String desc(Hero hero){
 
 		//we apply here because of projecting
 		SmiteTracker tracker = Buff.affect(hero, SmiteTracker.class, hero);
-		if (hero.isCharmedBy(enemy) || !Dungeon.level.heroFOV[target] || !hero.canAttack(enemy)) {
+		if (hero.isCharmedBy(enemy) || !hero.fieldOfView[target] || !hero.canAttack(enemy)) {
 			GLog.w(Messages.get(this, "invalid_enemy"));
 			tracker.detach();
 			return;
@@ -112,7 +112,7 @@ public String desc(Hero hero){
 				}
 				tracker.detach();
 
-				Invisibility.dispel();
+				Invisibility.dispel(hero);
 
 				hero.spendAndNext(hero.attackDelay());
 				onSpellCast(tome, hero);

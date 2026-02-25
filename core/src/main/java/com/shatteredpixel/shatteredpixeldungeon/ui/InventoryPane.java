@@ -295,7 +295,7 @@ public class InventoryPane extends Component {
 			KeyEvent.addKeyListener(keyBlocker);
 		}
 
-		Belongings stuff = Multiplayer.Players.get(getLocalPlayerId()).hero.belongings;
+		Belongings stuff = Multiplayer.localHero().belongings;
 
 		if (lastBag == null || !stuff.getBags().contains(lastBag)){
 			lastBag = stuff.backpack;
@@ -359,7 +359,7 @@ public class InventoryPane extends Component {
 			}
 		}
 
-		boolean lostInvent = Multiplayer.Players.get(getLocalPlayerId()).hero.belongings.lostInventory();
+		boolean lostInvent = Multiplayer.localHero().belongings.lostInventory();
 		for (InventorySlot b : equipped){
 			b.enable(lastEnabled
 					&& !(b.item() instanceof WndBag.Placeholder)
@@ -387,12 +387,12 @@ public class InventoryPane extends Component {
 	public void setSelector(WndBag.ItemSelector selector){
 		this.selector = selector;
 		if (selector.preferredBag() == Belongings.Backpack.class){
-			lastBag = Multiplayer.Players.get(getLocalPlayerId()).hero.belongings.backpack;
+			lastBag = Multiplayer.localHero().belongings.backpack;
 		} else if (selector.preferredBag() != null) {
-			Bag preferred = Multiplayer.Players.get(getLocalPlayerId()).hero.belongings.getItem(selector.preferredBag());
+			Bag preferred = Multiplayer.localHero().belongings.getItem(selector.preferredBag());
 			if (preferred != null)  lastBag = preferred;
 			//if a specific preferred bag isn't present, then the relevant items will be in backpack
-			else                    lastBag = Multiplayer.Players.get(getLocalPlayerId()).hero.belongings.backpack;
+			else                    lastBag = Multiplayer.localHero().belongings.backpack;
 		}
 		updateInventory();
 	}
@@ -446,10 +446,10 @@ public class InventoryPane extends Component {
 	public synchronized void update() {
 		super.update();
 
-		if (lastEnabled != (Multiplayer.Players.get(getLocalPlayerId()).hero.ready || !Multiplayer.Players.get(getLocalPlayerId()).hero.isAlive())) {
-			lastEnabled = (Multiplayer.Players.get(getLocalPlayerId()).hero.ready || !Multiplayer.Players.get(getLocalPlayerId()).hero.isAlive());
+		if (lastEnabled != (Multiplayer.localHero().ready || !Multiplayer.localHero().isAlive())) {
+			lastEnabled = (Multiplayer.localHero().ready || !Multiplayer.localHero().isAlive());
 
-			boolean lostInvent = Multiplayer.Players.get(getLocalPlayerId()).hero.belongings.lostInventory();
+			boolean lostInvent = Multiplayer.localHero().belongings.lostInventory();
 			for (InventorySlot b : equipped){
 				b.enable(lastEnabled
 						&& !(b.item() instanceof WndBag.Placeholder)
@@ -496,7 +496,7 @@ public class InventoryPane extends Component {
 
 		@Override
 		protected void onClick() {
-			if (lastBag != item && !lastBag.contains(item) && !item.isEquipped(Multiplayer.Players.get(getLocalPlayerId()).hero)){
+			if (lastBag != item && !lastBag.contains(item) && !item.isEquipped(Multiplayer.localHero())){
 				updateInventory();
 				return;
 			}
@@ -546,12 +546,12 @@ public class InventoryPane extends Component {
 
 		@Override
 		protected void onMiddleClick() {
-			if (lastBag != item && !lastBag.contains(item) && !item.isEquipped(Multiplayer.Players.get(getLocalPlayerId()).hero)){
+			if (lastBag != item && !lastBag.contains(item) && !item.isEquipped(Multiplayer.localHero())){
 				updateInventory();
 				return;
 			}
 
-			if (!Multiplayer.Players.get(getLocalPlayerId()).hero.isAlive() || !Multiplayer.Players.get(getLocalPlayerId()).hero.ready){
+			if (!Multiplayer.localHero().isAlive() || !Multiplayer.localHero().ready){
 				return;
 			}
 
@@ -563,7 +563,7 @@ public class InventoryPane extends Component {
 			}
 
 			if (selector == null && item.defaultAction() != null){
-				item.execute(Multiplayer.Players.get(getLocalPlayerId()).hero);
+				item.execute(Multiplayer.localHero());
 				if (item != null && item.usesTargeting) {
 					targetingSlot = this;
 					InventoryPane.useTargeting();
@@ -575,12 +575,12 @@ public class InventoryPane extends Component {
 
 		@Override
 		protected void onRightClick() {
-			if (lastBag != item && !lastBag.contains(item) && !item.isEquipped(Multiplayer.Players.get(getLocalPlayerId()).hero)){
+			if (lastBag != item && !lastBag.contains(item) && !item.isEquipped(Multiplayer.localHero())){
 				updateInventory();
 				return;
 			}
 
-			if (!Multiplayer.Players.get(getLocalPlayerId()).hero.isAlive() || !Multiplayer.Players.get(getLocalPlayerId()).hero.ready){
+			if (!Multiplayer.localHero().isAlive() || !Multiplayer.localHero().ready){
 				return;
 			}
 

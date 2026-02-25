@@ -107,7 +107,7 @@ public class ScrollOfTransmutation extends InventoryScroll {
 			curItem.collect( curUser.belongings.backpack );
 		} else {
 			if (result != item) {
-				int slot = Dungeon.quickslot.getSlot(item);
+				int slot = curUser.quickslot.getSlot(item);
 				if (item.isEquipped(curUser)) {
 					item.cursed = false; //to allow it to be unequipped
 					if (item instanceof Artifact && result instanceof Ring){
@@ -138,9 +138,9 @@ public class ScrollOfTransmutation extends InventoryScroll {
 				}
 				if (slot != -1
 						&& result.defaultAction() != null
-						&& !Dungeon.quickslot.isNonePlaceholder(slot)
+						&& !curUser.quickslot.isNonePlaceholder(slot)
 						&& curUser.belongings.contains(result)){
-					Dungeon.quickslot.setSlot(slot, result);
+					curUser.quickslot.setSlot(slot, result);
 				}
 			}
 			if (result.isIdentified()){

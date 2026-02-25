@@ -16,7 +16,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
+import static network.NetworkManager.getLocalPlayerId;
 import io.netty.channel.ChannelHandlerContext;
 
 public class Multiplayer {
@@ -112,6 +112,10 @@ public class Multiplayer {
         }
     }
 
+    public static Hero localHero() {
+        return Players.get(getLocalPlayerId()).hero;
+    }
+
     public static <T extends Item> T findItemInAllHeroes(Class<T> itemClass) {
             for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
                 if (player.hero != null && player.hero.isAlive()) {
@@ -192,6 +196,59 @@ public class Multiplayer {
 
         // Если не нашли достаточно свободных клеток, возвращаем те, что нашли
         return positions;
+    }
+
+    /**
+     * Находит ближайшего живого героя к указанной позиции.
+     * Приоритет отдаётся героям, которые видят эту позицию (fieldOfView[pos] == true).
+     * Если таких нет, ищет героев в радиусе closeRadius (по умолчанию 6).
+     * @param pos позиция на карте
+     * @param closeRadius радиус, в котором герой считается "близким", если не видит
+     * @return ближайший подходящий герой или null, если никого нет
+     */
+    public static Hero findNearestHero(int pos, int closeRadius) {
+        List<Hero> heroes = new ArrayList<>();
+            for (PlayerInfo info : Players.getAll()) {
+                if (info.hero != null && info.hero.isAlive() && info.hero.fieldOfView != null) {
+                    heroes.add(info.hero);
+                }
+            }
+
+        Hero nearestVisible = null;
+        int minVisibleDist = Integer.MAX_VALUE;
+        Hero nearestClose = null;
+        int minCloseDist = Integer.MAX_VALUE;
+
+        for (Hero h : heroes) {
+            int dist = Dungeon.level.distance(h.pos, pos);
+            if (h.fieldOfView[pos]) {
+                if (dist < minVisibleDist) {
+                    minVisibleDist = dist;
+                    nearestVisible = h;
+                }
+            } else if (dist < closeRadius && dist < minCloseDist) {
+                minCloseDist = dist;
+                nearestClose = h;
+            }
+        }
+
+        // Сначала возвращаем видимого, иначе ближайшего в радиусе
+        return nearestVisible != null ? nearestVisible : nearestClose;
+    }
+
+    // Перегруженный метод с радиусом по умолчанию 6
+    public static Hero findNearestHero(int pos) {
+        return findNearestHero(pos, 6);
+    }
+
+    public static boolean isVisibleToAnyHero(int cell) {
+        for (PlayerInfo info : Players.getAll()) {
+            Hero h = info.hero;
+            if (h != null && h.isAlive() && h.fieldOfView != null && h.fieldOfView[cell]) {
+                return true;
+            }
+        }
+        return false;
     }
 }
 

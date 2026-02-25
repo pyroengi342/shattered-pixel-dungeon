@@ -453,7 +453,7 @@ public enum Talent {
 			if (Ratmogrify.useRatroicEnergy){
 				return 218;
 			}
-			HeroClass cls = Multiplayer.Players.get(getLocalPlayerId()).hero != null ? Multiplayer.Players.get(getLocalPlayerId()).hero.heroClass : GamesInProgress.selectedClass;
+			HeroClass cls = Multiplayer.localHero() != null ? Multiplayer.localHero().heroClass : GamesInProgress.selectedClass;
 			switch (cls){
 				case WARRIOR: default:
 					return 26;

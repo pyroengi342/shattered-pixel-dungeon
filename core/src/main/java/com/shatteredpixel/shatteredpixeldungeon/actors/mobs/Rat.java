@@ -29,6 +29,8 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.RatSprite;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Random;
 
+import network.Multiplayer;
+
 public class Rat extends Mob {
 
 	{
@@ -42,13 +44,21 @@ public class Rat extends Mob {
 
 	@Override
 	protected boolean act() {
-        // TODO makes this for player with this ability
-		if (alignment != Alignment.ALLY
-				&& Dungeon.level.heroFOV[pos]
-				&& Dungeon.hero.armorAbility instanceof Ratmogrify){
-			alignment = Alignment.NEUTRAL;
-			if (enemy instanceof Hero) enemy = null;
-			if (state == SLEEPING) state = WANDERING;
+		if (alignment != Alignment.ALLY) {
+			boolean transformed = false;
+				// Проверяем всех живых героев в мультиплеере
+				for (Multiplayer.PlayerInfo info : Multiplayer.Players.getAll()) {
+					Hero h = info.hero;
+					if (h != null && h.isAlive() && h.fieldOfView != null && h.fieldOfView[pos] && h.armorAbility instanceof Ratmogrify) {
+						transformed = true;
+						break;
+					}
+				}
+			if (transformed) {
+				alignment = Alignment.NEUTRAL;
+				if (enemy instanceof Hero) enemy = null;
+				if (state == SLEEPING) state = WANDERING;
+			}
 		}
 		return super.act();
 	}

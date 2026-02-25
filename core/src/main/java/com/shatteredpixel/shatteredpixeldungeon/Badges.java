@@ -417,7 +417,7 @@ public class Badges {
 	}
 	
 	public static void validateLevelReached() {
-        Hero hero = Multiplayer.Players.get(getLocalPlayerId()).hero;
+        Hero hero = Multiplayer.localHero();
 		Badge badge = null;
 		if (!local.contains( Badge.LEVEL_REACHED_1 ) && hero.lvl >= 6) {
 			badge = Badge.LEVEL_REACHED_1;
@@ -448,7 +448,7 @@ public class Badges {
 	}
 	
 	public static void validateStrengthAttained() {
-        Hero hero = Multiplayer.Players.get(getLocalPlayerId()).hero;
+        Hero hero = Multiplayer.localHero();
 		Badge badge = null;
 		
 		if (!local.contains( Badge.STRENGTH_ATTAINED_1 ) && hero.STR >= 12) {
@@ -697,7 +697,7 @@ public class Badges {
 			displayBadge(Badge.CATALOG_ONE_EQUIPMENT);
 		}
 
-        Hero hero = Multiplayer.Players.get(getLocalPlayerId()).hero;
+        Hero hero = Multiplayer.localHero();
 		//doesn't actually use catalogs, but triggers at the same time effectively
 		if (!local.contains(Badge.CATALOG_POTIONS_SCROLLS)
 				&& Potion.allKnown() && Scroll.allKnown()
@@ -844,7 +844,7 @@ public class Badges {
 	
 	public static void validateBossSlain() {
 		Badge badge = null;
-        Hero hero = Multiplayer.Players.get(getLocalPlayerId()).hero;
+        Hero hero = Multiplayer.localHero();
 
 		switch (Dungeon.depth) {
 		case 5:
@@ -943,7 +943,7 @@ public class Badges {
 	}
 	
 	public static void validateMastery() {
-        Hero hero = Multiplayer.Players.get(getLocalPlayerId()).hero;
+        Hero hero = Multiplayer.localHero();
 		Badge badge = null;
 		switch (hero.heroClass) {
 			case WARRIOR:
@@ -992,7 +992,7 @@ public class Badges {
 	}
 
 	public static void validateDuelistUnlock(){
-        Hero hero = Multiplayer.Players.get(getLocalPlayerId()).hero;
+        Hero hero = Multiplayer.localHero();
 		if (!isUnlocked(Badge.UNLOCK_DUELIST) && hero != null
 				&& hero.belongings.weapon instanceof MeleeWeapon
 				&& ((MeleeWeapon) hero.belongings.weapon).tier >= 2
@@ -1024,7 +1024,7 @@ public class Badges {
 	}
 	
 	public static void validateVictory() {
-        Hero hero = Multiplayer.Players.get(getLocalPlayerId()).hero;
+        Hero hero = Multiplayer.localHero();
 		Badge badge = Badge.VICTORY;
 		local.add( badge );
 		displayBadge( badge );
@@ -1057,7 +1057,7 @@ public class Badges {
 	}
 
 	public static void validateTakingTheMick(Object cause){
-        Hero hero = Multiplayer.Players.get(getLocalPlayerId()).hero;
+        Hero hero = Multiplayer.localHero();
 		if ((cause == hero || cause instanceof Explosive.ExplosiveCurseBomb)
 				&& hero.belongings.attackingWeapon() instanceof Pickaxe
 				&& hero.belongings.attackingWeapon().level() >= 20){
@@ -1149,7 +1149,7 @@ public class Badges {
 	public static void validateHappyEnd() {
 		local.add( Badge.HAPPY_END );
 		displayBadge( Badge.HAPPY_END );
-        Hero hero = Multiplayer.Players.get(getLocalPlayerId()).hero;
+        Hero hero = Multiplayer.localHero();
 		if( hero.belongings.getItem(RemainsItem.class) != null ){
 			local.add( Badge.HAPPY_END_REMAINS );
 			displayBadge( Badge.HAPPY_END_REMAINS );

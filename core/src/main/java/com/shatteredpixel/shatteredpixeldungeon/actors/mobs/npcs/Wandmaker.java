@@ -26,6 +26,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AscensionChallenge;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Elemental;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RotHeart;
@@ -56,6 +57,8 @@ import com.watabou.utils.Callback;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
+import network.Multiplayer;
+
 import java.util.ArrayList;
 
 public class Wandmaker extends NPC {
@@ -73,9 +76,11 @@ public class Wandmaker extends NPC {
 
 	@Override
 	protected boolean act() {
-		if (Dungeon.hero.buff(AscensionChallenge.class) != null){
-			die(null);
-			return true;
+		for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+			if (player.hero.buff(AscensionChallenge.class) != null){
+				die(null);
+				return true;
+			}
 		}
 		return super.act();
 	}
@@ -102,25 +107,24 @@ public class Wandmaker extends NPC {
 	
 	@Override
 	public boolean interact(Char c) {
-		sprite.turnTo( pos, Dungeon.hero.pos );
-
-		if (c != Dungeon.hero){
+		if (!(c instanceof Hero)){
 			return true;
 		}
-
+		sprite.turnTo( pos, ((Hero) c).pos );
 		if (Quest.given) {
 			
+			// TODO Check everybodies inventory?
 			Item item;
 			switch (Quest.type) {
 				case 1:
 				default:
-					item = Dungeon.hero.belongings.getItem(CorpseDust.class);
+					item = ((Hero) c).belongings.getItem(CorpseDust.class);
 					break;
 				case 2:
-					item = Dungeon.hero.belongings.getItem(Embers.class);
+					item = ((Hero) c).belongings.getItem(Embers.class);
 					break;
 				case 3:
-					item = Dungeon.hero.belongings.getItem(Rotberry.Seed.class);
+					item = ((Hero) c).belongings.getItem(Rotberry.Seed.class);
 					break;
 			}
 
@@ -135,13 +139,13 @@ public class Wandmaker extends NPC {
 				String msg;
 				switch(Quest.type){
 					case 1: default:
-						msg = Messages.get(this, "reminder_dust", Messages.titleCase(Dungeon.hero.name()));
+						msg = Messages.get(this, "reminder_dust", Messages.titleCase(((Hero) c).name()));
 						break;
 					case 2:
-						msg = Messages.get(this, "reminder_ember", Messages.titleCase(Dungeon.hero.name()));
+						msg = Messages.get(this, "reminder_ember", Messages.titleCase(((Hero) c).name()));
 						break;
 					case 3:
-						msg = Messages.get(this, "reminder_berry", Messages.titleCase(Dungeon.hero.name()));
+						msg = Messages.get(this, "reminder_berry", Messages.titleCase(((Hero) c).name()));
 						break;
 				}
 				Game.runOnRenderThread(new Callback() {
@@ -156,7 +160,7 @@ public class Wandmaker extends NPC {
 
 			String msg1 = "";
 			String msg2 = "";
-			switch(Dungeon.hero.heroClass){
+			switch(((Hero) c).heroClass){
 				case WARRIOR:
 					msg1 += Messages.get(this, "intro_warrior");
 					break;
@@ -164,7 +168,7 @@ public class Wandmaker extends NPC {
 					msg1 += Messages.get(this, "intro_rogue");
 					break;
 				case MAGE:
-					msg1 += Messages.get(this, "intro_mage", Messages.titleCase(Dungeon.hero.name()));
+					msg1 += Messages.get(this, "intro_mage", Messages.titleCase(((Hero) c).name()));
 					break;
 				case HUNTRESS:
 					msg1 += Messages.get(this, "intro_huntress");
@@ -379,7 +383,7 @@ public class Wandmaker extends NPC {
 		public static boolean active(){
 			//it is not completed
 			if (wand1 == null || wand2 == null
-					|| !(Dungeon.level instanceof RegularLevel) || Dungeon.hero == null){
+					|| !(Dungeon.level instanceof RegularLevel)){
 				return false;
 			}
 

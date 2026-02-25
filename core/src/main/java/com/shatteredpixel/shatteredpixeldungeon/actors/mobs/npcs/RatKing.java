@@ -174,7 +174,7 @@ public class RatKing extends NPC {
 	
 	@Override
 	public String description() {
-        Hero localHero = Multiplayer.Players.get(getLocalPlayerId()).hero;
+        Hero localHero = Multiplayer.localHero();
 		if (localHero != null && localHero.armorAbility instanceof Ratmogrify){
 			return Messages.get(this, "desc_crown");
 		} else if (Holiday.getCurrentHoliday() == Holiday.APRIL_FOOLS){

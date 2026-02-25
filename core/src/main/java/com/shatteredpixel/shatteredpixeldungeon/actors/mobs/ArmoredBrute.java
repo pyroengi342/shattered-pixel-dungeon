@@ -34,6 +34,8 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ShieldedSprite;
 import com.watabou.utils.Random;
 
+import network.Multiplayer;
+
 public class ArmoredBrute extends Brute {
 
 	{
@@ -51,9 +53,9 @@ public class ArmoredBrute extends Brute {
 	
 	@Override
 	protected void triggerEnrage () {
-		Buff.affect(this, ArmoredRage.class).setShield(HT/2 + 1);
+		Buff.affect(this, ArmoredRage.class, this).setShield(HT/2 + 1);
 		sprite.showStatusWithIcon( CharSprite.POSITIVE, Integer.toString(HT/2), FloatingText.SHIELDING );
-		if (Dungeon.level.heroFOV[pos]) {
+		if (Multiplayer.localHero().fieldOfView[pos]) {
 			sprite.showStatus( CharSprite.WARNING, Messages.get(this, "enraged") );
 		}
 		spend( TICK );

@@ -30,6 +30,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Dread;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Poison;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Terror;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.MysteryMeat;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -37,6 +38,8 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.SpinnerSprite;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
+
+import network.Multiplayer;
 
 public class Spinner extends Mob {
 
@@ -196,9 +199,12 @@ public class Spinner extends Mob {
 			if (Dungeon.level.passable[rightPos])applyWebToCell(rightPos);
 			
 			webCoolDown = 10;
-
-			if (Dungeon.level.heroFOV[enemy.pos]){
-				Dungeon.hero.interrupt();
+			
+			for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+				Hero h = player.hero;
+				if (h != null && h.isAlive() && h.fieldOfView != null && h.fieldOfView[pos]) {
+					h.interrupt();
+				}
 			}
 		}
 		next();

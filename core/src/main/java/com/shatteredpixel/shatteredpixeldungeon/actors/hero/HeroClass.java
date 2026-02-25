@@ -144,8 +144,8 @@ public enum HeroClass {
 
 		if (SPDSettings.quickslotWaterskin()) {
 			for (int s = 0; s < QuickSlot.SIZE; s++) {
-				if (Dungeon.quickslot.getItem(s) == null) {
-					Dungeon.quickslot.setSlot(s, waterskin);
+				if (hero.quickslot.getItem(s) == null) {
+					hero.quickslot.setSlot(s, waterskin);
 					break;
 				}
 			}
@@ -176,7 +176,7 @@ public enum HeroClass {
 		ThrowingStone stones = new ThrowingStone();
 		stones.identify(hero).collect(hero);
 
-		Dungeon.quickslot.setSlot(0, stones);
+		hero.quickslot.setSlot(0, stones);
 
 		if (hero.belongings.armor != null){
 			hero.belongings.armor.affixSeal(new BrokenSeal());
@@ -195,7 +195,7 @@ public enum HeroClass {
 		(hero.belongings.weapon = staff).identify( hero );
 		hero.belongings.weapon.activate(hero);
 
-		Dungeon.quickslot.setSlot(0, staff);
+		hero.quickslot.setSlot(0, staff);
 
 		new ScrollOfUpgrade().identify( hero );
 		new PotionOfLiquidFlame().identify( hero );
@@ -211,8 +211,8 @@ public enum HeroClass {
 		ThrowingKnife knives = new ThrowingKnife();
 		knives.identify( hero ).collect();
 
-		Dungeon.quickslot.setSlot(0, cloak);
-		Dungeon.quickslot.setSlot(1, knives);
+		hero.quickslot.setSlot(0, cloak);
+		hero.quickslot.setSlot(1, knives);
 
 		new ScrollOfMagicMapping().identify( hero );
 		new PotionOfInvisibility().identify( hero );
@@ -224,7 +224,7 @@ public enum HeroClass {
 		SpiritBow bow = new SpiritBow();
 		bow.identify( hero ).collect();
 
-		Dungeon.quickslot.setSlot(0, bow);
+		hero.quickslot.setSlot(0, bow);
 
 		new PotionOfMindVision().identify();
 		new ScrollOfLullaby().identify();
@@ -238,8 +238,8 @@ public enum HeroClass {
 		ThrowingSpike spikes = new ThrowingSpike();
 		spikes.quantity(2).identify().collect(); //set quantity is 3, but Duelist starts with 2
 
-		Dungeon.quickslot.setSlot(0, hero.belongings.weapon);
-		Dungeon.quickslot.setSlot(1, spikes);
+		hero.quickslot.setSlot(0, hero.belongings.weapon);
+		hero.quickslot.setSlot(1, spikes);
 
 		new PotionOfStrength().identify();
 		new ScrollOfMirrorImage().identify();
@@ -254,7 +254,7 @@ public enum HeroClass {
 		(hero.belongings.artifact = tome).identify();
 		hero.belongings.artifact.activate( hero );
 
-		Dungeon.quickslot.setSlot(0, tome);
+		hero.quickslot.setSlot(0, tome);
 
 		new PotionOfPurity().identify();
 		new ScrollOfRemoveCurse().identify();

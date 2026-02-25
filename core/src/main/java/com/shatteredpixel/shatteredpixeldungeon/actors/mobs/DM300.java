@@ -45,7 +45,9 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Terror;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Vertigo;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.spells.WallOfLight;
+import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
+import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.effects.TargetedCell;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SparkParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.DriedRose;
@@ -360,18 +362,23 @@ public class DM300 extends Mob {
 			if (CavesBossLevel.PylonEnergy.volumeAt(pos, CavesBossLevel.PylonEnergy.class) > 0){
 				return;
 			}
-
-			if (Dungeon.level.heroFOV[pos]) {
-				if (buff(Barrier.class) == null) {
-					GLog.w(Messages.get(this, "shield"));
+			
+			for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+				if (player.hero.fieldOfView[pos]) {
+					if (buff(Barrier.class) == null) {
+						GLog.w(Messages.get(this, "shield"));
+					}
 				}
-				Sample.INSTANCE.play(Assets.Sounds.LIGHTNING);
-				sprite.emitter().start(SparkParticle.STATIC, 0.05f, 20);
-				sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(30 + (HT - HP)/10), FloatingText.SHIELDING);
 			}
 
-            // TODO should be the trap!
-			Buff.affect(this, Barrier.class, null).setShield( 30 + (HT - HP)/10);
+			if(Multiplayer.localHero().fieldOfView[pos])
+			{
+				GLog.w(Messages.get(this, "reveal") );
+				CellEmitter.get(pos).burst(Speck.factory(Speck.STAR), 10);
+				Sample.INSTANCE.play(Assets.Sounds.MIMIC, 1, 1.25f);
+			}
+
+			Buff.affect(this, Barrier.class, Terrain.INACTIVE_TRAP).setShield( 30 + (HT - HP)/10);
 
 		}
 	}

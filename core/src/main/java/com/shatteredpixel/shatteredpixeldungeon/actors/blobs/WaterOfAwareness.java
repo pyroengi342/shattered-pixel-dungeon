@@ -39,6 +39,8 @@ import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
 
+import network.Multiplayer;
+
 public class WaterOfAwareness extends WellWater {
 
 	@Override
@@ -56,7 +58,7 @@ public class WaterOfAwareness extends WellWater {
 				
 				Dungeon.level.discover( i );
 				
-				if (Dungeon.level.heroFOV[i]) {
+				if (hero.fieldOfView[i]) {
 					GameScene.discoverTile( i, terr );
 				}
 			}

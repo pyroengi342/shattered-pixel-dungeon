@@ -92,8 +92,8 @@ public class DangerIndicator extends Tag {
 	@Override
 	public void update() {
 		
-		if (Multiplayer.Players.get(getLocalPlayerId()).hero.isAlive()) {
-			int v =  Multiplayer.Players.get(getLocalPlayerId()).hero.visibleEnemies();
+		if (Multiplayer.localHero().isAlive()) {
+			int v =  Multiplayer.localHero().visibleEnemies();
 			if (v != lastNumber) {
 				lastNumber = v;
 				if (visible = lastNumber > 0) {
@@ -114,14 +114,14 @@ public class DangerIndicator extends Tag {
 	@Override
 	protected void onClick() {
 		super.onClick();
-		if (Multiplayer.Players.get(getLocalPlayerId()).hero.visibleEnemies() > 0) {
+		if (Multiplayer.localHero().visibleEnemies() > 0) {
 
-			Mob target = Multiplayer.Players.get(getLocalPlayerId()).hero.visibleEnemy(++enemyIndex);
+			Mob target = Multiplayer.localHero().visibleEnemy(++enemyIndex);
 
 			QuickSlotButton.target(target);
-			if (Multiplayer.Players.get(getLocalPlayerId()).hero.canAttack(target)) AttackIndicator.target(target);
+			if (Multiplayer.localHero().canAttack(target)) AttackIndicator.target(target);
 
-			if (Multiplayer.Players.get(getLocalPlayerId()).hero.curAction == null && target.sprite != null) {
+			if (Multiplayer.localHero().curAction == null && target.sprite != null) {
 				Camera.main.panFollow(target.sprite, 5f);
 			}
 		}

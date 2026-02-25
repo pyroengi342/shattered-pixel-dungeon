@@ -45,6 +45,8 @@ import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
+import network.Multiplayer;
+
 public class Skeleton extends Mob {
 	
 	{
@@ -130,8 +132,8 @@ public class Skeleton extends Mob {
 				}
 			}
 		}
-		
-		if (Dungeon.level.heroFOV[pos]) {
+        Hero local = Multiplayer.localHero();
+        if (local != null && local.fieldOfView != null && local.fieldOfView[pos]) {
 			Sample.INSTANCE.play( Assets.Sounds.BONES );
 		}
 		

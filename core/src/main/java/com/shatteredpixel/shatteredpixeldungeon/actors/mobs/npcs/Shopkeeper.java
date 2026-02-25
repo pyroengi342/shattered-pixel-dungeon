@@ -89,7 +89,7 @@ public class Shopkeeper extends NPC {
 			turnsSinceHarmed ++;
 		}
         // TODO turn to closest player
-		sprite.turnTo( pos, Multiplayer.Players.get(getLocalPlayerId()).hero.pos );
+		sprite.turnTo( pos, Multiplayer.localHero().pos );
 		spend( TICK );
 		return super.act();
 	}

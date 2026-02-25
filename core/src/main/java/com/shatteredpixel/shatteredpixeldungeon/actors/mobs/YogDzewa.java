@@ -60,9 +60,12 @@ import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 import com.watabou.utils.Reflection;
 
+import network.Multiplayer;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 
 public class YogDzewa extends Mob {
 
@@ -159,193 +162,230 @@ public class YogDzewa extends Mob {
 
 	@Override
 	protected boolean act() {
-		//char logic
-		if (fieldOfView == null || fieldOfView.length != Dungeon.level.length()){
+		// char logic
+		if (fieldOfView == null || fieldOfView.length != Dungeon.level.length()) {
 			fieldOfView = new boolean[Dungeon.level.length()];
 		}
-		Dungeon.level.updateFieldOfView( this, fieldOfView );
+		Dungeon.level.updateFieldOfView(this, fieldOfView);
 
 		throwItems();
 
 		sprite.hideAlert();
 		sprite.hideLost();
 
-		//mob logic
+		// mob logic
 		enemy = chooseEnemy();
-
 		enemySeen = enemy != null && enemy.isAlive() && fieldOfView[enemy.pos] && enemy.invisible <= 0;
-		//end of char/mob logic
+		// end of char/mob logic
 
-		if (phase == 0){
-			if (Dungeon.hero.viewDistance >= Dungeon.level.distance(pos, Dungeon.hero.pos)) {
-				Dungeon.observeAll();
-			}
-			if (Dungeon.level.heroFOV[pos]) {
+   		boolean anyHeroSeesBoss = Multiplayer.isVisibleToAnyHero(pos);
+
+		// Фаза 0: просто ждём, пока герой подойдёт
+		if (phase == 0) {
+			// В оригинале проверялось, видит ли герой босса с учётом дистанции
+			// Здесь мы можем проверять любого героя (anyHeroSeesBoss)
+			if (anyHeroSeesBoss) {
+				// Если босс виден, вызываем notice() (переводим в активную фазу)
 				notice();
 			}
-		}
-
-		if (phase == 0){
 			spend(TICK);
 			return true;
-		} else {
+		}
 
-			boolean terrainAffected = false;
-			HashSet<Char> affected = new HashSet<>();
-			//delay fire on a rooted hero
-			if (!Dungeon.hero.rooted) {
-				for (int i : targetedCells) {
-					Ballistica b = new Ballistica(pos, i, Ballistica.WONT_STOP);
-					//shoot beams
+		// Фаза >0 – активная битва
+
+		// Выбираем цель для лучей и призыва (ближайшего живого героя)
+		Hero targetHero = Multiplayer.findNearestHero(pos);
+		if (targetHero == null) {
+			// Если никого нет, просто ждём
+			spend(TICK);
+			return true;
+		}
+
+		boolean terrainAffected = false;
+		HashSet<Char> affected = new HashSet<>();
+
+		// Задержка лучей, если герой укоренён – пропускаем
+		if (!targetHero.rooted) {
+			// Проходим по всем целевым клеткам (лучам)
+			for (int i : targetedCells) {
+				Ballistica b = new Ballistica(pos, i, Ballistica.WONT_STOP);
+				// Рисуем луч только если локальный герой видит босса или точку попадания
+				Hero local = Multiplayer.localHero();
+				boolean beamVisible = local != null && local.fieldOfView != null &&
+						(local.fieldOfView[pos] || local.fieldOfView[b.collisionPos]);
+				if (beamVisible) {
 					sprite.parent.add(new Beam.DeathRay(sprite.center(), DungeonTilemap.raisedTileCenterToWorld(b.collisionPos)));
-					for (int p : b.path) {
-						Char ch = Actor.findChar(p);
-						if (ch != null && (ch.alignment != alignment || ch instanceof Bee)) {
-							affected.add(ch);
-						}
-						if (Dungeon.level.flamable[p]) {
-							Dungeon.level.destroy(p);
-							GameScene.updateMap(p);
-							terrainAffected = true;
-						}
+				}
+
+				for (int p : b.path) {
+					Char ch = Actor.findChar(p);
+					if (ch != null && (ch.alignment != alignment || ch instanceof Bee)) {
+						affected.add(ch);
+					}
+					if (Dungeon.level.flamable[p]) {
+						Dungeon.level.destroy(p);
+						GameScene.updateMap(p);
+						terrainAffected = true;
 					}
 				}
-				if (terrainAffected) {
-					Dungeon.observeAll();
-				}
-				Invisibility.dispel(this);
-				for (Char ch : affected) {
+			}
+			if (terrainAffected) {
+				Dungeon.observeAll(); // этот метод уже адаптирован под мультиплеер
+			}
 
-					if (ch instanceof Hero) {
-						Statistics.bossScores[4] -= 500;
+			Invisibility.dispel(this);
+
+			// Наносим урон всем затронутым персонажам
+			for (Char ch : affected) {
+				if (ch instanceof Hero) {
+					// Для статистики: уменьшаем счёт босса для конкретного героя? Пока оставляем глобально, но помечаем TODO
+					Statistics.bossScores[4] -= 500;
+					// TODO: в мультиплеере статистика должна быть привязана к герою
+				}
+
+				if (hit(this, ch, true)) {
+					int dmg;
+					if (Dungeon.isChallenged(Challenges.STRONGER_BOSSES)) {
+						dmg = Random.NormalIntRange(30, 50);
+					} else {
+						dmg = Random.NormalIntRange(20, 30);
+					}
+					ch.damage(dmg, new Eye.DeathGaze());
+
+					// Визуальные эффекты – только если локальный герой видит клетку персонажа
+					Hero local = Multiplayer.localHero();
+					if (local != null && local.fieldOfView != null && local.fieldOfView[ch.pos]) {
+						ch.sprite.flash();
+						CellEmitter.center(ch.pos).burst(PurpleParticle.BURST, Random.IntRange(1, 2));
 					}
 
-					if (hit( this, ch, true )) {
-						if (Dungeon.isChallenged(Challenges.STRONGER_BOSSES)) {
-							ch.damage(Random.NormalIntRange(30, 50), new Eye.DeathGaze());
-						} else {
-							ch.damage(Random.NormalIntRange(20, 30), new Eye.DeathGaze());
-						}
-						if (Dungeon.level.heroFOV[pos]) {
-							ch.sprite.flash();
-							CellEmitter.center(pos).burst(PurpleParticle.BURST, Random.IntRange(1, 2));
-						}
-						if (!ch.isAlive() && ch instanceof Hero) {
+					if (!ch.isAlive() && ch instanceof Hero) {
+						// Смерть героя – показываем сообщение и обрабатываем только для локального
+						if (local != null && local == ch) {
 							Badges.validateDeathFromEnemyMagic();
 							Dungeon.fail(this);
 							GLog.n(Messages.get(Char.class, "kill", name()));
 						}
-					} else {
-						ch.sprite.showStatus( CharSprite.NEUTRAL,  ch.defenseVerb() );
+						// TODO: для других игроков отправить уведомление по сети
+					}
+				} else {
+					// Промах – статус только если видно локально
+					Hero local = Multiplayer.localHero();
+					if (local != null && local.fieldOfView != null && local.fieldOfView[ch.pos]) {
+						ch.sprite.showStatus(CharSprite.NEUTRAL, ch.defenseVerb());
 					}
 				}
-				targetedCells.clear();
+			}
+			targetedCells.clear();
+		} // конец блока лучей
+
+		// Подготовка новых лучей
+		if (abilityCooldown <= 0) {
+			int beams = 1 + (HT - HP) / 400;
+			HashSet<Integer> affectedCells = new HashSet<>();
+			for (int i = 0; i < beams; i++) {
+				int targetPos = targetHero.pos; // цель – выбранный герой
+				if (i != 0) {
+					// Случайное смещение вокруг цели
+					do {
+						targetPos = targetHero.pos + PathFinder.NEIGHBOURS8[Random.Int(8)];
+					} while (Dungeon.level.trueDistance(pos, targetHero.pos) > Dungeon.level.trueDistance(pos, targetPos));
+				}
+				targetedCells.add(targetPos);
+				Ballistica b = new Ballistica(pos, targetPos, Ballistica.WONT_STOP);
+				affectedCells.addAll(b.path);
 			}
 
-			if (abilityCooldown <= 0){
-
-				int beams = 1 + (HT - HP)/400;
-				HashSet<Integer> affectedCells = new HashSet<>();
-				for (int i = 0; i < beams; i++){
-
-					int targetPos = Dungeon.hero.pos;
-					if (i != 0){
-						do {
-							targetPos = Dungeon.hero.pos + PathFinder.NEIGHBOURS8[Random.Int(8)];
-						} while (Dungeon.level.trueDistance(pos, Dungeon.hero.pos)
-								> Dungeon.level.trueDistance(pos, targetPos));
-					}
-					targetedCells.add(targetPos);
-					Ballistica b = new Ballistica(pos, targetPos, Ballistica.WONT_STOP);
-					affectedCells.addAll(b.path);
+			// Удаляем один луч, если все клетки вокруг героя уже покрыты
+			boolean allAdjTargeted = true;
+			for (int i : PathFinder.NEIGHBOURS9) {
+				if (!affectedCells.contains(targetHero.pos + i) && Dungeon.level.passable[targetHero.pos + i]) {
+					allAdjTargeted = false;
+					break;
 				}
+			}
+			if (allAdjTargeted) {
+				targetedCells.remove(targetedCells.size() - 1);
+			}
 
-				//remove one beam if multiple shots would cause every cell next to the hero to be targeted
-				boolean allAdjTargeted = true;
-				for (int i : PathFinder.NEIGHBOURS9){
-					if (!affectedCells.contains(Dungeon.hero.pos + i) && Dungeon.level.passable[Dungeon.hero.pos + i]){
-						allAdjTargeted = false;
-						break;
-					}
-				}
-				if (allAdjTargeted){
-					targetedCells.remove(targetedCells.size()-1);
-				}
-				for (int i : targetedCells){
-					Ballistica b = new Ballistica(pos, i, Ballistica.WONT_STOP);
-					for (int p : b.path){
+			// Визуальные маркеры целей – только для локального героя, если видно
+			Hero local = Multiplayer.localHero();
+			for (int i : targetedCells) {
+				Ballistica b = new Ballistica(pos, i, Ballistica.WONT_STOP);
+				for (int p : b.path) {
+					if (local != null && local.fieldOfView != null && local.fieldOfView[p]) {
 						sprite.parent.add(new TargetedCell(p, 0xFF0000));
-						affectedCells.add(p);
 					}
+					affectedCells.add(p);
 				}
-
-				//don't want to overly punish players with slow move or attack speed
-				spend(GameMath.gate(TICK, (int)Math.ceil(Dungeon.hero.cooldown()), 3*TICK));
-				Dungeon.hero.interrupt();
-
-				abilityCooldown += Random.NormalFloat(MIN_ABILITY_CD, MAX_ABILITY_CD);
-				abilityCooldown -= (phase - 1);
-
-			} else {
-				spend(TICK);
 			}
 
-			while (summonCooldown <= 0){
+			// Тратим время, пропорциональное кулдауну цели, и прерываем её
+			spend(GameMath.gate(TICK, (int) Math.ceil(targetHero.cooldown()), 3 * TICK));
+			targetHero.interrupt();
 
-				Class<?extends Mob> cls = regularSummons.remove(0);
-				Mob summon = Reflection.newInstance(cls);
-				regularSummons.add(cls);
+			abilityCooldown += Random.NormalFloat(MIN_ABILITY_CD, MAX_ABILITY_CD);
+			abilityCooldown -= (phase - 1);
+		} else {
+			spend(TICK);
+		}
 
-				int spawnPos = -1;
-				for (int i : PathFinder.NEIGHBOURS8){
-					if (Actor.findChar(pos+i) == null){
-						if (spawnPos == -1 || Dungeon.level.trueDistance(Dungeon.hero.pos, spawnPos) > Dungeon.level.trueDistance(Dungeon.hero.pos, pos+i)){
+		// Призыв мобов
+		while (summonCooldown <= 0) {
+			Class<? extends Mob> cls = regularSummons.remove(0);
+			Mob summon = Reflection.newInstance(cls);
+			regularSummons.add(cls);
+
+			int spawnPos = -1;
+			// Ищем свободную клетку рядом с боссом, ближайшую к цели (targetHero)
+			for (int i : PathFinder.NEIGHBOURS8) {
+				if (Actor.findChar(pos + i) == null) {
+					if (spawnPos == -1 || Dungeon.level.trueDistance(targetHero.pos, spawnPos) > Dungeon.level.trueDistance(targetHero.pos, pos + i)) {
+						spawnPos = pos + i;
+					}
+				}
+			}
+
+			// Если нет свободной, пробуем убить овцу
+			if (spawnPos == -1) {
+				for (int i : PathFinder.NEIGHBOURS8) {
+					if (Actor.findChar(pos + i) instanceof Sheep) {
+						if (spawnPos == -1 || Dungeon.level.trueDistance(targetHero.pos, spawnPos) > Dungeon.level.trueDistance(targetHero.pos, pos + i)) {
 							spawnPos = pos + i;
 						}
 					}
 				}
-
-				//if no other valid spawn spots exist, try to kill an adjacent sheep to spawn anyway
-				if (spawnPos == -1){
-					for (int i : PathFinder.NEIGHBOURS8){
-						if (Actor.findChar(pos+i) instanceof Sheep){
-							if (spawnPos == -1 || Dungeon.level.trueDistance(Dungeon.hero.pos, spawnPos) > Dungeon.level.trueDistance(Dungeon.hero.pos, pos+i)){
-								spawnPos = pos + i;
-							}
-						}
-					}
-					if (spawnPos != -1){
-						Actor.findChar(spawnPos).die(null);
-					}
-				}
-
 				if (spawnPos != -1) {
-					summon.pos = spawnPos;
-					GameScene.add( summon );
-					Actor.add( new Pushing( summon, pos, summon.pos ) );
-					summon.beckon(Dungeon.hero.pos);
-					Dungeon.level.occupyCell(summon);
-
-					summonCooldown += Random.NormalFloat(MIN_SUMMON_CD, MAX_SUMMON_CD);
-					summonCooldown -= (phase - 1);
-					if (findFist() != null){
-						summonCooldown += MIN_SUMMON_CD - (phase - 1);
-					}
-				} else {
-					break;
+					Actor.findChar(spawnPos).die(null);
 				}
 			}
 
+			if (spawnPos != -1) {
+				summon.pos = spawnPos;
+				GameScene.add(summon);
+				Actor.add(new Pushing(summon, pos, summon.pos));
+				summon.beckon(targetHero.pos); // направляем к цели
+				Dungeon.level.occupyCell(summon);
+
+				summonCooldown += Random.NormalFloat(MIN_SUMMON_CD, MAX_SUMMON_CD);
+				summonCooldown -= (phase - 1);
+				if (findFist() != null) {
+					summonCooldown += MIN_SUMMON_CD - (phase - 1);
+				}
+			} else {
+				break;
+			}
 		}
 
 		if (summonCooldown > 0) summonCooldown--;
 		if (abilityCooldown > 0) abilityCooldown--;
 
-		//extra fast abilities and summons at the final 100 HP
-		if (phase == 5 && abilityCooldown > 2){
+		// Ускорение на последней фазе
+		if (phase == 5 && abilityCooldown > 2) {
 			abilityCooldown = 2;
 		}
-		if (phase == 5 && summonCooldown > 3){
+		if (phase == 5 && summonCooldown > 3) {
 			summonCooldown = 3;
 		}
 

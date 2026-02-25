@@ -254,7 +254,7 @@ public enum Rankings {
 	public static final String DAILY_REPLAY	= "daily_replay";
 
 	public void saveGameData(Record rec){
-        Hero hero = Multiplayer.Players.get(getLocalPlayerId()).hero;
+            Hero hero = Multiplayer.localHero();
 		if (hero == null){
 			rec.gameData = null;
 			return;
@@ -270,16 +270,16 @@ public enum Rankings {
 		for (Item item : belongings.backpack.items.toArray( new Item[0])) {
 			if (item instanceof Bag){
 				for (Item bagItem : ((Bag) item).items.toArray( new Item[0])){
-					if (Dungeon.quickslot.contains(bagItem)
-							&& !Dungeon.quickslot.contains(item)){
+					if (hero.quickslot.contains(bagItem) && !hero.quickslot.contains(item)){
 						belongings.backpack.items.add(bagItem);
 					}
 				}
 			}
-			if (!(item instanceof Trinket) && !Dungeon.quickslot.contains(item)) {
+			if (!(item instanceof Trinket) && !hero.quickslot.contains(item)) {
 				belongings.backpack.items.remove(item);
 			}
 		}
+
 
 		//remove all buffs (ones tied to equipment will be re-applied)
 		for(Buff b : hero.buffs()){

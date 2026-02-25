@@ -121,8 +121,8 @@ public class WndSadGhost extends Window {
 		}
 		
 		reward.identify(false);
-		if (reward.doPickUp( Multiplayer.Players.get(getLocalPlayerId()).hero )) {
-			GLog.i( Messages.capitalize(Messages.get(Multiplayer.Players.get(getLocalPlayerId()).hero, "you_now_have", reward.name())) );
+		if (reward.doPickUp( Multiplayer.localHero() )) {
+			GLog.i( Messages.capitalize(Messages.get(Multiplayer.localHero(), "you_now_have", reward.name())) );
 		} else {
 			Dungeon.level.drop( reward, ghost.pos ).sprite.drop();
 		}

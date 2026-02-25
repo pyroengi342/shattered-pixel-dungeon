@@ -288,7 +288,7 @@ public class Combo extends Buff implements ActionIndicator.Action {
 		if (move == ComboMove.PARRY){
 			parryUsed = true;
 			comboTime = 5f;
-			Invisibility.dispel();
+			Invisibility.dispel(target);
 			Buff.affect(target, ParryTracker.class, Actor.TICK);
 			((Hero)target).spendAndNext(Actor.TICK);
             ((Hero)target).busy();
@@ -422,7 +422,7 @@ public class Combo extends Buff implements ActionIndicator.Action {
 			}
 		}
 
-		Invisibility.dispel();
+		Invisibility.dispel(hero);
 
 		//Post-attack behaviour
 		switch(moveBeingUsed){
@@ -478,7 +478,7 @@ public class Combo extends Buff implements ActionIndicator.Action {
 			final Char enemy = Actor.findChar( cell );
 			if (enemy == null
 					|| enemy == target
-					|| !Dungeon.level.heroFOV[cell]
+					|| !target.fieldOfView[cell]
 					|| target.isCharmedBy( enemy )) {
 				GLog.w(Messages.get(Combo.class, "bad_target"));
 

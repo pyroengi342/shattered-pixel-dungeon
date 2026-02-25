@@ -53,7 +53,7 @@ public class Regeneration extends Buff {
 				Buff.affect(target, ChaoticCenser.CenserGasTracker.class, ChaoticCenser.CenserGasTracker.class);
 			}
 
-			if (regenOn() && target.HP < regencap() && !((Hero)target).isStarving()) {
+			if (regenOn((Hero) target) && target.HP < regencap() && !((Hero)target).isStarving()) {
 				boolean chaliceCursed = false;
 				int chaliceLevel = -1;
 				if (target.buff(MagicImmune.class) == null) {
@@ -110,8 +110,8 @@ public class Regeneration extends Buff {
 		return target.HT;
 	}
 
-	public static boolean regenOn(){
-		LockedFloor lock = Dungeon.hero.buff(LockedFloor.class);
+	public static boolean regenOn(Hero hero) {
+		LockedFloor lock = hero.buff(LockedFloor.class);
 		if (lock != null && !lock.regenOn()){
 			return false;
 		}

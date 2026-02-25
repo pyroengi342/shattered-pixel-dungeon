@@ -20,11 +20,6 @@
  */
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.spells;
-
-import static network.NetworkManager.getLocalPlayerId;
-import static network.NetworkManager.sendHeroClass;
-
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
@@ -46,8 +41,6 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.Bundlable;
 import com.watabou.utils.Callback;
 import com.watabou.utils.Random;
-
-import network.Multiplayer;
 
 public class MindForm extends ClericSpell {
 

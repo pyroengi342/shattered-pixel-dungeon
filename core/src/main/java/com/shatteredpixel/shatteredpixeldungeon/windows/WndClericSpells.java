@@ -197,9 +197,9 @@ public class WndClericSpells extends Window {
 				} else {
 					spell.onCast(tome, hero);
 
-					if (spell.targetingFlags() != -1 && Dungeon.quickslot.contains(tome)){
+					if (spell.targetingFlags() != -1 && hero.quickslot.contains(tome)){
 						tome.targetingSpell = spell;
-						QuickSlotButton.useTargeting(Dungeon.quickslot.getSlot(tome));
+						QuickSlotButton.useTargeting(hero.quickslot.getSlot(tome));
 					}
 				}
 
@@ -234,9 +234,9 @@ public class WndClericSpells extends Window {
 							} else {
 								spell.onCast(tome, hero);
 
-								if (spell.targetingFlags() != -1 && Dungeon.quickslot.contains(tome)){
+								if (spell.targetingFlags() != -1 && hero.quickslot.contains(tome)){
 									tome.targetingSpell = spell;
-									QuickSlotButton.useTargeting(Dungeon.quickslot.getSlot(tome));
+									QuickSlotButton.useTargeting(hero.quickslot.getSlot(tome));
 								}
 							}
 							break;

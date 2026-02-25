@@ -38,7 +38,7 @@ public class WarpingTrap extends TeleportationTrap {
 
 	@Override
 	public void activate() {
-		if (Dungeon.level.distance(Multiplayer.Players.get(getLocalPlayerId()).hero.pos, pos) <= 1){
+		if (Dungeon.level.distance(Multiplayer.localHero().pos, pos) <= 1){
 			BArray.setFalse(Dungeon.level.visited);
 			BArray.setFalse(Dungeon.level.mapped);
 		}

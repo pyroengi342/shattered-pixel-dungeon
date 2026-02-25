@@ -45,6 +45,8 @@ import com.watabou.utils.Bundle;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
+import network.Multiplayer;
+
 import java.util.ArrayList;
 
 public class Pylon extends Mob {
@@ -106,27 +108,36 @@ public class Pylon extends Mob {
 
 		sprite.flash();
 
-		boolean visible = Dungeon.level.heroFOV[pos];
-		for (int cell : shockCells){
-			if (Dungeon.level.heroFOV[cell]){
+		// Определяем, видит ли локальный игрок хотя бы одну из задействованных клеток
+		Hero local = Multiplayer.localHero();
+		boolean visible = false;
+		if (local != null && local.fieldOfView != null) {
+			if (local.fieldOfView[pos]) {
 				visible = true;
+			} else {
+				for (int cell : shockCells) {
+					if (local.fieldOfView[cell]) {
+						visible = true;
+						break;
+					}
+				}
 			}
 		}
-
+		// TODO проверка всех Sample.INSTANCE CellEmitter.get(cell).burst
 		if (visible) {
-			for (int cell : shockCells){
+			for (int cell : shockCells) {
 				sprite.parent.add(new Lightning(sprite.center(),
 						DungeonTilemap.raisedTileCenterToWorld(cell), null));
 				CellEmitter.get(cell).burst(SparkParticle.FACTORY, 3);
 			}
-			Sample.INSTANCE.play( Assets.Sounds.LIGHTNING );
+			Sample.INSTANCE.play(Assets.Sounds.LIGHTNING);
 		}
 
 		for (int cell : shockCells) {
 			shockChar(Actor.findChar(cell));
 		}
 
-		targetNeighbor = (targetNeighbor+1)%8;
+		targetNeighbor = (targetNeighbor + 1) % 8;
 
 		spend(TICK);
 

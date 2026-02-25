@@ -94,10 +94,10 @@ public class WndBlacksmith extends Window {
 					@Override
 					protected void onSelect(int index) {
 						if (index == 0){
-							if (Blacksmith.Quest.pickaxe.doPickUp( Multiplayer.Players.get(getLocalPlayerId()).hero )) {
-								GLog.i( Messages.capitalize(Messages.get(Multiplayer.Players.get(getLocalPlayerId()).hero, "you_now_have", Blacksmith.Quest.pickaxe.name()) ));
+							if (Blacksmith.Quest.pickaxe.doPickUp( Multiplayer.localHero() )) {
+								GLog.i( Messages.capitalize(Messages.get(Multiplayer.localHero(), "you_now_have", Blacksmith.Quest.pickaxe.name()) ));
 							} else {
-								Dungeon.level.drop( Blacksmith.Quest.pickaxe, Multiplayer.Players.get(getLocalPlayerId()).hero.pos ).sprite.drop();
+								Dungeon.level.drop( Blacksmith.Quest.pickaxe, Multiplayer.localHero().pos ).sprite.drop();
 							}
 							Blacksmith.Quest.favor -= pickaxeCost;
 							Blacksmith.Quest.pickaxe = null;
@@ -182,7 +182,7 @@ public class WndBlacksmith extends Window {
 					@Override
 					protected void onSelect(int index) {
 						if (index == 0){
-							new Gold(Blacksmith.Quest.favor).doPickUp(Multiplayer.Players.get(getLocalPlayerId()).hero, Multiplayer.Players.get(getLocalPlayerId()).hero.pos);
+							new Gold(Blacksmith.Quest.favor).doPickUp(Multiplayer.localHero(), Multiplayer.localHero().pos);
 							Blacksmith.Quest.favor = 0;
 							WndBlacksmith.this.hide();
 						}
@@ -270,21 +270,21 @@ public class WndBlacksmith extends Window {
 					}
 
 					Sample.INSTANCE.play( Assets.Sounds.EVOKE );
-					ScrollOfUpgrade.upgrade( Multiplayer.Players.get(getLocalPlayerId()).hero );
-					Item.evoke( Multiplayer.Players.get(getLocalPlayerId()).hero );
+					ScrollOfUpgrade.upgrade( Multiplayer.localHero() );
+					Item.evoke( Multiplayer.localHero() );
 
-					if (second.isEquipped( Multiplayer.Players.get(getLocalPlayerId()).hero )) {
-						((EquipableItem)second).doUnequip( Multiplayer.Players.get(getLocalPlayerId()).hero, false );
+					if (second.isEquipped( Multiplayer.localHero() )) {
+						((EquipableItem)second).doUnequip( Multiplayer.localHero(), false );
 					}
-					second.detachAll( Multiplayer.Players.get(getLocalPlayerId()).hero.belongings.backpack );
+					second.detachAll( Multiplayer.localHero().belongings.backpack );
 
 					if (second instanceof Armor){
 						BrokenSeal seal = ((Armor) second).checkSeal();
 						if (seal != null){
-							Dungeon.level.drop( seal, Multiplayer.Players.get(getLocalPlayerId()).hero.pos );
+							Dungeon.level.drop( seal, Multiplayer.localHero().pos );
 						}
 					} else if (second instanceof MissileWeapon){
-						Buff.affect(Multiplayer.Players.get(getLocalPlayerId()).hero, MissileWeapon.UpgradedSetTracker.class, null)
+						Buff.affect(Multiplayer.localHero(), MissileWeapon.UpgradedSetTracker.class, null)
 								.levelThresholds.put(((MissileWeapon) second).setID, Integer.MAX_VALUE);
 					}
 
@@ -401,7 +401,7 @@ public class WndBlacksmith extends Window {
 				WndBlacksmith.this.hide();
 
 				Sample.INSTANCE.play(Assets.Sounds.EVOKE);
-				Item.evoke( Multiplayer.Players.get(getLocalPlayerId()).hero );
+				Item.evoke( Multiplayer.localHero() );
 
 				if (!Blacksmith.Quest.rewardsAvailable()){
 					Notes.remove( Notes.Landmark.TROLL );
@@ -441,8 +441,8 @@ public class WndBlacksmith extends Window {
 				WndBlacksmith.this.hide();
 
 				Sample.INSTANCE.play(Assets.Sounds.EVOKE);
-				ScrollOfUpgrade.upgrade( Multiplayer.Players.get(getLocalPlayerId()).hero );
-				Item.evoke( Multiplayer.Players.get(getLocalPlayerId()).hero );
+				ScrollOfUpgrade.upgrade( Multiplayer.localHero() );
+				Item.evoke( Multiplayer.localHero() );
 
 				Badges.validateItemLevelAquired( item );
 

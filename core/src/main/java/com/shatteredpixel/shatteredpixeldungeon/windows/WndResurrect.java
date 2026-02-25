@@ -21,8 +21,11 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
+import java.util.HexFormat;
+
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.Ankh;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag;
@@ -56,7 +59,8 @@ public class WndResurrect extends Window {
 
 	RedButton btnContinue;
 	
-	public WndResurrect( final Ankh ankh ) {
+	// TODO Remake for multiplayer!!
+	public WndResurrect( final Ankh ankh, Hero hero ) {
 		
 		super();
 		
@@ -80,7 +84,7 @@ public class WndResurrect extends Window {
 				GameScene.selectItem( itemSelector );
 			}
 		};
-		btnItem1.item(Dungeon.hero.belongings.weapon());
+		btnItem1.item(hero.belongings.weapon());
 		btnItem1.setRect( (WIDTH - BTN_GAP) / 2 - BTN_SIZE, message.bottom() + BTN_GAP, BTN_SIZE, BTN_SIZE );
 		add( btnItem1 );
 
@@ -91,7 +95,7 @@ public class WndResurrect extends Window {
 				GameScene.selectItem( itemSelector );
 			}
 		};
-		btnItem2.item(Dungeon.hero.belongings.armor());
+		btnItem2.item(hero.belongings.armor());
 		btnItem2.setRect( btnItem1.right() + BTN_GAP, btnItem1.top(), BTN_SIZE, BTN_SIZE );
 		add( btnItem2 );
 		
@@ -107,12 +111,12 @@ public class WndResurrect extends Window {
 						@Override
 						protected void onSelect(int index) {
 							if (index == 0){
-								resurrect(ankh);
+								resurrect(ankh, hero);
 							}
 						}
 					});
 				} else {
-					resurrect( ankh );
+					resurrect( ankh, hero );
 				}
 			}
 		};
@@ -122,23 +126,30 @@ public class WndResurrect extends Window {
 		resize( WIDTH, (int)btnContinue.bottom() );
 	}
 
-	private void resurrect( final Ankh ankh ){
+	private void resurrect(final Ankh ankh, Hero hero) {
 		hide();
 
 		Statistics.ankhsUsed++;
 		Catalog.countUse(Ankh.class);
 
-		ankh.detach(Dungeon.hero.belongings.backpack);
+		ankh.detach(hero.belongings.backpack);
 
-		if (btnItem1.item() != null){
+		if (btnItem1.item() != null) {
 			btnItem1.item().keptThoughLostInvent = true;
 		}
-		if (btnItem2.item() != null){
+		if (btnItem2.item() != null) {
 			btnItem2.item().keptThoughLostInvent = true;
 		}
 
-		InterlevelScene.mode = InterlevelScene.Mode.RESURRECT;
-		Game.switchScene( InterlevelScene.class );
+		if (network.Multiplayer.isMultiplayer) {
+			// Локальное воскрешение без перезагрузки уровня
+			hero.resurrect();
+			// Обновляем интерфейс (например, туман)
+			GameScene.afterObserve();
+		} else {
+			InterlevelScene.mode = InterlevelScene.Mode.RESURRECT;
+			Game.switchScene(InterlevelScene.class);
+		}
 	}
 
 	protected WndBag.ItemSelector itemSelector = new WndBag.ItemSelector() {

@@ -113,7 +113,7 @@ public class StatusPane extends Component {
 		heroInfo = new Button(){
 			@Override
 			protected void onClick () {
-				Camera.main.panTo( Multiplayer.Players.get(getLocalPlayerId()).hero.sprite.center(), 5f );
+				Camera.main.panTo( Multiplayer.localHero().sprite.center(), 5f );
 				GameScene.show( new WndHero() );
 			}
 			
@@ -129,7 +129,7 @@ public class StatusPane extends Component {
 		};
 		add(heroInfo);
 
-		avatar = HeroSprite.avatar( Multiplayer.Players.get(getLocalPlayerId()).hero );
+		avatar = HeroSprite.avatar( Multiplayer.localHero() );
 		add( avatar );
 
 		talentBlink = 0;
@@ -152,7 +152,7 @@ public class StatusPane extends Component {
 		heroInfoOnBar = new Button(){
 			@Override
 			protected void onClick () {
-				Camera.main.panTo( Multiplayer.Players.get(getLocalPlayerId()).hero.sprite.center(), 5f );
+				Camera.main.panTo( Multiplayer.localHero().sprite.center(), 5f );
 				GameScene.show( new WndHero() );
 			}
 		};
@@ -171,7 +171,7 @@ public class StatusPane extends Component {
 		level.hardlight( 0xFFFFAA );
 		add( level );
 
-		buffs = new BuffIndicator( Multiplayer.Players.get(getLocalPlayerId()).hero, large );
+		buffs = new BuffIndicator( Multiplayer.localHero(), large );
 		add( buffs );
 
 		busy = new BusyIndicator();
@@ -294,11 +294,11 @@ public class StatusPane extends Component {
 	public void update() {
 		super.update();
 		
-		int health = Multiplayer.Players.get(getLocalPlayerId()).hero.HP;
-		int shield = Multiplayer.Players.get(getLocalPlayerId()).hero.shielding();
-		int max = Multiplayer.Players.get(getLocalPlayerId()).hero.HT;
+		int health = Multiplayer.localHero().HP;
+		int shield = Multiplayer.localHero().shielding();
+		int max = Multiplayer.localHero().HT;
 
-		if (!Multiplayer.Players.get(getLocalPlayerId()).hero.isAlive()) {
+		if (!Multiplayer.localHero().isAlive()) {
 			avatar.tint(0x000000, 0.5f);
 		} else if ((health/(float)max) < 0.334f) {
 			warning += Game.elapsed * 5f *(0.4f - (health/(float)max));
@@ -335,27 +335,27 @@ public class StatusPane extends Component {
 		}
 
 		if (large) {
-			exp.scale.x = (128 / exp.width) * Multiplayer.Players.get(getLocalPlayerId()).hero.exp / Multiplayer.Players.get(getLocalPlayerId()).hero.maxExp();
+			exp.scale.x = (128 / exp.width) * Multiplayer.localHero().exp / Multiplayer.localHero().maxExp();
 
 			hpText.measure();
 			hpText.x = hp.x + (128 - hpText.width())/2f;
 
-			expText.text(Multiplayer.Players.get(getLocalPlayerId()).hero.exp + "/" + Multiplayer.Players.get(getLocalPlayerId()).hero.maxExp());
+			expText.text(Multiplayer.localHero().exp + "/" + Multiplayer.localHero().maxExp());
 			expText.measure();
 			expText.x = hp.x + (128 - expText.width())/2f;
 
 		} else {
-			exp.scale.x = ((17 + heroPaneExtraWidth) / exp.width) * Multiplayer.Players.get(getLocalPlayerId()).hero.exp / Multiplayer.Players.get(getLocalPlayerId()).hero.maxExp();
-			expText.text(Multiplayer.Players.get(getLocalPlayerId()).hero.exp + "/" + Multiplayer.Players.get(getLocalPlayerId()).hero.maxExp());
+			exp.scale.x = ((17 + heroPaneExtraWidth) / exp.width) * Multiplayer.localHero().exp / Multiplayer.localHero().maxExp();
+			expText.text(Multiplayer.localHero().exp + "/" + Multiplayer.localHero().maxExp());
 		}
 
-		if (Multiplayer.Players.get(getLocalPlayerId()).hero.lvl != lastLvl) {
+		if (Multiplayer.localHero().lvl != lastLvl) {
 
 			if (lastLvl != -1) {
 				showStarParticles();
 			}
 
-			lastLvl = Multiplayer.Players.get(getLocalPlayerId()).hero.lvl;
+			lastLvl = Multiplayer.localHero().lvl;
 
 			if (large){
 				level.text( "lv. " + lastLvl );
@@ -371,17 +371,17 @@ public class StatusPane extends Component {
 			PixelScene.align(level);
 		}
 
-		int tier = Multiplayer.Players.get(getLocalPlayerId()).hero.tier();
+		int tier = Multiplayer.localHero().tier();
 		if (tier != lastTier) {
 			lastTier = tier;
-			avatar.copy( HeroSprite.avatar( Multiplayer.Players.get(getLocalPlayerId()).hero ) );
+			avatar.copy( HeroSprite.avatar( Multiplayer.localHero() ) );
 		}
 
 		counter.setSweep((1f - Actor.now()%1f)%1f);
 	}
 
 	public void updateAvatar(){
-		avatar.copy( HeroSprite.avatar( Multiplayer.Players.get(getLocalPlayerId()).hero ) );
+		avatar.copy( HeroSprite.avatar( Multiplayer.localHero() ) );
 	}
 
 	public void alpha( float value ){

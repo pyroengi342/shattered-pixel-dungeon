@@ -49,6 +49,8 @@ import com.watabou.utils.Bundle;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
+import network.Multiplayer;
+
 public class SacrificialFire extends Blob {
 
 	BlobEmitter curEmitter;
@@ -83,10 +85,10 @@ public class SacrificialFire extends Blob {
 						for (int k : PathFinder.NEIGHBOURS9){
 							Char ch = Actor.findChar( cell+k );
 							if (ch != null){
-								if (Dungeon.level.heroFOV[cell+k] && ch.buff( Marked.class ) == null) {
+								if (Multiplayer.localHero().fieldOfView[cell+k] && ch.buff( Marked.class ) == null) {
 									CellEmitter.get(cell+k).burst( SacrificialParticle.FACTORY, 5 );
 								}
-								Buff.prolong( ch, Marked.class, Marked.DURATION );
+								Buff.prolong( ch, Marked.class, Marked.DURATION, this );
 							}
 						}
 

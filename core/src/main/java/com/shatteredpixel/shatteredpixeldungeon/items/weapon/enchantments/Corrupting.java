@@ -57,7 +57,7 @@ public class Corrupting extends Weapon.Enchantment {
 				&& defender.isAlive()){
 			
 			Mob enemy = (Mob) defender;
-			Hero hero = (attacker instanceof Hero) ? (Hero) attacker : Multiplayer.Players.get(getLocalPlayerId()).hero;
+			Hero hero = (attacker instanceof Hero) ? (Hero) attacker : Multiplayer.localHero();
 
 			Corruption.corruptionHeal(enemy);
 

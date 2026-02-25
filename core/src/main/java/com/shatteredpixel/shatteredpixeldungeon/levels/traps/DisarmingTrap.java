@@ -100,7 +100,7 @@ public class DisarmingTrap extends Trap{
                     }
 
                     hero.belongings.weapon = null;
-                    Dungeon.quickslot.clearItem(weapon);
+                    curUser.quickslot.clearItem(weapon);
                     weapon.updateQuickslot();
 
                     Dungeon.level.drop(weapon, cell).seen = true;

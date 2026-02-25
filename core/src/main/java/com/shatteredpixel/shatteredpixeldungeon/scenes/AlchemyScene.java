@@ -29,6 +29,7 @@ import com.shatteredpixel.shatteredpixeldungeon.SPDAction;
 import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Belongings;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SparkParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.EnergyCrystal;
@@ -80,6 +81,8 @@ import com.watabou.noosa.audio.Sample;
 import com.watabou.noosa.particles.Emitter;
 import com.watabou.noosa.ui.Component;
 import com.watabou.utils.RectF;
+
+import network.Multiplayer;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -248,8 +251,9 @@ public class AlchemyScene extends PixelScene {
 		Button invSelector = new Button(){
 			@Override
 			protected void onClick() {
-						if (Dungeon.hero != null) {
-							ArrayList<Bag> bags = Dungeon.hero.belongings.getBags();
+						Hero hero = Multiplayer.localHero();
+						if (hero != null) {
+							ArrayList<Bag> bags = hero.belongings.getBags();
 
 							String[] names = new String[bags.size()];
 							Image[] images = new Image[bags.size()];
@@ -274,7 +278,7 @@ public class AlchemyScene extends PixelScene {
 									ArrayList<Item> items = (ArrayList<Item>) bag.items.clone();
 
 									for(Item i : bag.items){
-										if (Dungeon.hero.belongings.lostInventory() && !i.keptThroughLostInventory()) items.remove(i);
+										if (hero.belongings.lostInventory() && !i.keptThroughLostInventory()) items.remove(i);
 										if (!Recipe.usableInRecipe(i)) items.remove(i);
 									}
 
@@ -309,9 +313,9 @@ public class AlchemyScene extends PixelScene {
 													for (int i = 0; i < inputs.length; i++) {
 														if (inputs[i].item() == null) {
 															if (item instanceof LiquidMetal || item instanceof MissileWeapon){
-																inputs[i].item(item.detachAll(Dungeon.hero.belongings.backpack));
+																inputs[i].item(item.detachAll(hero.belongings.backpack));
 															} else {
-																inputs[i].item(item.detach(Dungeon.hero.belongings.backpack));
+																inputs[i].item(item.detach(hero.belongings.backpack));
 															}
 															break;
 														}
@@ -355,13 +359,14 @@ public class AlchemyScene extends PixelScene {
 		cancel.setRect(left + 8, pos + 2, 16, 16);
 		cancel.enable(false);
 		add(cancel);
-
+		
+		Hero hero = Multiplayer.localHero();
 		repeat = new IconButton(Icons.REPEAT.get()){
 			@Override
 			protected void onClick() {
 				super.onClick();
 				if (lastRecipe != null){
-					populate(lastIngredients, Dungeon.hero.belongings);
+					populate(lastIngredients, hero.belongings);
 				}
 			}
 
@@ -533,7 +538,7 @@ public class AlchemyScene extends PixelScene {
 		align(btnGuide);
 		add(btnGuide);
 
-		TrinketCatalyst cata = Dungeon.hero.belongings.getItem(TrinketCatalyst.class);
+		TrinketCatalyst cata = hero.belongings.getItem(TrinketCatalyst.class);
 		if (cata != null && cata.hasRolledTrinkets()){
 			addToFront(new TrinketCatalyst.WndTrinket(cata));
 		}
@@ -575,14 +580,16 @@ public class AlchemyScene extends PixelScene {
 
 		@Override
 		public void onSelect( Item item ) {
+			Hero hero = Multiplayer.localHero();
+			if (hero == null) return; // защита
 			synchronized (inputs) {
 				if (item != null && inputs[0] != null) {
 					for (int i = 0; i < inputs.length; i++) {
 						if (inputs[i].item() == null) {
 							if (item instanceof LiquidMetal || item instanceof MissileWeapon){
-								inputs[i].item(item.detachAll(Dungeon.hero.belongings.backpack));
+								inputs[i].item(item.detachAll(hero.belongings.backpack));
 							} else {
-								inputs[i].item(item.detach(Dungeon.hero.belongings.backpack));
+								inputs[i].item(item.detach(hero.belongings.backpack));
 							}
 							break;
 						}
@@ -723,10 +730,12 @@ public class AlchemyScene extends PixelScene {
 			craftItem(ingredients, result);
 
 		}
+		Hero hero = Multiplayer.localHero();
+		if (hero == null) return; // защита
 
 		boolean foundItems = true;
 		for (Item i : lastIngredients){
-			Item found = Dungeon.hero.belongings.getSimilar(i);
+			Item found = hero.belongings.getSimilar(i);
 			if (found == null){ //atm no quantity check as items are always loaded individually
 				//currently found can be true if we need, say, 3x of an item but only have 2x of it
 				foundItems = false;
@@ -752,13 +761,15 @@ public class AlchemyScene extends PixelScene {
 	}
 
 	public void craftItem( ArrayList<Item> ingredients, Item result ){
+		Hero hero = Multiplayer.localHero();
+
 		bubbleEmitter.start(Speck.factory( Speck.BUBBLE ), 0.01f, 100 );
 		smokeEmitter.burst(Speck.factory( Speck.WOOL ), 10 );
 		Sample.INSTANCE.play( Assets.Sounds.PUFF );
 
 		int resultQuantity = result.quantity();
 		if (!result.collect()){
-			Dungeon.level.drop(result, Dungeon.hero.pos);
+			Dungeon.level.drop(result, hero.pos);
 		}
 
 		Statistics.itemsCrafted++;
@@ -856,12 +867,14 @@ public class AlchemyScene extends PixelScene {
 	}
 	
 	public void clearSlots(){
+		Hero hero = Multiplayer.localHero();
+		if (hero == null) return; // защита
 		synchronized ( inputs ) {
 			for (int i = 0; i < inputs.length; i++) {
 				if (inputs[i] != null && inputs[i].item() != null) {
 					Item item = inputs[i].item();
 					if (!item.collect()) {
-						Dungeon.level.drop(item, Dungeon.hero.pos);
+						Dungeon.level.drop(item, hero.pos);
 					}
 					inputs[i].item(null);
 				}
@@ -976,6 +989,7 @@ public class AlchemyScene extends PixelScene {
 		protected ItemSlot slot;
 		
 		private Item item = null;
+		Hero hero = Multiplayer.localHero();
 		
 		@Override
 		protected void createChildren() {
@@ -1000,7 +1014,7 @@ public class AlchemyScene extends PixelScene {
 					Item item = InputButton.this.item;
 					if (item != null) {
 						if (!item.collect()) {
-							Dungeon.level.drop(item, Dungeon.hero.pos);
+							Dungeon.level.drop(item, hero.pos);
 						}
 						InputButton.this.item(null);
 						updateState();

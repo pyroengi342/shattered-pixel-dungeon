@@ -67,6 +67,8 @@ import com.watabou.utils.Point;
 import com.watabou.utils.Random;
 import com.watabou.utils.Rect;
 
+import network.Multiplayer;
+
 import java.util.ArrayList;
 
 public class PrisonBossLevel extends Level {
@@ -335,13 +337,16 @@ public class PrisonBossLevel extends Level {
 				heap.destroy();
 			}
 		}
-		
-		for (HeavyBoomerang.CircleBack b : Dungeon.hero.buffs(HeavyBoomerang.CircleBack.class)){
-			if (b.activeDepth() == Dungeon.depth
-					&& (safeArea == null || !safeArea.inside(cellToPoint(b.returnPos())))){
-				storedItems.add(b.cancel());
+
+		for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+			for (HeavyBoomerang.CircleBack b : player.hero.buffs(HeavyBoomerang.CircleBack.class)){
+				if (b.activeDepth() == Dungeon.depth
+						&& (safeArea == null || !safeArea.inside(cellToPoint(b.returnPos())))){
+					storedItems.add(b.cancel());
+				}
 			}
 		}
+
 		
 		for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])){
 			if (mob != tengu && (safeArea == null || !safeArea.inside(cellToPoint(mob.pos)))){
@@ -480,7 +485,9 @@ public class PrisonBossLevel extends Level {
 
 			case FIGHT_PAUSE:
 				
-				Dungeon.hero.interrupt();
+				for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+					player.hero.interrupt();
+				}
 				
 				clearEntities( pauseSafeArea );
 				
@@ -504,7 +511,9 @@ public class PrisonBossLevel extends Level {
 				
 				unseal();
 				
-				Dungeon.hero.interrupt();
+				for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+					player.hero.interrupt();
+				}
 				Dungeon.hero.pos = tenguCell.left+4 + (tenguCell.top+2)*width();
 				Dungeon.hero.sprite.interruptMotion();
 				Dungeon.hero.sprite.place(Dungeon.hero.pos);
@@ -527,7 +536,7 @@ public class PrisonBossLevel extends Level {
 				for (Mob m : allies){
 					do{
 						m.pos = randomTenguCellPos();
-					} while (findMob(m.pos) != null || m.pos instanceof Hero.pos);
+					} while (findMob(m.pos) != null || m.pos == Hero.pos);
 					if (m.sprite != null) m.sprite.place(m.pos);
 					mobs.add(m);
 				}

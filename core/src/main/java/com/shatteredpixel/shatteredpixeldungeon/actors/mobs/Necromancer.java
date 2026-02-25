@@ -45,6 +45,8 @@ import com.watabou.utils.Bundle;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
+import network.Multiplayer;
+
 public class Necromancer extends Mob {
 	
 	{
@@ -245,7 +247,7 @@ public class Necromancer extends Mob {
 
 		for (Buff b : buffs()){
 			if (b.revivePersists) {
-				Buff.affect(mySkeleton, b.getClass());
+				Buff.affect(mySkeleton, b.getClass(), this);
 			}
 		}
 	}
@@ -308,8 +310,13 @@ public class Necromancer extends Mob {
 					summoning = true;
 					sprite.zap( summoningPos );
 
-					if (Dungeon.level.heroFOV[pos] || Dungeon.level.heroFOV[summoningPos]){
-						Dungeon.hero.interrupt();
+					for (Multiplayer.PlayerInfo info : Multiplayer.Players.getAll()) {
+						Hero h = info.hero;
+						if (h != null && h.isAlive() && h.fieldOfView != null) {
+							if (h.fieldOfView[pos] || h.fieldOfView[summoningPos]) {
+								h.interrupt();
+							}
+						}
 					}
 					
 					spend( firstSummon ? TICK : 2*TICK );

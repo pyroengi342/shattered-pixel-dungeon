@@ -52,18 +52,18 @@ public class WndUseItem extends WndInfoItem {
 
 		float y = height;
 		
-		if (Multiplayer.Players.get(getLocalPlayerId()).hero.isAlive() && Multiplayer.Players.get(getLocalPlayerId()).hero.belongings.contains(item)) {
+		if (Multiplayer.localHero().isAlive() && Multiplayer.localHero().belongings.contains(item)) {
 			y += GAP;
 			ArrayList<RedButton> buttons = new ArrayList<>();
-			for (final String action : item.actions(Multiplayer.Players.get(getLocalPlayerId()).hero)) {
+			for (final String action : item.actions(Multiplayer.localHero())) {
 
-				RedButton btn = new RedButton(item.actionName(action, Multiplayer.Players.get(getLocalPlayerId()).hero), 8) {
+				RedButton btn = new RedButton(item.actionName(action, Multiplayer.localHero()), 8) {
 					@Override
 					protected void onClick() {
 						hide();
 						if (owner != null && owner.parent != null) owner.hide();
-						if (Multiplayer.Players.get(getLocalPlayerId()).hero.isAlive() && Multiplayer.Players.get(getLocalPlayerId()).hero.belongings.contains(item)) {
-							item.execute(Multiplayer.Players.get(getLocalPlayerId()).hero, action);
+						if (Multiplayer.localHero().isAlive() && Multiplayer.localHero().belongings.contains(item)) {
+							item.execute(Multiplayer.localHero(), action);
 						}
 						Item.updateQuickslot();
 						if (action.equals(item.defaultAction()) && item.usesTargeting && owner == null) {

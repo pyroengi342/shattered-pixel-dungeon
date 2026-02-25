@@ -23,112 +23,148 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.buffs;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.watabou.noosa.Image;
 import com.watabou.utils.Bundle;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import network.Multiplayer;
+
 public class Dread extends Buff {
 
-	protected int left = (int)DURATION;
-	public int object = 0;
+    protected int left = (int)DURATION;
+    public int object = 0;
 
-	public static final float DURATION = 20f;
+    public static final float DURATION = 20f;
 
-	{
-		type = buffType.NEGATIVE;
-		announced = true;
-	}
+    {
+        type = buffType.NEGATIVE;
+        announced = true;
+    }
 
-	//dread overrides terror
-	@Override
-	public boolean attachTo(Char target) {
-		if (super.attachTo(target)){
-			Buff.detach( target, Terror.class );
-			return true;
-		} else {
-			return false;
-		}
-	}
+    //dread overrides terror
+    @Override
+    public boolean attachTo(Char target) {
+        if (super.attachTo(target)){
+            Buff.detach( target, Terror.class );
+            return true;
+        } else {
+            return false;
+        }
+    }
 
-	{
-		immunities.add(Terror.class);
-	}
+    {
+        immunities.add(Terror.class);
+    }
 
-	@Override
-	public boolean act() {
+    @Override
+    public boolean act() {
 
-		if (!Dungeon.level.heroFOV[target.pos]
-				&& Dungeon.level.distance(target.pos, Dungeon.hero.pos) >= 6) {
-			if (target instanceof Mob){
-				((Mob) target).EXP /= 2;
-			}
-			target.destroy();
-			target.sprite.killAndErase();
-			Dungeon.level.mobs.remove(target);
-		} else {
-			left--;
-			if (left <= 0){
-				detach();
-			}
-		}
+        // Собираем всех живых героев (в мультиплеере – несколько, в одиночной игре – один)
+        List<Hero> heroes = new ArrayList<>();
+            for (Multiplayer.PlayerInfo info : Multiplayer.Players.getAll()) {
+                if (info.hero != null && info.hero.isAlive() && info.hero.fieldOfView != null) {
+                    heroes.add(info.hero);
+                }
+            }
 
-		spend(TICK);
-		return true;
-	}
+        // Проверяем, видит ли цель кто-то из героев
+        boolean seen = false;
+        for (Hero h : heroes) {
+            if (h.fieldOfView[target.pos]) {
+                seen = true;
+                break;
+            }
+        }
 
-	public void extend( float duration ) {
-		left += duration;
-	}
+        // Если никто не видит, проверяем расстояние до всех героев
+        boolean close = false;
+        if (!seen) {
+            for (Hero h : heroes) {
+                if (Dungeon.level.distance(target.pos, h.pos) < 6) {
+                    close = true;
+                    break;
+                }
+            }
+        }
+		// TODO подумать зачем это надо
+        // Если никто не видит И все герои дальше 6 клеток – уничтожаем моба
+        if (!seen && !close) {
+            if (target instanceof Mob) {
+                ((Mob) target).EXP /= 2;
+            }
+            target.destroy();
+            target.sprite.killAndErase();
+            Dungeon.level.mobs.remove(target);
+            detach();
+            return true;
+        }
 
-	private static final String LEFT	= "left";
-	private static final String OBJECT    = "object";
+        // Иначе просто уменьшаем длительность
+        left--;
+        if (left <= 0) {
+            detach();
+        }
 
-	@Override
-	public void storeInBundle( Bundle bundle ) {
-		super.storeInBundle(bundle);
-		bundle.put(LEFT, left);
-		bundle.put(OBJECT, object);
-	}
+        spend(TICK);
+        return true;
+    }
 
-	@Override
-	public void restoreFromBundle( Bundle bundle ) {
-		super.restoreFromBundle( bundle );
-		object = bundle.getInt( OBJECT );
-		left = bundle.getInt( LEFT );
-	}
+    public void extend( float duration ) {
+        left += duration;
+    }
 
-	@Override
-	public int icon() {
-		return BuffIndicator.TERROR;
-	}
+    private static final String LEFT	= "left";
+    private static final String OBJECT    = "object";
 
-	@Override
-	public float iconFadePercent() {
-		return Math.max(0, (DURATION - left) / DURATION);
-	}
+    @Override
+    public void storeInBundle( Bundle bundle ) {
+        super.storeInBundle(bundle);
+        bundle.put(LEFT, left);
+        bundle.put(OBJECT, object);
+    }
 
-	@Override
-	public String iconTextDisplay() {
-		return Integer.toString(left);
-	}
+    @Override
+    public void restoreFromBundle( Bundle bundle ) {
+        super.restoreFromBundle( bundle );
+        object = bundle.getInt( OBJECT );
+        left = bundle.getInt( LEFT );
+    }
 
-	@Override
-	public void tintIcon(Image icon) {
-		icon.hardlight(1, 0, 0);
-	}
+    @Override
+    public int icon() {
+        return BuffIndicator.TERROR;
+    }
 
-	@Override
-	public String desc() {
-		return Messages.get(this, "desc", left);
-	}
+    @Override
+    public float iconFadePercent() {
+        return Math.max(0, (DURATION - left) / DURATION);
+    }
 
-	public void recover() {
-		left -= 5;
-		if (left <= 0){
-			detach();
-		}
-	}
+    @Override
+    public String iconTextDisplay() {
+        return Integer.toString(left);
+    }
 
+    @Override
+    public void tintIcon(Image icon) {
+        icon.hardlight(1, 0, 0);
+    }
+
+    @Override
+    public String desc() {
+        return Messages.get(this, "desc", left);
+    }
+
+    public void recover() {
+        left -= 5;
+        if (left <= 0){
+            detach();
+        }
+    }
 }

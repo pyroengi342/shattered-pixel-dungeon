@@ -82,7 +82,7 @@ public class DeathMark extends ArmorAbility {
 
 		Char ch = Actor.findChar(target);
 
-		if (ch == null || !Dungeon.level.heroFOV[target]){
+		if (ch == null || !hero.fieldOfView[target]){
 			GLog.w(Messages.get(this, "no_target"));
 			return;
 		} else if (ch.alignment != Char.Alignment.ENEMY){

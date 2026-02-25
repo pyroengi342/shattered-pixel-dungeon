@@ -57,6 +57,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.KindOfWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClassArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.bombs.Bomb;
+import com.shatteredpixel.shatteredpixeldungeon.items.food.StewedMeat.threeMeat;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTeleportation;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfBlastWave;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
@@ -139,7 +140,7 @@ public class ElementalStrike extends ArmorAbility {
 	}
 
 	@Override
-	public String targetingPrompt() {
+	public String targetingPrompt(Hero hero) {
 		return Messages.get(this, "prompt");
 	}
 
@@ -218,7 +219,7 @@ public class ElementalStrike extends ArmorAbility {
 
 				perCharEffect(cone, hero, enemy, finalEnchantment);
 
-				Invisibility.dispel();
+				Invisibility.dispel(hero);
 				hero.spendAndNext(hero.attackDelay());
 			}
 		});
@@ -255,7 +256,7 @@ public class ElementalStrike extends ArmorAbility {
 		} else if (ench instanceof Blocking){
 			if (targetsHit > 0){
 				int shield = Math.round(Math.round(6f*targetsHit*powerMulti));
-				Buff.affect(hero, Barrier.class).setShield(Math.round(6f*targetsHit*powerMulti));
+				Buff.affect(hero, Barrier.class, this).setShield(Math.round(6f*targetsHit*powerMulti));
 				hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(shield), FloatingText.SHIELDING);
 			}
 
@@ -272,7 +273,7 @@ public class ElementalStrike extends ArmorAbility {
 
 		//*** Sacrificial ***
 		} else if (ench instanceof Sacrificial){
-			Buff.affect(hero, Bleeding.class).set(10 * powerMulti);
+			Buff.affect(hero, Bleeding.class, this).set(10 * powerMulti);
 		}
 
 	}
@@ -327,13 +328,13 @@ public class ElementalStrike extends ArmorAbility {
 			// each hero level is worth 20 normal uses, but just 5 if no enemies are present
 			// cap of 40/10 uses
 			int highGrassType = Terrain.HIGH_GRASS;
-			if (Buff.affect(hero, ElementalStrikeFurrowCounter.class).count() >= 40){
+			if (Buff.affect(hero, ElementalStrikeFurrowCounter.class, this).count() >= 40){
 				highGrassType = Terrain.FURROWED_GRASS;
 			} else {
 				if (hero.visibleEnemies() == 0 && targetsHit == 0) {
-					Buff.count(hero, ElementalStrikeFurrowCounter.class, 4f);
+					Buff.count(hero, ElementalStrikeFurrowCounter.class, 4f, this);
 				} else {
-					Buff.count(hero, ElementalStrikeFurrowCounter.class, 1f);
+					Buff.count(hero, ElementalStrikeFurrowCounter.class, 1f, this);
 				}
 			}
 
@@ -430,7 +431,7 @@ public class ElementalStrike extends ArmorAbility {
 						&& ch.buff(ElementalStrikeLuckyTracker.class) == null) {
 					Dungeon.level.drop(Lucky.genLoot(), ch.pos).sprite.drop();
 					Lucky.showFlare(ch.sprite);
-					Buff.affect(ch, ElementalStrikeLuckyTracker.class);
+					Buff.affect(ch, ElementalStrikeLuckyTracker.class, this);
 				}
 			}
 
@@ -498,7 +499,7 @@ public class ElementalStrike extends ArmorAbility {
 				if (Random.Float() < 0.5f*powerMulti){
 					int oldpos = ch.pos;
 					if (ScrollOfTeleportation.teleportChar(ch)){
-						if (Dungeon.level.heroFOV[oldpos]) {
+						if (ta[oldpos]) {
 							CellEmitter.get( oldpos ).start( Speck.factory( Speck.LIGHT ), 0.2f, 3 );
 						}
 
@@ -527,7 +528,7 @@ public class ElementalStrike extends ArmorAbility {
 		//*** Sacrificial ***
 		} else if (ench instanceof Sacrificial){
 			for (Char ch : affected){
-				Buff.affect(ch, Bleeding.class).set(12f*powerMulti);
+				Buff.affect(ch, Bleeding.class, this).set(12f*powerMulti);
 			}
 
 		//*** Wayward ***
@@ -561,7 +562,7 @@ public class ElementalStrike extends ArmorAbility {
 	public String desc() {
 		String desc = Messages.get(this, "desc");
 		if (Game.scene() instanceof GameScene){
-			KindOfWeapon w = Multiplayer.Players.get(getLocalPlayerId()).hero.belongings.weapon();
+			KindOfWeapon w = Multiplayer.localHero().belongings.weapon();
 			if (w instanceof MeleeWeapon && ((MeleeWeapon) w).enchantment != null){
 				desc += "\n\n" + Messages.get(((MeleeWeapon) w).enchantment, "elestrike_desc");
 			} else {

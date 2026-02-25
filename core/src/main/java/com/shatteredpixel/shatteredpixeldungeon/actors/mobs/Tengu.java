@@ -79,6 +79,8 @@ import com.watabou.utils.PathFinder;
 import com.watabou.utils.PointF;
 import com.watabou.utils.Random;
 
+import network.Multiplayer;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 
@@ -223,11 +225,14 @@ public class Tengu extends Mob {
 			Badges.validateBossChallengeCompleted();
 		}
 		Statistics.bossScores[1] += 2000;
-		
-		LloydsBeacon beacon = Dungeon.hero.belongings.getItem(LloydsBeacon.class);
-		if (beacon != null) {
-			beacon.upgrade();
+
+		for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+			LloydsBeacon beacon = player.hero.belongings.getItem(LloydsBeacon.class);
+			if (beacon != null) {
+				beacon.upgrade();
+			}
 		}
+
 		
 		yell( Messages.get(this, "defeated") );
 	}

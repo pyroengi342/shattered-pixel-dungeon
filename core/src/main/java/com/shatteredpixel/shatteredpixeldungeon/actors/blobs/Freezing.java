@@ -34,6 +34,8 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.MagicalFireRoom;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 
+import network.Multiplayer;
+
 public class Freezing extends Blob {
 	
 	@Override
@@ -110,9 +112,9 @@ public class Freezing extends Blob {
 		Char ch = Actor.findChar( cell );
 		if (ch != null) {
 			if (Dungeon.level.water[ch.pos]){
-				Buff.prolong(ch, Frost.class, Frost.DURATION * 3);
+				Buff.prolong(ch, Frost.class, Frost.DURATION * 3, null);
 			} else {
-				Buff.prolong(ch, Frost.class, Frost.DURATION);
+				Buff.prolong(ch, Frost.class, Frost.DURATION, null);
 			}
 		}
 
@@ -131,7 +133,7 @@ public class Freezing extends Blob {
 			heap.freeze();
 		}
 		
-		if (Dungeon.level.heroFOV[cell]) {
+		if (Multiplayer.localHero().fieldOfView[cell]) {
 			CellEmitter.get( cell ).start( SnowParticle.FACTORY, 0.2f, 6 );
 			return true;
 		} else {

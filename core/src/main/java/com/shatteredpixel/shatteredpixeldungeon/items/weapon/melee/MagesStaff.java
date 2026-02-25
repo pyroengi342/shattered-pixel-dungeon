@@ -266,11 +266,11 @@ public class MagesStaff extends MeleeWeapon {
 
 		//This is necessary to reset any particles.
 		//FIXME this is gross, should implement a better way to fully reset quickslot visuals
-		int slot = Dungeon.quickslot.getSlot(this);
+		int slot = curUser.quickslot.getSlot(this);
 		if (slot != -1){
-			Dungeon.quickslot.clearSlot(slot);
+			curUser.quickslot.clearSlot(slot);
 			updateQuickslot();
-			Dungeon.quickslot.setSlot( slot, this );
+			curUser.quickslot.setSlot( slot, this );
 			updateQuickslot();
 		}
 		
@@ -476,7 +476,7 @@ public class MagesStaff extends MeleeWeapon {
 			curUser.sprite.emitter().burst( ElmoParticle.FACTORY, 12 );
 			evoke(curUser);
 
-			Dungeon.quickslot.clearItem(wand);
+			curUser.quickslot.clearItem(wand);
 
 			wand.detach(curUser.belongings.backpack);
 

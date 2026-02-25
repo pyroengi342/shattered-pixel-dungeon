@@ -272,7 +272,7 @@ public class Item implements Bundlable {
 		}
 
 		items.add( this );
-		Dungeon.quickslot.replacePlaceholder(this);
+		curUser.quickslot.replacePlaceholder(this);
 		Collections.sort( items, itemComparator );
 		updateQuickslot();
 		return true;
@@ -332,7 +332,7 @@ public class Item implements Bundlable {
 		if (quantity == 1) {
 
 			if (stackable){
-				Dungeon.quickslot.convertToPlaceholder(this);
+				curUser.quickslot.convertToPlaceholder(this);
 			}
 
 			return detachAll( container );
@@ -349,7 +349,7 @@ public class Item implements Bundlable {
 	}
 	
 	public final Item detachAll( Bag container ) {
-		Dungeon.quickslot.clearItem( this );
+		curUser.quickslot.clearItem( this );
 
 		for (Item item : container.items) {
 			if (item == this) {
@@ -613,8 +613,8 @@ public class Item implements Bundlable {
 		bundle.put( LEVEL_KNOWN, levelKnown );
 		bundle.put( CURSED, cursed );
 		bundle.put( CURSED_KNOWN, cursedKnown );
-		if (Dungeon.quickslot.contains(this)) {
-			bundle.put( QUICKSLOT, Dungeon.quickslot.getSlot(this) );
+		if (curUser.quickslot.contains(this)) {
+			bundle.put( QUICKSLOT, curUser.quickslot.getSlot(this) );
 		}
 		bundle.put( KEPT_LOST, keptThoughLostInvent );
 		if (customNoteID != -1)     bundle.put(CUSTOM_NOTE_ID, customNoteID);
@@ -638,7 +638,7 @@ public class Item implements Bundlable {
 		//only want to populate slots when restoring belongings
 		if (Belongings.bundleRestoring) {
 			if (bundle.contains(QUICKSLOT)) {
-				Dungeon.quickslot.setSlot(bundle.getInt(QUICKSLOT), this);
+				curUser.quickslot.setSlot(bundle.getInt(QUICKSLOT), this);
 			}
 		}
 

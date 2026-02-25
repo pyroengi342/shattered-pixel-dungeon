@@ -81,7 +81,7 @@ public class WndWandmaker extends Window {
 		ItemButton btnWand1 = new ItemButton(){
 			@Override
 			protected void onClick() {
-				if (Multiplayer.Players.get(getLocalPlayerId()).hero.belongings.contains(questItem) && item() != null) {
+				if (Multiplayer.localHero().belongings.contains(questItem) && item() != null) {
 					GameScene.show(new RewardWindow(item()));
 				} else {
 					hide();
@@ -95,7 +95,7 @@ public class WndWandmaker extends Window {
 		ItemButton btnWand2 = new ItemButton(){
 			@Override
 			protected void onClick() {
-				if (Multiplayer.Players.get(getLocalPlayerId()).hero.belongings.contains(questItem) && item() != null) {
+				if (Multiplayer.localHero().belongings.contains(questItem) && item() != null) {
 					GameScene.show(new RewardWindow(item()));
 				} else {
 					hide();
@@ -117,16 +117,16 @@ public class WndWandmaker extends Window {
 
 		hide();
 
-		questItem.detach( Multiplayer.Players.get(getLocalPlayerId()).hero.belongings.backpack );
+		questItem.detach( Multiplayer.localHero().belongings.backpack );
 
 		reward.identify(false);
-		if (reward.doPickUp( Multiplayer.Players.get(getLocalPlayerId()).hero )) {
-			GLog.i( Messages.capitalize(Messages.get(Multiplayer.Players.get(getLocalPlayerId()).hero, "you_now_have", reward.name())) );
+		if (reward.doPickUp( Multiplayer.localHero() )) {
+			GLog.i( Messages.capitalize(Messages.get(Multiplayer.localHero(), "you_now_have", reward.name())) );
 		} else {
 			Dungeon.level.drop( reward, wandmaker.pos ).sprite.drop();
 		}
 		
-		wandmaker.yell( Messages.get(this, "farewell", Messages.titleCase(Multiplayer.Players.get(getLocalPlayerId()).hero.name())) );
+		wandmaker.yell( Messages.get(this, "farewell", Messages.titleCase(Multiplayer.localHero().name())) );
 		wandmaker.destroy();
 		
 		wandmaker.sprite.die();

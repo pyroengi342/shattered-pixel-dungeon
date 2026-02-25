@@ -99,7 +99,7 @@ public abstract class KindofMisc extends EquipableItem {
 							//we directly remove the item because we want to have inventory capacity
 							// to unequip the equipped one, but don't want to trigger any other
 							// item detaching logic
-							int slot = Dungeon.quickslot.getSlot(KindofMisc.this);
+							int slot = curUser.quickslot.getSlot(KindofMisc.this);
 							slotOfUnequipped = -1;
 							curUser.belongings.backpack.items.remove(KindofMisc.this);
 							if (equipped.doUnequip(hero, true, false)) {
@@ -117,9 +117,9 @@ public abstract class KindofMisc extends EquipableItem {
 								curUser.belongings.backpack.items.add(KindofMisc.this);
 							}
 							if (slot != -1) {
-								Dungeon.quickslot.setSlot(slot, KindofMisc.this);
+								curUser.quickslot.setSlot(slot, KindofMisc.this);
 							} else if (slotOfUnequipped != -1 && defaultAction() != null){
-								Dungeon.quickslot.setSlot(slotOfUnequipped, KindofMisc.this);
+								curUser.quickslot.setSlot(slotOfUnequipped, KindofMisc.this);
 							}
 							updateQuickslot();
 						}

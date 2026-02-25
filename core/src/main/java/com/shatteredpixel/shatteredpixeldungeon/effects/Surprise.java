@@ -93,7 +93,7 @@ public class Surprise extends Image {
 	}
 
 	public static void hit(int pos, float angle) {
-        Group parent = Multiplayer.Players.get(getLocalPlayerId()).hero.sprite.parent;
+        Group parent = Multiplayer.localHero().sprite.parent;
 		Surprise s = (Surprise) parent.recycle(Surprise.class);
 		parent.bringToFront(s);
 		s.reset(pos);

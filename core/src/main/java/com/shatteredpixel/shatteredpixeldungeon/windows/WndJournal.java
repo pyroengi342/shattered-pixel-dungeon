@@ -1087,7 +1087,7 @@ public class WndJournal extends WndTabbed {
 		@Override
 		protected void createChildren() {
 
-			if (Multiplayer.Players.get(getLocalPlayerId()).hero != null) {
+			if (Multiplayer.localHero() != null) {
 				btnLocal = new RedButton(Messages.get(this, "this_run")) {
 					@Override
 					protected void onClick() {

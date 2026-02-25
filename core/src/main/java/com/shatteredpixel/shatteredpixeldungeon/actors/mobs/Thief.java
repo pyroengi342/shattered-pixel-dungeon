@@ -21,6 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.mobs;
 
+import java.util.ArrayList;
+
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
@@ -35,6 +37,8 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ThiefSprite;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Random;
+
+import network.Multiplayer;
 
 public class Thief extends Mob {
 	
@@ -151,7 +155,7 @@ public class Thief extends Mob {
 
 			GLog.w( Messages.get(Thief.class, "stole", toSteal.name()) );
 			if (!toSteal.stackable) {
-				Dungeon.quickslot.convertToPlaceholder(toSteal);
+				hero.quickslot.convertToPlaceholder(toSteal);
 			}
 			Item.updateQuickslot();
 
@@ -197,34 +201,31 @@ public class Thief extends Mob {
 	private class Fleeing extends Mob.Fleeing {
 		@Override
 		protected void escaped() {
-			if (item != null
-					&& !Dungeon.level.heroFOV[pos]
-					&& Dungeon.level.distance(Dungeon.hero.pos, pos) >= 6) {
+			if (item != null) {
+				// Если рядом есть герой (видимый или в радиусе 6), то не телепортируемся
+				if (Multiplayer.findNearestHero(pos, 6) == null) {
+					int count = 32;
+					int newPos;
+					do {
+						newPos = Dungeon.level.randomRespawnCell(Thief.this);
+						if (count-- <= 0) break;
+					} while (newPos == -1 || Multiplayer.isVisibleToAnyHero(newPos) || Dungeon.level.distance(newPos, pos) < (count / 3));
 
-				int count = 32;
-				int newPos;
-				do {
-					newPos = Dungeon.level.randomRespawnCell( Thief.this );
-					if (count-- <= 0) {
-						break;
+					if (newPos != -1) {
+						pos = newPos;
+						sprite.place(pos);
+						Hero local = Multiplayer.localHero();
+						sprite.visible = local != null && local.fieldOfView != null && local.fieldOfView[pos];
+						if (sprite.visible) {
+							CellEmitter.get(pos).burst(Speck.factory(Speck.WOOL), 6);
+						}
 					}
-				} while (newPos == -1 || Dungeon.level.heroFOV[newPos] || Dungeon.level.distance(newPos, pos) < (count/3));
 
-				if (newPos != -1) {
-
-					pos = newPos;
-					sprite.place( pos );
-					sprite.visible = Dungeon.level.heroFOV[pos];
-					if (Dungeon.level.heroFOV[pos]) CellEmitter.get(pos).burst(Speck.factory(Speck.WOOL), 6);
-
+					GLog.n(Messages.get(Thief.class, "escapes", item.name()));
+					item = null;
 				}
-
-				if (item != null) GLog.n( Messages.get(Thief.class, "escapes", item.name()));
-				item = null;
-				state = WANDERING;
-			} else {
-				state = WANDERING;
 			}
+			state = WANDERING;
 		}
 	}
 }

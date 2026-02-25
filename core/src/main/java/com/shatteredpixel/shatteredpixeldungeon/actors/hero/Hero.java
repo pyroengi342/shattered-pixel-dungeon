@@ -26,6 +26,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Bones;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.GamesInProgress;
+import com.shatteredpixel.shatteredpixeldungeon.QuickSlot;
 import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
@@ -109,6 +110,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.SkeletonKey;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.TalismanOfForesight;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.TimekeepersHourglass;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.MagicalHolster;
+import com.shatteredpixel.shatteredpixeldungeon.items.food.StewedMeat.threeMeat;
 import com.shatteredpixel.shatteredpixeldungeon.items.journal.Guidebook;
 import com.shatteredpixel.shatteredpixeldungeon.items.keys.CrystalKey;
 import com.shatteredpixel.shatteredpixeldungeon.items.keys.GoldenKey;
@@ -184,6 +186,8 @@ import com.watabou.utils.PathFinder;
 import com.watabou.utils.Point;
 import com.watabou.utils.Random;
 
+import network.Multiplayer;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -199,7 +203,8 @@ public class Hero extends Char {
 	public static final int MAX_LEVEL = 30;
 
 	public static final int STARTING_STR = 10;
-	
+	public QuickSlot quickslot = new QuickSlot();
+
 	private static final float TIME_TO_REST		    = 1f;
 	private static final float TIME_TO_SEARCH	    = 2f;
 	private static final float HUNGER_FOR_SEARCH	= 6f;
@@ -249,6 +254,7 @@ public class Hero extends Char {
 		belongings = new Belongings( this );
 		
 		visibleEnemies = new ArrayList<>();
+		quickslot = new QuickSlot();   // инициализация
 	}
 	
 	public void updateHT( boolean boostHP ){
@@ -295,7 +301,8 @@ public class Hero extends Char {
 	private static final String LEVEL		= "lvl";
 	private static final String EXPERIENCE	= "exp";
 	private static final String HTBOOST     = "htboost";
-	
+	private static final String QUICKSLOT 	= "quickslot";
+
 	@Override
 	public void storeInBundle( Bundle bundle ) {
 
@@ -315,6 +322,10 @@ public class Hero extends Char {
 		bundle.put( EXPERIENCE, exp );
 		
 		bundle.put( HTBOOST, HTBoost );
+		
+		Bundle quickslotBundle = new Bundle();
+		quickslot.storePlaceholders(quickslotBundle);
+		bundle.put(QUICKSLOT, quickslotBundle);
 
 		belongings.storeInBundle( bundle );
 	}
@@ -340,6 +351,9 @@ public class Hero extends Char {
 		STR = bundle.getInt( STRENGTH );
 
 		belongings.restoreFromBundle( bundle );
+		if (bundle.contains(QUICKSLOT)) {
+        	quickslot.restorePlaceholders(bundle.getBundle(QUICKSLOT));
+    	}
 	}
 	
 	public static void preview( GamesInProgress.Info info, Bundle bundle ) {
@@ -447,8 +461,8 @@ public class Hero extends Char {
 		for (Buff b : buffs()){
 			if (!b.revivePersists) b.detach();
 		}
-		Buff.affect( this, Regeneration.class );
-		Buff.affect( this, Hunger.class );
+		Buff.affect( this, Regeneration.class, this );
+		Buff.affect( this, Hunger.class, this );
 	}
 	
 	public int tier() {
@@ -472,15 +486,15 @@ public class Hero extends Char {
 		//TODO improve this!
 		belongings.thrownWeapon = wep;
 		boolean hit = attack( enemy );
-		Invisibility.dispel();
+		Invisibility.dispel(this);
 		belongings.thrownWeapon = null;
 
 		if (hit && subClass == HeroSubClass.GLADIATOR && wasEnemy){
-			Buff.affect( this, Combo.class ).hit( enemy );
+			Buff.affect( this, Combo.class, this ).hit( enemy );
 		}
 
 		if (hit && heroClass == HeroClass.DUELIST && wasEnemy){
-			Buff.affect( this, Sai.ComboStrikeTracker.class).addHit();
+			Buff.affect( this, Sai.ComboStrikeTracker.class, this).addHit();
 		}
 
 		attackTarget = null;
@@ -563,7 +577,7 @@ public class Hero extends Char {
 
 		if (buff(Combo.ParryTracker.class) != null){
 			if (canAttack(enemy) && !isCharmedBy(enemy)){
-				Buff.affect(this, Combo.RiposteTracker.class).enemy = enemy;
+				Buff.affect(this, Combo.RiposteTracker.class, this).enemy = enemy;
 			}
 			return INFINITE_EVASION;
 		}
@@ -1423,7 +1437,7 @@ public class Hero extends Char {
 					&& buff(Talent.AggressiveBarrierCooldown.class) == null
 					&& (HP / (float)HT) <= 0.5f){
 				int shieldAmt = 1 + 2*pointsInTalent(Talent.AGGRESSIVE_BARRIER);
-				Buff.affect(this, Barrier.class).setShield(shieldAmt);
+				Buff.affect(this, Barrier.class, this).setShield(shieldAmt);
 				sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(shieldAmt), FloatingText.SHIELDING);
 				Buff.affect(this, Talent.AggressiveBarrierCooldown.class, 50f);
 
@@ -1456,10 +1470,10 @@ public class Hero extends Char {
 	public void rest( boolean fullRest ) {
 		spendAndNextConstant( TIME_TO_REST );
 		if (hasTalent(Talent.HOLD_FAST)){
-			Buff.affect(this, HoldFast.class).pos = pos;
+			Buff.affect(this, HoldFast.class, this).pos = pos;
 		}
 		if (hasTalent(Talent.PATIENT_STRIKE)){
-			Buff.affect(this, Talent.PatientStrikeTracker.class).pos = this.pos;
+			Buff.affect(this, Talent.PatientStrikeTracker.class, this).pos = this.pos;
 		}
 		if (!fullRest) {
 			if (sprite != null) {
@@ -1517,9 +1531,9 @@ public class Hero extends Char {
 								int levelBonus = Math.min( 2*pointsInTalent(Talent.SHARED_UPGRADES), wep.buffedLvl() );
 								// bonus dmg is 16.67% x weapon level, max of 2/4/6
 								float bonusDmg = levelBonus/6f;
-								Buff.prolong(Hero.this, SnipersMark.class, SnipersMark.DURATION + levelBonus).set(enemy.id(), bonusDmg);
+								Buff.prolong(Hero.this, SnipersMark.class, SnipersMark.DURATION + levelBonus, this).set(enemy.id(), bonusDmg);
 							} else {
-								Buff.prolong(Hero.this, SnipersMark.class, SnipersMark.DURATION).set(enemy.id(), 0);
+								Buff.prolong(Hero.this, SnipersMark.class, SnipersMark.DURATION, this).set(enemy.id(), 0);
 							}
 						}
 						Actor.remove(this);
@@ -1538,7 +1552,7 @@ public class Hero extends Char {
 	public int defenseProc( Char enemy, int damage ) {
 		
 		if (damage > 0 && subClass == HeroSubClass.BERSERKER){
-			Berserk berserk = Buff.affect(this, Berserk.class);
+			Berserk berserk = Buff.affect(this, Berserk.class, this);
 			berserk.damage(damage);
 		}
 		
@@ -1849,7 +1863,7 @@ public class Hero extends Char {
 			}
 
 			if (subClass == HeroSubClass.FREERUNNER){
-				Buff.affect(this, Momentum.class).gainStack();
+				Buff.affect(this, Momentum.class, this).gainStack();
 			}
 			
 			sprite.move(pos, step);
@@ -2028,7 +2042,7 @@ public class Hero extends Char {
 				defenseSkill++;
 
 			} else {
-				Buff.prolong(this, Bless.class, Bless.DURATION);
+				Buff.prolong(this, Bless.class, Bless.DURATION, this);
 				this.exp = 0;
 
 				GLog.newLine();
@@ -2068,7 +2082,7 @@ public class Hero extends Char {
 	}
 	
 	public boolean isStarving() {
-		return Buff.affect(this, Hunger.class).isStarving();
+		return Buff.affect(this, Hunger.class, this).isStarving();
 	}
 	
 	@Override
@@ -2140,7 +2154,7 @@ public class Hero extends Char {
 				this.HP = HT / 4;
 
 				PotionOfHealing.cure(this);
-				Buff.prolong(this, Invulnerability.class, Invulnerability.DURATION);
+				Buff.prolong(this, Invulnerability.class, Invulnerability.DURATION, ankh);
 
 				SpellSprite.show(this, SpellSprite.ANKH);
 				GameScene.flash(0x80FFFF40);
@@ -2158,30 +2172,30 @@ public class Hero extends Char {
 					}
 				}
 			} else {
+				// В мультиплеере окно показываем только для локального героя
+				if (Multiplayer.isMultiplayer && this != Multiplayer.localHero()) {
+					reallyDie(cause);
+					return;
+				}
 
-				//this is hacky, basically we want to declare that a wndResurrect exists before
-				//it actually gets created. This is important so that the game knows to not
-				//delete the run or submit it to rankings, because a WndResurrect is about to exist
-				//this is needed because the actual creation of the window is delayed here
+				// Оригинальный код показа окна
 				WndResurrect.instance = new Object();
 				Ankh finalAnkh = ankh;
 				Game.runOnRenderThread(new Callback() {
 					@Override
 					public void call() {
-                        // TODO show only for local hero
-						GameScene.show( new WndResurrect(finalAnkh) );
+						GameScene.show(new WndResurrect(finalAnkh, Hero.this));
 					}
 				});
 
 				if (cause instanceof Hero.Doom) {
-					((Hero.Doom)cause).onDeath();
+					((Hero.Doom) cause).onDeath();
 				}
 
 				SacrificialFire.Marked sacMark = buff(SacrificialFire.Marked.class);
-				if (sacMark != null){
+				if (sacMark != null) {
 					sacMark.detach();
 				}
-
 			}
 			return;
 		}
@@ -2318,15 +2332,15 @@ public class Hero extends Char {
 
 		boolean hit = attack(attackTarget);
 		
-		Invisibility.dispel();
+		Invisibility.dispel(this);
 		spend( attackDelay() );
 
 		if (hit && subClass == HeroSubClass.GLADIATOR && wasEnemy){
-			Buff.affect( this, Combo.class ).hit(attackTarget);
+			Buff.affect( this, Combo.class, this ).hit(attackTarget);
 		}
 
 		if (hit && heroClass == HeroClass.DUELIST && wasEnemy){
-			Buff.affect( this, Sai.ComboStrikeTracker.class).addHit();
+			Buff.affect( this, Sai.ComboStrikeTracker.class, this).addHit();
 		}
 
 		curAction = null;
@@ -2354,7 +2368,7 @@ public class Hero extends Char {
 			if (skele != null && skele.isCursed() && Random.Int(6) != 0){
 				GLog.n(Messages.get(this, "key_distracted"));
 				spendAndNext(2*Key.TIME_TO_UNLOCK);
-				Buff.affect(this, Hunger.class).affectHunger(-4);
+				Buff.affect(this, Hunger.class, this).affectHunger(-4);
 			} else if (Dungeon.level.distance(pos, doorCell) <= 1) {
 				boolean hasKey = true;
 				if (door == Terrain.LOCKED_DOOR) {
@@ -2404,7 +2418,7 @@ public class Hero extends Char {
 					&& Random.Int(6) != 0){
 				GLog.n(Messages.get(this, "key_distracted"));
 				spend(2*Key.TIME_TO_UNLOCK);
-				Buff.affect(this, Hunger.class).affectHunger(-4);
+				Buff.affect(this, Hunger.class, this).affectHunger(-4);
 			} else if (Dungeon.level.distance(pos, heap.pos) <= 1){
 				boolean hasKey = true;
 				if (heap.type == Type.SKELETON || heap.type == Type.REMAINS) {
@@ -2561,9 +2575,9 @@ public class Hero extends Char {
 			if (!Dungeon.level.locked) {
 				if (cursed) {
 					GLog.n(Messages.get(this, "search_distracted"));
-					Buff.affect(this, Hunger.class).affectHunger(TIME_TO_SEARCH - (2 * HUNGER_FOR_SEARCH));
+					Buff.affect(this, Hunger.class, this).affectHunger(TIME_TO_SEARCH - (2 * HUNGER_FOR_SEARCH));
 				} else {
-					Buff.affect(this, Hunger.class).affectHunger(TIME_TO_SEARCH - HUNGER_FOR_SEARCH);
+					Buff.affect(this, Hunger.class, this).affectHunger(TIME_TO_SEARCH - HUNGER_FOR_SEARCH);
 				}
 			}
 			spendAndNext(TIME_TO_SEARCH);
@@ -2593,7 +2607,7 @@ public class Hero extends Char {
 
 		MagicalHolster holster = belongings.getItem(MagicalHolster.class);
 
-		Buff.affect(this, LostInventory.class);
+		Buff.affect(this, LostInventory.class, this);
 		Buff.affect(this, Invisibility.class, 3f);
 		//lost inventory is dropped in interlevelscene
 

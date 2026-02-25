@@ -162,7 +162,7 @@ public class ChaoticCenser extends Trinket {
 			case 0: default:
 				do {
 					gasToSpawn = Random.element(COMMON_GASSES.keySet());
-				} while (!Regeneration.regenOn() && gasToSpawn == Regrowth.class);
+				} while (!Regeneration.regenOn(curUser) && gasToSpawn == Regrowth.class);
 				gasQuantity = COMMON_GASSES.get(gasToSpawn);
 				break;
 			case 1:

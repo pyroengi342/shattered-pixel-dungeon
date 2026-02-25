@@ -141,7 +141,7 @@ public class Trinity extends ArmorAbility {
 								hero.spendAndNext(1f);
 								armor.charge -= trinityChargeUsePerEffect(bodyForm.getClass(), hero);
 								armor.updateQuickslot();
-								Invisibility.dispel();
+								Invisibility.dispel(hero);
 								hide();
 							}
 						}
@@ -209,8 +209,8 @@ public class Trinity extends ArmorAbility {
 						Enchanting.show(hero, (Item)mindForm);
 						hero.sprite.operate(hero.pos);
 
-						if (((Item) mindForm).usesTargeting && Dungeon.quickslot.contains(armor)){
-							QuickSlotButton.useTargeting(Dungeon.quickslot.getSlot(armor));
+						if (((Item) mindForm).usesTargeting && hero.quickslot.contains(armor)){
+							QuickSlotButton.useTargeting(hero.quickslot.getSlot(armor));
 						}
 					}
 				};

@@ -112,7 +112,7 @@ public class Toolbar extends Component {
 			@Override
 			protected void onClick() {
 				if (QuickSlotButton.targetingSlot != -1){
-					int cell = QuickSlotButton.autoAim(QuickSlotButton.lastTarget, Dungeon.quickslot.getItem(QuickSlotButton.targetingSlot));
+					int cell = QuickSlotButton.autoAim(QuickSlotButton.lastTarget, Multiplayer.localHero().quickslot.getItem(QuickSlotButton.targetingSlot));
 
 					if (cell != -1){
 						GameScene.handleCell(cell);
@@ -123,15 +123,15 @@ public class Toolbar extends Component {
 					return;
 				}
 
-				if (Multiplayer.Players.get(getLocalPlayerId()).hero != null && Multiplayer.Players.get(getLocalPlayerId()).hero.ready && !GameScene.cancel()) {
+				if (Multiplayer.localHero() != null && Multiplayer.localHero().ready && !GameScene.cancel()) {
 
 					String[] slotNames = new String[6];
 					Image[] slotIcons = new Image[6];
 					for (int i = 0; i < 6; i++){
-						Item item = Dungeon.quickslot.getItem(i);
+						Item item = Multiplayer.localHero().quickslot.getItem(i);
 
-						if (item != null && !Dungeon.quickslot.isPlaceholder(i) &&
-								(!Multiplayer.Players.get(getLocalPlayerId()).hero.belongings.lostInventory() || item.keptThroughLostInventory())){
+						if (item != null && !Multiplayer.localHero().quickslot.isPlaceholder(i) &&
+								(!Multiplayer.localHero().belongings.lostInventory() || item.keptThroughLostInventory())){
 							slotNames[i] = Messages.titleCase(item.name());
 							slotIcons[i] = new ItemSprite(item);
 						} else {
@@ -154,10 +154,10 @@ public class Toolbar extends Component {
 					Game.scene().addToFront(new RadialMenu(Messages.get(Toolbar.class, "quickslot_prompt"), info, slotNames, slotIcons) {
 						@Override
 						public void onSelect(int idx, boolean alt) {
-							Item item = Dungeon.quickslot.getItem(idx);
+							Item item = Multiplayer.localHero().quickslot.getItem(idx);
 
-							if (item == null || Dungeon.quickslot.isPlaceholder(idx)
-									|| (Multiplayer.Players.get(getLocalPlayerId()).hero.belongings.lostInventory() && !item.keptThroughLostInventory())
+							if (item == null || Multiplayer.localHero().quickslot.isPlaceholder(idx)
+									|| (Multiplayer.localHero().belongings.lostInventory() && !item.keptThroughLostInventory())
 									|| alt){
 								//TODO would be nice to use a radial menu for this too
 								// Also a bunch of code could be moved out of here into subclasses of RadialMenu
@@ -181,7 +181,7 @@ public class Toolbar extends Component {
 								});
 							} else {
 
-								item.execute(Multiplayer.Players.get(getLocalPlayerId()).hero);
+								item.execute(Multiplayer.localHero());
 								if (item.usesTargeting) {
 									QuickSlotButton.useTargeting(idx);
 								}
@@ -202,9 +202,9 @@ public class Toolbar extends Component {
 		add(btnWait = new Tool(24, 0, 20, 26) {
 			@Override
 			protected void onClick() {
-				if (Multiplayer.Players.get(getLocalPlayerId()).hero != null &&  Multiplayer.Players.get(getLocalPlayerId()).hero.ready && !GameScene.cancel()) {
+				if (Multiplayer.localHero() != null &&  Multiplayer.localHero().ready && !GameScene.cancel()) {
 					examining = false;
-					Multiplayer.Players.get(getLocalPlayerId()).hero.rest(false);
+					Multiplayer.localHero().rest(false);
 				}
 			}
 			
@@ -224,9 +224,9 @@ public class Toolbar extends Component {
 			}
 
 			protected boolean onLongClick() {
-				if (Multiplayer.Players.get(getLocalPlayerId()).hero != null && Multiplayer.Players.get(getLocalPlayerId()).hero.ready && !GameScene.cancel()) {
+				if (Multiplayer.localHero() != null && Multiplayer.localHero().ready && !GameScene.cancel()) {
 					examining = false;
-					Multiplayer.Players.get(getLocalPlayerId()).hero.rest(true);
+					Multiplayer.localHero().rest(true);
 				}
 				return true;
 			}
@@ -237,9 +237,9 @@ public class Toolbar extends Component {
 		add(new Button(){
 			@Override
 			protected void onClick() {
-				if (Multiplayer.Players.get(getLocalPlayerId()).hero != null && Multiplayer.Players.get(getLocalPlayerId()).hero.ready && !GameScene.cancel()) {
+				if (Multiplayer.localHero() != null && Multiplayer.localHero().ready && !GameScene.cancel()) {
 					examining = false;
-					Multiplayer.Players.get(getLocalPlayerId()).hero.rest(true);
+					Multiplayer.localHero().rest(true);
 				}
 			}
 
@@ -254,29 +254,29 @@ public class Toolbar extends Component {
 		add(new Button(){
 			@Override
 			protected void onClick() {
-				if (Multiplayer.Players.get(getLocalPlayerId()).hero != null && Multiplayer.Players.get(getLocalPlayerId()).hero.ready && !GameScene.cancel()) {
-					Multiplayer.Players.get(getLocalPlayerId()).hero.waitOrPickup = true;
-					if ((Dungeon.level.heaps.get(Multiplayer.Players.get(getLocalPlayerId()).hero.pos) != null || Multiplayer.Players.get(getLocalPlayerId()).hero.canSelfTrample())
-						&& Multiplayer.Players.get(getLocalPlayerId()).hero.handle(Multiplayer.Players.get(getLocalPlayerId()).hero.pos)){
+				if (Multiplayer.localHero() != null && Multiplayer.localHero().ready && !GameScene.cancel()) {
+					Multiplayer.localHero().waitOrPickup = true;
+					if ((Dungeon.level.heaps.get(Multiplayer.localHero().pos) != null || Multiplayer.localHero().canSelfTrample())
+						&& Multiplayer.localHero().handle(Multiplayer.localHero().pos)){
 						//trigger hold fast and patient strike here, even if the hero didn't specifically wait
-						if (Multiplayer.Players.get(getLocalPlayerId()).hero.hasTalent(Talent.HOLD_FAST)){
-							Buff.affect(Multiplayer.Players.get(getLocalPlayerId()).hero, HoldFast.class).pos = Multiplayer.Players.get(getLocalPlayerId()).hero.pos;
+						if (Multiplayer.localHero().hasTalent(Talent.HOLD_FAST)){
+							Buff.affect(Multiplayer.localHero(), HoldFast.class).pos = Multiplayer.localHero().pos;
 						}
-						if (Multiplayer.Players.get(getLocalPlayerId()).hero.hasTalent(Talent.PATIENT_STRIKE)){
-							Buff.affect(Multiplayer.Players.get(getLocalPlayerId()).hero, Talent.PatientStrikeTracker.class).pos = Multiplayer.Players.get(getLocalPlayerId()).hero.pos;
+						if (Multiplayer.localHero().hasTalent(Talent.PATIENT_STRIKE)){
+							Buff.affect(Multiplayer.localHero(), Talent.PatientStrikeTracker.class).pos = Multiplayer.localHero().pos;
 						}
-						Multiplayer.Players.get(getLocalPlayerId()).hero.next();
+						Multiplayer.localHero().next();
 					} else {
 						examining = false;
-						Multiplayer.Players.get(getLocalPlayerId()).hero.rest(false);
+						Multiplayer.localHero().rest(false);
 					}
 				}
 			}
 
 			protected boolean onLongClick() {
-				if (Multiplayer.Players.get(getLocalPlayerId()).hero != null && Multiplayer.Players.get(getLocalPlayerId()).hero.ready && !GameScene.cancel()) {
+				if (Multiplayer.localHero() != null && Multiplayer.localHero().ready && !GameScene.cancel()) {
 					examining = false;
-					Multiplayer.Players.get(getLocalPlayerId()).hero.rest(true);
+					Multiplayer.localHero().rest(true);
 				}
 				return true;
 			}
@@ -291,13 +291,13 @@ public class Toolbar extends Component {
 		add(btnSearch = new Tool(44, 0, 20, 26) {
 			@Override
 			protected void onClick() {
-				if (Multiplayer.Players.get(getLocalPlayerId()).hero != null && Multiplayer.Players.get(getLocalPlayerId()).hero.ready) {
+				if (Multiplayer.localHero() != null && Multiplayer.localHero().ready) {
 					if (!examining && !GameScene.cancel()) {
 						GameScene.selectCell(informer);
 						examining = true;
 					} else if (examining) {
 						informer.onSelect(null);
-						Multiplayer.Players.get(getLocalPlayerId()).hero.search(true);
+						Multiplayer.localHero().search(true);
 					}
 				}
 			}
@@ -314,7 +314,7 @@ public class Toolbar extends Component {
 			
 			@Override
 			protected boolean onLongClick() {
-				Multiplayer.Players.get(getLocalPlayerId()).hero.search(true);
+				Multiplayer.localHero().search(true);
 				return true;
 			}
 		});
@@ -327,12 +327,12 @@ public class Toolbar extends Component {
 
 			@Override
 			protected void onClick() {
-				if (Multiplayer.Players.get(getLocalPlayerId()).hero != null && (Multiplayer.Players.get(getLocalPlayerId()).hero.ready || !Multiplayer.Players.get(getLocalPlayerId()).hero.isAlive())) {
+				if (Multiplayer.localHero() != null && (Multiplayer.localHero().ready || !Multiplayer.localHero().isAlive())) {
 					if (SPDSettings.interfaceSize() == 2) {
 						GameScene.toggleInvPane();
 					} else {
 						if (!GameScene.cancel()) {
-							GameScene.show(new WndBag(Multiplayer.Players.get(getLocalPlayerId()).hero.belongings.backpack));
+							GameScene.show(new WndBag(Multiplayer.localHero().belongings.backpack));
 						}
 					}
 				}
@@ -397,8 +397,8 @@ public class Toolbar extends Component {
 		add(new Button(){
 			@Override
 			protected void onClick() {
-				if (Multiplayer.Players.get(getLocalPlayerId()).hero != null && Multiplayer.Players.get(getLocalPlayerId()).hero.ready && !GameScene.cancel()) {
-					ArrayList<Bag> bags = Multiplayer.Players.get(getLocalPlayerId()).hero.belongings.getBags();
+				if (Multiplayer.localHero() != null && Multiplayer.localHero().ready && !GameScene.cancel()) {
+					ArrayList<Bag> bags = Multiplayer.localHero().belongings.getBags();
 					String[] names = new String[bags.size()];
 					Image[] images = new Image[bags.size()];
 					for (int i = 0; i < bags.size(); i++){
@@ -423,11 +423,11 @@ public class Toolbar extends Component {
 
 							for(Item i : bag.items){
 								if (i instanceof Bag) items.remove(i);
-								if (Multiplayer.Players.get(getLocalPlayerId()).hero.belongings.lostInventory() && !i.keptThroughLostInventory()) items.remove(i);
+								if (Multiplayer.localHero().belongings.lostInventory() && !i.keptThroughLostInventory()) items.remove(i);
 							}
 
 							if (idx == 0){
-								Belongings b = Multiplayer.Players.get(getLocalPlayerId()).hero.belongings;
+								Belongings b = Multiplayer.localHero().belongings;
 								if (b.ring() != null) items.add(0, b.ring());
 								if (b.misc() != null) items.add(0, b.misc());
 								if (b.artifact() != null) items.add(0, b.artifact());
@@ -464,7 +464,7 @@ public class Toolbar extends Component {
 									super.onSelect(idx, alt);
 									Item item = items.get(idx);
 									if (alt && item.defaultAction() != null) {
-										item.execute(Multiplayer.Players.get(getLocalPlayerId()).hero);
+										item.execute(Multiplayer.localHero());
 									} else {
 										InventoryPane.clearTargetingSlot();
 										Game.scene().addToFront(new WndUseItem(null, item));
@@ -655,8 +655,8 @@ public class Toolbar extends Component {
 	public void update() {
 		super.update();
 		
-		if (lastEnabled != (Multiplayer.Players.get(getLocalPlayerId()).hero.ready && Multiplayer.Players.get(getLocalPlayerId()).hero.isAlive())) {
-			lastEnabled = (Multiplayer.Players.get(getLocalPlayerId()).hero.ready && Multiplayer.Players.get(getLocalPlayerId()).hero.isAlive());
+		if (lastEnabled != (Multiplayer.localHero().ready && Multiplayer.localHero().isAlive())) {
+			lastEnabled = (Multiplayer.localHero().ready && Multiplayer.localHero().isAlive());
 			
 			for (Gizmo tool : members.toArray(new Gizmo[0])) {
 				if (tool instanceof Tool) {
@@ -665,7 +665,7 @@ public class Toolbar extends Component {
 			}
 		}
 		
-		if (!Multiplayer.Players.get(getLocalPlayerId()).hero.isAlive()) {
+		if (!Multiplayer.localHero().isAlive()) {
 			btnInventory.enable(true);
 		}
 	}
@@ -862,11 +862,11 @@ public class Toolbar extends Component {
 			}
 
 			for (int i = 1; i < 4; i++){
-				if (items[i] == Dungeon.quickslot.getItem(slot)){
+				if (items[i] == Multiplayer.localHero().quickslot.getItem(slot)){
 					slot += slotDir;
 					continue;
 				} else {
-					items[i] = Dungeon.quickslot.getItem(slot);
+					items[i] = Multiplayer.localHero().quickslot.getItem(slot);
 				}
 				if (icons[i] != null){
 					icons[i].killAndErase();
@@ -875,7 +875,7 @@ public class Toolbar extends Component {
 				if (items[i] != null){
 					icons[i] = new ItemSprite(items[i]);
 					icons[i].scale.set(PixelScene.align(0.45f));
-					if (Dungeon.quickslot.isPlaceholder(slot)) icons[i].alpha(0.29f);
+					if (Multiplayer.localHero().quickslot.isPlaceholder(slot)) icons[i].alpha(0.29f);
 					add(icons[i]);
 				}
 				slot += slotDir;

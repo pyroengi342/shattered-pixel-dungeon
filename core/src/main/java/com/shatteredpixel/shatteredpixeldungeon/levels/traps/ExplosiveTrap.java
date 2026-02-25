@@ -50,7 +50,7 @@ public class ExplosiveTrap extends Trap {
 		}
 
 		new Bomb().explode(pos);
-		if (reclaimed && !Multiplayer.Players.get(getLocalPlayerId()).hero.isAlive()) {
+		if (reclaimed && !Multiplayer.localHero().isAlive()) {
 			Badges.validateDeathFromFriendlyMagic();
 		}
 	}

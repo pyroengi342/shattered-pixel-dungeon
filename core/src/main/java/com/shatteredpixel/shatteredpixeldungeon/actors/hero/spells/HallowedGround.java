@@ -92,7 +92,7 @@ public class HallowedGround extends TargetedClericSpell {
 			return;
 		}
 
-		if (Dungeon.level.solid[target] || !Dungeon.level.heroFOV[target]){
+		if (Dungeon.level.solid[target] || !hero.fieldOfView[target]){
 			GLog.w(Messages.get(this, "invalid_target"));
 			return;
 		}
@@ -222,7 +222,7 @@ public class HallowedGround extends TargetedClericSpell {
 						int c = Dungeon.level.map[cell];
 						if (c == Terrain.GRASS && Dungeon.level.plants.get(c) == null) {
 							if (Random.Int(chance) == 0) {
-								if (!Regeneration.regenOn()
+								if (!Regeneration.regenOn(owner)
 										|| (owner.buff(HallowedFurrowTracker.class) != null && owner.buff(HallowedFurrowTracker.class).count() > 100)){
 									Level.set(cell, Terrain.FURROWED_GRASS);
 								} else {

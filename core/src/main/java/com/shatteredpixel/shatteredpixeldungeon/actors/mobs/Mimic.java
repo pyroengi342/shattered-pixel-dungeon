@@ -45,6 +45,8 @@ import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Random;
 
+import network.Multiplayer;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -130,14 +132,24 @@ public class Mimic extends Mob {
 			return super.description();
 		}
 	}
-
+	// Actor.chars().contains(this)
 	@Override
 	protected boolean act() {
-		if (alignment == Alignment.NEUTRAL && state != PASSIVE){
+		if (alignment == Alignment.NEUTRAL && state != PASSIVE) {
 			alignment = Alignment.ENEMY;
 			if (sprite != null) sprite.idle();
-			if (Dungeon.level.heroFOV[pos]) {
-				GLog.w(Messages.get(this, "reveal") );
+
+			// Находим ближайшего видимого героя и делаем его целью
+			Hero nearest = Multiplayer.findNearestHero(pos);
+			if (nearest != null) {
+				enemy = nearest;
+				target = nearest.pos;
+			}
+			
+			// Локальные эффекты (сообщение, частицы, звук) только если локальный игрок видит мимика
+			Hero local = Multiplayer.localHero();
+			if (local != null && local.fieldOfView != null && local.fieldOfView[pos]) {
+				GLog.w(Messages.get(this, "reveal"));
 				CellEmitter.get(pos).burst(Speck.factory(Speck.STAR), 10);
 				Sample.INSTANCE.play(Assets.Sounds.MIMIC);
 			}
@@ -212,17 +224,25 @@ public class Mimic extends Mob {
 		super.die(cause);
 	}
 
-	public void stopHiding(){
+	public void stopHiding() {
 		state = HUNTING;
 		if (sprite != null) sprite.idle();
 
-        // TODO remake logic
-		if (Actor.chars().contains(this) && Dungeon.level.heroFOV[pos]) {
-			enemy = Dungeon.hero;
-			target = Dungeon.hero.pos;
+		// Обновляем цель — ближайший видимый герой
+		Hero nearest = Multiplayer.findNearestHero(pos);
+		if (nearest != null) {
+			enemy = nearest;
+			target = nearest.pos;
+		} else {
+			// Если никого нет, сбрасываем цель
+			enemy = null;
+			target = -1;
+		}
 
-            // TODO Only if visible for local player
-			GLog.w(Messages.get(this, "reveal") );
+		// Локальные эффекты только для видимого локального игрока
+		Hero local = Multiplayer.localHero();
+		if (local != null && local.fieldOfView != null && local.fieldOfView[pos]) {
+			GLog.w(Messages.get(this, "reveal"));
 			CellEmitter.get(pos).burst(Speck.factory(Speck.STAR), 10);
 			Sample.INSTANCE.play(Assets.Sounds.MIMIC);
 		}

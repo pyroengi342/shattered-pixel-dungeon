@@ -136,7 +136,7 @@ public class PowerOfMany extends ArmorAbility {
 				return;
 			}
 
-			if (!Dungeon.level.heroFOV[target]){
+			if (!hero.fieldOfView[target]){
 				GLog.w(Messages.get(this, "no_vision"));
 				return;
 			}

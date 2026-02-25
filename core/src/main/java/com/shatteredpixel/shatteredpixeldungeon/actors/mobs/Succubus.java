@@ -29,6 +29,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Charm;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Light;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
@@ -45,6 +46,8 @@ import com.watabou.utils.Bundle;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 import com.watabou.utils.Reflection;
+
+import network.Multiplayer;
 
 import java.util.ArrayList;
 
@@ -85,20 +88,22 @@ public class Succubus extends Mob {
 					sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(5-shield), FloatingText.HEALING);
 				}
 
-				Buff.affect(this, Barrier.class).setShield(shield);
+				Buff.affect(this, Barrier.class, this).setShield(shield);
 				sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(shield), FloatingText.SHIELDING);
 			} else {
 				HP += 5 + damage;
 				sprite.showStatusWithIcon(CharSprite.POSITIVE, "5", FloatingText.HEALING);
 			}
-			if (Dungeon.level.heroFOV[pos]) {
+			Hero local = Multiplayer.localHero();
+			if (local != null && local.fieldOfView != null && local.fieldOfView[pos]) {
 				Sample.INSTANCE.play( Assets.Sounds.CHARMS );
 			}
 		} else if (Random.Int( 3 ) == 0) {
 			Charm c = Buff.affect( enemy, Charm.class, Charm.DURATION/2f );
 			c.object = id();
 			c.ignoreNextHit = true; //so that the -5 duration from succubus hit is ignored
-			if (Dungeon.level.heroFOV[enemy.pos]) {
+			Hero local = Multiplayer.localHero();
+			if (local != null && local.fieldOfView != null && local.fieldOfView[pos]) {
 				enemy.sprite.centerEmitter().start(Speck.factory(Speck.HEART), 0.2f, 5);
 				Sample.INSTANCE.play(Assets.Sounds.CHARMS);
 			}

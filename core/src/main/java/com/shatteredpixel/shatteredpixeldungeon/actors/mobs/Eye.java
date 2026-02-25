@@ -47,6 +47,8 @@ import com.watabou.utils.Bundle;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
+import network.Multiplayer;
+
 public class Eye extends Mob {
 	
 	{
@@ -138,8 +140,13 @@ public class Eye extends Mob {
 		} else {
 
 			spend( attackDelay() );
-			
-			if (Dungeon.level.heroFOV[pos] || Dungeon.level.heroFOV[beam.collisionPos] ) {
+
+			// Проверка видимости для локального игрока
+			Hero local = Multiplayer.localHero();
+			boolean visibleToLocal = local != null && local.fieldOfView != null &&
+					(local.fieldOfView[pos] || local.fieldOfView[beam.collisionPos]);
+
+			if (sprite != null && (sprite.visible || visibleToLocal)) {
 				sprite.zap( beam.collisionPos );
 				return false;
 			} else {
@@ -148,7 +155,6 @@ public class Eye extends Mob {
 				return true;
 			}
 		}
-
 	}
 
 	@Override
@@ -176,55 +182,64 @@ public class Eye extends Mob {
 		boolean terrainAffected = false;
 
 		Invisibility.dispel(this);
+
+		Hero local = Multiplayer.localHero(); // для проверки видимости
+
 		for (int pos : beam.subPath(1, beam.dist)) {
 
 			if (Dungeon.level.flamable[pos]) {
-
-				Dungeon.level.destroy( pos );
-				GameScene.updateMap( pos );
+				Dungeon.level.destroy(pos);
+				GameScene.updateMap(pos);
 				terrainAffected = true;
-
 			}
 
-			Char ch = Actor.findChar( pos );
+			Char ch = Actor.findChar(pos);
 			if (ch == null) {
 				continue;
 			}
 
-			if (hit( this, ch, true )) {
-				int dmg = Random.NormalIntRange( 30, 50 );
+			if (hit(this, ch, true)) {
+				int dmg = Random.NormalIntRange(30, 50);
 				dmg = Math.round(dmg * AscensionChallenge.statModifier(this));
 
-				//logic for fists or Yog-Dzewa taking 1/2 or 1/4 damage from aggression stoned minions
-				if ( ch.buff(StoneOfAggression.Aggression.class) != null
+				// Уменьшение урона для миньонов с камнем агрессии
+				if (ch.buff(StoneOfAggression.Aggression.class) != null
 						&& ch.alignment == alignment
-						&& (Char.hasProp(ch, Property.BOSS) || Char.hasProp(ch, Property.MINIBOSS))){
+						&& (Char.hasProp(ch, Property.BOSS) || Char.hasProp(ch, Property.MINIBOSS))) {
 					dmg *= 0.5f;
-					if (ch instanceof YogDzewa){
+					if (ch instanceof YogDzewa) {
 						dmg *= 0.5f;
 					}
 				}
 
-				ch.damage( dmg, new DeathGaze() );
+				ch.damage(dmg, new DeathGaze());
 
-				if (Dungeon.level.heroFOV[pos]) {
+				// Визуальные эффекты только для локального игрока
+				if (local != null && local.fieldOfView != null && local.fieldOfView[pos]) {
 					ch.sprite.flash();
-					CellEmitter.center( pos ).burst( PurpleParticle.BURST, Random.IntRange( 1, 2 ) );
+					CellEmitter.center(pos).burst(PurpleParticle.BURST, Random.IntRange(1, 2));
 				}
 
 				if (!ch.isAlive() && ch instanceof Hero) {
-					Badges.validateDeathFromEnemyMagic();
-					Dungeon.fail( this );
-					GLog.n( Messages.get(this, "deathgaze_kill") );
+					Hero deadHero = (Hero) ch;
+					// Проверяем, является ли умерший герой локальным
+					if (local != null && local == deadHero) {
+						Badges.validateDeathFromEnemyMagic();
+						Dungeon.fail(this);
+						GLog.n(Messages.get(this, "deathgaze_kill"));
+					}
+					// TODO: для мультиплеера отправить событие смерти другим игрокам
 				}
 			} else {
-				ch.sprite.showStatus( CharSprite.NEUTRAL,  ch.defenseVerb() );
+				// Сообщение о промахе тоже только локально
+				if (local != null && local.fieldOfView != null && local.fieldOfView[pos]) {
+					ch.sprite.showStatus(CharSprite.NEUTRAL, ch.defenseVerb());
+				}
 			}
 		}
 
 		if (terrainAffected) {
-            // Object destruction affects all
-			Dungeon.observeAll();
+			Dungeon.observeAll(); // этот метод уже адаптирован под мультиплеер
 		}
 
 		beam = null;
