@@ -39,6 +39,8 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Callback;
 
+import network.Multiplayer;
+
 public class GrimTrap extends Trap {
 
 	{
@@ -101,7 +103,9 @@ public class GrimTrap extends Trap {
 					}
 
 					final int finalDmg = damage;
-					if (Dungeon.level.heroFOV[pos] || Dungeon.level.heroFOV[target.pos]) {
+					Hero local = Multiplayer.localHero();
+					if (local != null && local.fieldOfView != null &&
+							(local.fieldOfView[pos] || local.fieldOfView[target.pos])) {
 						((MagicMissile)finalTarget.sprite.parent.recycle(MagicMissile.class)).reset(
 								MagicMissile.SHADOW,
 								DungeonTilemap.tileCenterToWorld(pos),

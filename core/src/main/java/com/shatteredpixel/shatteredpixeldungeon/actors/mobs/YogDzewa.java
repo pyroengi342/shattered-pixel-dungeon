@@ -517,12 +517,8 @@ public class YogDzewa extends Mob {
 		}
 		level.viewDistance = viewDistance;
 
-		if (Dungeon.hero != null) {
-			if (Dungeon.hero.buff(Light.class) == null) {
-				Dungeon.hero.viewDistance = level.viewDistance;
-			}
-			Dungeon.observeAll();
-		}
+		// Обновляем поле зрения всех живых героев
+		Dungeon.observeAll();
 	}
 
 	private YogFist findFist(){

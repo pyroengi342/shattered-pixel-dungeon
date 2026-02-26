@@ -37,6 +37,8 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.PathFinder;
 
+import network.Multiplayer;
+
 import java.util.ArrayList;
 
 public class PotionOfPurity extends Potion {
@@ -71,7 +73,8 @@ public class PotionOfPurity extends Potion {
 					blob.clear(i);
 				}
 				
-				if (Dungeon.level.heroFOV[i]) {
+				Hero local = Multiplayer.localHero();
+				if (local != null && local.fieldOfView != null && local.fieldOfView[cell]) {
 					CellEmitter.get( i ).burst( Speck.factory( Speck.DISCOVER ), 2 );
 				}
 				
@@ -80,7 +83,8 @@ public class PotionOfPurity extends Potion {
 
 
 		splash( cell );
-		if (Dungeon.level.heroFOV[cell]) {
+			Hero local = Multiplayer.localHero();
+			if (local != null && local.fieldOfView != null && local.fieldOfView[cell]) {
 			Sample.INSTANCE.play(Assets.Sounds.SHATTER);
 
 			identify();

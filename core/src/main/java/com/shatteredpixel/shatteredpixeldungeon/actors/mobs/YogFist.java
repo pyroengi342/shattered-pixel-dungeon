@@ -63,6 +63,8 @@ import com.watabou.utils.Bundle;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
+import network.Multiplayer;
+
 public abstract class YogFist extends Mob {
 
 	{
@@ -91,15 +93,30 @@ public abstract class YogFist extends Mob {
 	@Override
 	protected boolean act() {
 		if (paralysed <= 0 && rangedCooldown > 0) rangedCooldown--;
-		if (Dungeon.hero.invisible <= 0 && state == WANDERING){
-			beckon(Dungeon.hero.pos);
-			state = HUNTING;
-			enemy = Dungeon.hero;
+
+		if (state == WANDERING) {
+			// Ищем ближайшего не-невидимого героя
+			Hero nearestVisible = null;
+			float minDist = Float.MAX_VALUE;
+			for (Multiplayer.PlayerInfo info : Multiplayer.Players.getAll()) {
+				Hero h = info.hero;
+				if (h != null && h.isAlive() && h.invisible <= 0) {
+					float dist = Dungeon.level.trueDistance(pos, h.pos);
+					if (dist < minDist) {
+						minDist = dist;
+						nearestVisible = h;
+					}
+				}
+			}
+			if (nearestVisible != null) {
+				beckon(nearestVisible.pos);
+				state = HUNTING;
+				enemy = nearestVisible;
+			}
 		}
 
 		return super.act();
 	}
-
 	@Override
 	protected boolean canAttack(Char enemy) {
 		if (rangedCooldown <= 0){
@@ -151,10 +168,18 @@ public abstract class YogFist extends Mob {
 		super.damage(dmg, src);
 		int dmgTaken = preHP - HP;
 
-		LockedFloor lock = Dungeon.hero.buff(LockedFloor.class);
-		if (dmgTaken > 0 && lock != null && !isImmune(src.getClass()) && !isInvulnerable(src.getClass())){
-			if (Dungeon.isChallenged(Challenges.STRONGER_BOSSES))   lock.addTime(dmgTaken/4f);
-			else                                                    lock.addTime(dmgTaken/2f);
+		if (dmgTaken > 0 && !isImmune(src.getClass()) && !isInvulnerable(src.getClass())) {
+			float timeToAdd = dmgTaken / (Dungeon.isChallenged(Challenges.STRONGER_BOSSES) ? 4f : 2f);
+			// Добавляем время всем живым героям с баффом LockedFloor
+			for (Multiplayer.PlayerInfo info : Multiplayer.Players.getAll()) {
+				Hero h = info.hero;
+				if (h != null && h.isAlive()) {
+					LockedFloor lock = h.buff(LockedFloor.class);
+					if (lock != null) {
+						lock.addTime(timeToAdd);
+					}
+				}
+			}
 		}
 	}
 
@@ -532,23 +557,51 @@ public abstract class YogFist extends Mob {
 		public void damage(int dmg, Object src) {
 			int beforeHP = HP;
 			super.damage(dmg, src);
-			if (isAlive() && beforeHP > HT/2 && HP < HT/2){
-				HP = HT/2;
-				Buff.prolong( Dungeon.hero, Blindness.class, Blindness.DURATION*1.5f );
+			
+			if (isAlive() && beforeHP > HT / 2 && HP < HT / 2) {
+				HP = HT / 2;
+				
+				// Ослепляем всех живых героев
+				for (Multiplayer.PlayerInfo info : Multiplayer.Players.getAll()) {
+					Hero h = info.hero;
+					if (h != null && h.isAlive()) {
+						Buff.prolong(h, Blindness.class, Blindness.DURATION * 1.5f, this);
+					}
+				}
+				
+				// Ищем свободную клетку, не видимую ни одному герою
 				int i;
 				do {
 					i = Random.Int(Dungeon.level.length());
-				} while (Dungeon.level.heroFOV[i]
+				} while (Multiplayer.isVisibleToAnyHero(i)
 						|| Dungeon.level.solid[i]
 						|| Actor.findChar(i) != null
 						|| PathFinder.getStep(i, Dungeon.level.exit(), Dungeon.level.passable) == -1);
+				
 				ScrollOfTeleportation.appear(this, i);
 				state = WANDERING;
-				GameScene.flash(0x80FFFFFF);
-				GLog.w( Messages.get( this, "teleport" ));
-			} else if (!isAlive()){
-				Buff.prolong( Dungeon.hero, Blindness.class, Blindness.DURATION*3f );
-				GameScene.flash(0x80FFFFFF);
+				
+				// Визуальные эффекты только для локального игрока, если он видит моба
+				Hero local = Multiplayer.localHero();
+				if (local != null && local.fieldOfView != null && local.fieldOfView[pos]) {
+					GameScene.flash(0x80FFFFFF);
+					GLog.w(Messages.get(this, "teleport"));
+				}
+				// TODO: в мультиплеере, возможно, нужно отправить сообщение о телепортации всем игрокам по сети
+				
+			} else if (!isAlive()) {
+				// Ослепляем всех при смерти моба
+					for (Multiplayer.PlayerInfo info : Multiplayer.Players.getAll()) {
+						Hero h = info.hero;
+						if (h != null && h.isAlive()) {
+							Buff.prolong(h, Blindness.class, Blindness.DURATION * 3f, this);
+						}
+					}
+				
+				Hero local = Multiplayer.localHero();
+				if (local != null && local.fieldOfView != null && local.fieldOfView[pos]) {
+					GameScene.flash(0x80FFFFFF);
+				}
 			}
 		}
 
@@ -602,29 +655,51 @@ public abstract class YogFist extends Mob {
 		public void damage(int dmg, Object src) {
 			int beforeHP = HP;
 			super.damage(dmg, src);
-			if (isAlive() && beforeHP > HT/2 && HP < HT/2){
-				HP = HT/2;
-				Light l = Dungeon.hero.buff(Light.class);
-				if (l != null){
-					l.detach();
-				}
+			if (isAlive() && beforeHP > HT / 2 && HP < HT / 2) {
+				HP = HT / 2;
+
+				// Снимаем свет со всех живых героев
+					for (Multiplayer.PlayerInfo info : Multiplayer.Players.getAll()) {
+						Hero h = info.hero;
+						if (h != null && h.isAlive()) {
+							Light l = h.buff(Light.class);
+							if (l != null) l.detach();
+						}
+					}
+
+				// Ищем свободную клетку, невидимую ни одному герою
 				int i;
 				do {
 					i = Random.Int(Dungeon.level.length());
-				} while (Dungeon.level.heroFOV[i]
+				} while (Multiplayer.isVisibleToAnyHero(i)
 						|| Dungeon.level.solid[i]
 						|| Actor.findChar(i) != null
 						|| PathFinder.getStep(i, Dungeon.level.exit(), Dungeon.level.passable) == -1);
+
 				ScrollOfTeleportation.appear(this, i);
 				state = WANDERING;
-				GameScene.flash(0, false);
-				GLog.w( Messages.get( this, "teleport" ));
-			} else if (!isAlive()){
-				Light l = Dungeon.hero.buff(Light.class);
-				if (l != null){
-					l.detach();
+
+				// Визуальные эффекты только для локального игрока, если он видит моба
+				Hero local = Multiplayer.localHero();
+				if (local != null && local.fieldOfView != null && local.fieldOfView[pos]) {
+					GameScene.flash(0, false);
+					GLog.w(Messages.get(this, "teleport"));
 				}
-				GameScene.flash(0, false);
+
+			} else if (!isAlive()) {
+				// Снимаем свет со всех живых героев
+					for (Multiplayer.PlayerInfo info : Multiplayer.Players.getAll()) {
+						Hero h = info.hero;
+						if (h != null && h.isAlive()) {
+							Light l = h.buff(Light.class);
+							if (l != null) l.detach();
+						}
+					}
+
+				Hero local = Multiplayer.localHero();
+				if (local != null && local.fieldOfView != null && local.fieldOfView[pos]) {
+					GameScene.flash(0, false);
+				}
 			}
 		}
 

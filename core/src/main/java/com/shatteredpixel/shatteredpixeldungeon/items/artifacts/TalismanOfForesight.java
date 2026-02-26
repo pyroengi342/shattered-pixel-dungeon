@@ -50,6 +50,8 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
 
+import network.Multiplayer;
+
 import java.util.ArrayList;
 
 public class TalismanOfForesight extends Artifact {
@@ -327,7 +329,7 @@ public class TalismanOfForesight extends Artifact {
 			for (int y = ay; y <= by; y++) {
 				for (int x = ax, p = ax + y * Dungeon.level.width(); x <= bx; x++, p++) {
 
-					if (Dungeon.level.heroFOV[p]
+					if (curUser.fieldOfView[p]
 							&& Dungeon.level.secret[p]
 							&& Dungeon.level.map[p] != Terrain.SECRET_DOOR) {
 						if (Dungeon.level.traps.get(p) != null && Dungeon.level.traps.get(p).canBeSearched) {

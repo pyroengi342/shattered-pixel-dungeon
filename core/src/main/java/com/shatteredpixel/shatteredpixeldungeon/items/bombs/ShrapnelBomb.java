@@ -32,6 +32,8 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.watabou.utils.Point;
 import com.watabou.utils.Random;
 
+import network.Multiplayer;
+
 import java.util.ArrayList;
 
 public class ShrapnelBomb extends Bomb {
@@ -62,7 +64,8 @@ public class ShrapnelBomb extends Bomb {
 		
 		for (int i = 0; i < FOV.length; i++) {
 			if (FOV[i]) {
-				if (Dungeon.level.heroFOV[i] && !Dungeon.level.solid[i]) {
+				Hero local = Multiplayer.localHero();
+				if (local.fieldOfView[i] && !Dungeon.level.solid[i]) {
 					CellEmitter.center( i ).burst( BlastParticle.FACTORY, 5 );
 				}
 				Char ch = Actor.findChar(i);

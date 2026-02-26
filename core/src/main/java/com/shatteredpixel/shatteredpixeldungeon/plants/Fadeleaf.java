@@ -70,7 +70,8 @@ public class Fadeleaf extends Plant {
 
 		}
 		
-		if (Dungeon.level.heroFOV[pos]) {
+				Hero local = Multiplayer.localHero();
+		if (local != null && local.fieldOfView != null && local.fieldOfView[pos]) {
 			CellEmitter.get( pos ).start( Speck.factory( Speck.LIGHT ), 0.2f, 3 );
 		}
 	}

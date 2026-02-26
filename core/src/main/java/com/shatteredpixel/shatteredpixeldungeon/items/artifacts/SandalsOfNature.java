@@ -64,6 +64,8 @@ import com.watabou.utils.PointF;
 import com.watabou.utils.Random;
 import com.watabou.utils.Reflection;
 
+import network.Multiplayer;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -334,26 +336,28 @@ public class SandalsOfNature extends Artifact {
 
 		@Override
 		public void onSelect(Integer cell) {
-			if (cell != null){
-
-				if (!Dungeon.level.heroFOV[cell] || Dungeon.level.distance(curUser.pos, cell) > 3){
-					GLog.w(Messages.get(SandalsOfNature.class, "out_of_range"));
+			if (cell != null) {
+				// Используем поле зрения текущего пользователя
+				if (!curUser.fieldOfView[cell] || Dungeon.level.distance(curUser.pos, cell) > 3) {
+					// Сообщение об ошибке показываем только локальному игроку
+					if (Multiplayer.localHero() == curUser) {
+						GLog.w(Messages.get(SandalsOfNature.class, "out_of_range"));
+					}
 				} else {
-
 					Ballistica aim = new Ballistica(curUser.pos, cell, Ballistica.STOP_TARGET);
-					for (int c : aim.subPath(0, aim.dist)){
-						CellEmitter.get( c ).burst( LeafParticle.GENERAL, 6 );
+					for (int c : aim.subPath(0, aim.dist)) {
+						CellEmitter.get(c).burst(LeafParticle.GENERAL, 6);
 					}
 
-					Splash.at(DungeonTilemap.tileCenterToWorld( cell ), -PointF.PI/2, PointF.PI/2, seedColors.get(curSeedEffect), 6);
+					Splash.at(DungeonTilemap.tileCenterToWorld(cell), -PointF.PI/2, PointF.PI/2, seedColors.get(curSeedEffect), 6);
 					Invisibility.dispel(curUser);
 
 					Plant plant = ((Plant.Seed) Reflection.newInstance(curSeedEffect)).couch(cell, null);
 					plant.activate(Actor.findChar(cell));
 					Sample.INSTANCE.play(Assets.Sounds.PLANT);
-					Sample.INSTANCE.playDelayed(Assets.Sounds.TRAMPLE, 0.25f, 1, Random.Float( 0.96f, 1.05f ) );
+					Sample.INSTANCE.playDelayed(Assets.Sounds.TRAMPLE, 0.25f, 1, Random.Float(0.96f, 1.05f));
 
-					if (Actor.findChar(cell) != null){
+					if (Actor.findChar(cell) != null) {
 						artifactProc(Actor.findChar(cell), visiblyUpgraded(), seedChargeReqs.get(curSeedEffect));
 					}
 

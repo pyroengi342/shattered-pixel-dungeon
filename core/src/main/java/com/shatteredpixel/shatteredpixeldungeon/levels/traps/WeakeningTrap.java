@@ -26,9 +26,12 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Weakness;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShadowParticle;
+
+import network.Multiplayer;
 
 public class WeakeningTrap extends Trap{
 
@@ -39,7 +42,8 @@ public class WeakeningTrap extends Trap{
 
 	@Override
 	public void activate() {
-		if (Dungeon.level.heroFOV[ pos ]){
+		Hero local = Multiplayer.localHero();
+		if (local != null && local.fieldOfView != null && local.fieldOfView[pos]) {
 			CellEmitter.get(pos).burst(ShadowParticle.UP, 5);
 		}
 
@@ -47,11 +51,11 @@ public class WeakeningTrap extends Trap{
 		if (ch != null){
 			if (ch.properties().contains(Char.Property.BOSS)
 				|| ch.properties().contains(Char.Property.MINIBOSS)){
-				Buff.prolong( ch, Weakness.class, Weakness.DURATION/2f );
+				Buff.prolong( ch, Weakness.class, Weakness.DURATION/2f, this );
 			}
-			Buff.prolong( ch, Weakness.class, Weakness.DURATION*3f );
+			Buff.prolong( ch, Weakness.class, Weakness.DURATION*3f, this );
 			if (ch instanceof Mob){
-				Buff.prolong(ch, Trap.HazardAssistTracker.class, HazardAssistTracker.DURATION);
+				Buff.prolong(ch, Trap.HazardAssistTracker.class, HazardAssistTracker.DURATION, this);
 			}
 		}
 	}

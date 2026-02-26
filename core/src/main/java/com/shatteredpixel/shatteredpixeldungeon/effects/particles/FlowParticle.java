@@ -29,6 +29,8 @@ import com.watabou.noosa.particles.PixelParticle;
 import com.watabou.utils.PointF;
 import com.watabou.utils.Random;
 
+import network.Multiplayer;
+
 public class FlowParticle extends PixelParticle {
 
 	public static final Emitter.Factory FACTORY = new Factory() {
@@ -86,7 +88,7 @@ public class FlowParticle extends PixelParticle {
 		@Override
 		public void update() {
 			
-			if (visible = (pos < Dungeon.level.heroFOV.length && Dungeon.level.heroFOV[pos])) {
+			if (visible = (pos < Multiplayer.localHero().fieldOfView.length && Multiplayer.localHero().fieldOfView[pos])) {
 				
 				super.update();
 

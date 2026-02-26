@@ -33,6 +33,8 @@ import com.watabou.noosa.Visual;
 import com.watabou.utils.Callback;
 import com.watabou.utils.PointF;
 
+import network.Multiplayer;
+
 public class Pushing extends Actor {
 
 	private CharSprite sprite;
@@ -70,7 +72,7 @@ public class Pushing extends Actor {
 		Actor.remove( Pushing.this );
 
 		if (sprite != null && sprite.parent != null) {
-			if (Dungeon.level.heroFOV[from] || Dungeon.level.heroFOV[to]){
+			if (Multiplayer.localHero().fieldOfView[from] || Multiplayer.localHero().fieldOfView[to]){
 				sprite.visible = true;
 			}
 			if (effect == null) {

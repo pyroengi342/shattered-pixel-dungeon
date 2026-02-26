@@ -44,7 +44,8 @@ public class AlarmTrap extends Trap {
 				mob.beckon( pos );
 		}
 
-		if (Dungeon.level.heroFOV[pos]) {
+				Hero local = Multiplayer.localHero();
+		if (local != null && local.fieldOfView != null && local.fieldOfView[pos]) {
 			GLog.w( Messages.get(this, "alarm") );
 			CellEmitter.center( pos ).start( Speck.factory( Speck.SCREAM ), 0.3f, 3 );
 		}

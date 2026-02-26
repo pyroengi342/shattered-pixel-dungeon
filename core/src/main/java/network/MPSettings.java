@@ -3,9 +3,9 @@ package network;
 import com.watabou.utils.GameSettings;
 public class MPSettings extends GameSettings{
     public static final String KEY_MULTIPLAYER_HOST = "multiplayer_host";
-    public static final String KEY_MULTIPLAYER_IP = "multiplayer_ip";
+    public static final String KEY_MULTIPLAYER_IP   = "multiplayer_ip";
     public static final String KEY_MULTIPLAYER_PORT = "multiplayer_port";
-    public static final String KEY_MAX_PLAYERS = "max_players";
+    public static final String KEY_MAX_PLAYERS      = "max_players";
 
     public static void multiplayerHost(boolean value) {
         put(KEY_MULTIPLAYER_HOST, value);

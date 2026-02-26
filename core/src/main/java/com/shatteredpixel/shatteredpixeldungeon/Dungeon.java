@@ -260,7 +260,7 @@ public class Dungeon {
 		Statistics.reset();
 		Notes.reset();
 
-		quickslot.reset();
+		// quickslot.reset();
 		QuickSlotButton.reset();
 		Toolbar.swappedQuickslots = false;
 		
@@ -282,45 +282,35 @@ public class Dungeon {
 		Blacksmith.Quest.reset();
 		Imp.Quest.reset();
 
-            // Проверяем, есть ли уже игроки (включая администратора)
-            List<Multiplayer.PlayerInfo> players = Multiplayer.Players.getAll();
-            boolean hasHostHero = false;
-
-            for (Multiplayer.PlayerInfo player : players) {
-                if (player.hero != null) {
-                    hasHostHero = true;
-                    break;
-                }
+        // Проверяем, есть ли уже игроки (включая администратора)
+        List<Multiplayer.PlayerInfo> players = Multiplayer.Players.getAll();
+        boolean hasHostHero = false;
+        for (Multiplayer.PlayerInfo player : players) {
+            if (player.hero != null) {
+                hasHostHero = true;
+                break;
             }
-
-            // Если у администратора еще нет героя, создаем его
-            if (Multiplayer.isHost && !hasHostHero && !players.isEmpty()) {
-                Multiplayer.PlayerInfo host = players.get(0);
-                host.hero = new Hero();
-                host.hero.live();
-                GamesInProgress.selectedClass.initHero(host.hero);
-                System.out.println("Created hero for host in init()");
-            }
-            // TODO need to add more checks
-            // Adding every connected player right now
-            for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
-
-                player.hero = new Hero();
-                player.hero.live();
-//                if (player.hero.heroClass != null) {
-//                    player.hero.heroClass.initHero(player.hero);
-//                } else {
-//                    // Если класс не выбран, используем класс по умолчанию
-//                    player.hero.heroClass = HeroClass.WARRIOR;
-//                    player.hero.heroClass.initHero(player.hero); // или другой класс по умолчанию
-//                }
-
-                System.out.println("Created hero for player: " + player.name + " (ID: " + player.id + ")");
-                GamesInProgress.selectedClass.initHero( player.hero );
-            }
+        }
+        // Если у администратора еще нет героя, создаем его
+        if (Multiplayer.isHost && !hasHostHero && !players.isEmpty()) {
+            Multiplayer.PlayerInfo host = players.get(0);
+            host.hero = new Hero();
+            host.hero.live();
+            GamesInProgress.selectedClass.initHero(host.hero);
+            System.out.println("Created hero for host in init()");
+        }
+        // TODO need to add more checks
+        // Adding every connected player right now
+        for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+			if (player.hero == null) {
+				player.hero = new Hero();
+				player.hero.live();
+				System.out.println("Created hero for player: " + player.name + " (ID: " + player.id + ")");
+				GamesInProgress.selectedClass.initHero( player.hero );
+			}
+        }
 
         Badges.reset();
-
         // TODO better show the player you actually play
         // GamesInProgress.selectedClass.initHero( hero );
 	}
@@ -558,37 +548,6 @@ public class Dungeon {
                     player.hero.curAction = player.hero.lastAction = null;
                 }
             }
-        } else {
-            // ОДИНОЧНАЯ ИГРА: оригинальная логика
-            //Place hero at the entrance if they are out of the map
-            if (pos < 0 || pos >= level.length() || level.invalidHeroPos(pos)) {
-                pos = level.getTransition(null).cell();
-            }
-
-            hero.pos = pos;
-
-            if (hero.buff(AscensionChallenge.class) != null) {
-                hero.buff(AscensionChallenge.class).onLevelSwitch(hero);
-            }
-
-            Mob.restoreAllies(level, pos);
-
-            for (Mob m : level.mobs) {
-                if (m.pos == hero.pos && !Char.hasProp(m, Char.Property.IMMOVABLE)) {
-                    //displace mob
-                    for (int i : PathFinder.NEIGHBOURS8) {
-                        if (Actor.findChar(m.pos + i) == null && level.passable[m.pos + i]) {
-                            m.pos += i;
-                            break;
-                        }
-                    }
-                }
-            }
-
-            Light light = hero.buff(Light.class);
-            hero.viewDistance = light == null ? level.viewDistance : Math.max(Light.DISTANCE, level.viewDistance);
-
-            hero.curAction = hero.lastAction = null;
         }
 
         Actor.init();
@@ -603,64 +562,6 @@ public class Dungeon {
             ShatteredPixelDungeon.reportException(e);
         }
     }
-
-
-//    public static void switchLevel( final Level level, int pos ) {
-//
-//		//Position of -2 specifically means trying to place the hero the exit
-//		if (pos == -2){
-//			LevelTransition t = level.getTransition(LevelTransition.Type.REGULAR_EXIT);
-//			if (t != null) pos = t.cell();
-//		}
-//
-//		//Place hero at the entrance if they are out of the map (often used for pos = -1)
-//		// or if they are in invalid terrain terrain (except in the mining level, where that happens normally)
-//		if (pos < 0 || pos >= level.length() || level.invalidHeroPos(pos)){
-//			pos = level.getTransition(null).cell();
-//		}
-//
-//		PathFinder.setMapSize(level.width(), level.height());
-//
-//		Dungeon.level = level;
-//
-//		hero.pos = pos;
-//
-//		if (hero.buff(AscensionChallenge.class) != null){
-//			hero.buff(AscensionChallenge.class).onLevelSwitch();
-//		}
-//
-//		Mob.restoreAllies( level, pos );
-//
-//		Actor.init();
-//
-//		level.addRespawner();
-//
-//		for(Mob m : level.mobs){
-//			if (m.pos == hero.pos && !Char.hasProp(m, Char.Property.IMMOVABLE)){
-//				//displace mob
-//				for(int i : PathFinder.NEIGHBOURS8){
-//					if (Actor.findChar(m.pos+i) == null && level.passable[m.pos + i]){
-//						m.pos += i;
-//						break;
-//					}
-//				}
-//			}
-//		}
-//
-//		Light light = hero.buff( Light.class );
-//		hero.viewDistance = light == null ? level.viewDistance : Math.max( Light.DISTANCE, level.viewDistance );
-//
-//		hero.curAction = hero.lastAction = null;
-//
-//		observe();
-//		try {
-//			saveAll();
-//		} catch (IOException e) {
-//			ShatteredPixelDungeon.reportException(e);
-//			/*This only catches IO errors. Yes, this means things can go wrong, and they can go wrong catastrophically.
-//			But when they do the user will get a nice 'report this issue' dialogue, and I can fix the bug.*/
-//		}
-//	}
 
 	public static void dropToChasm( Item item ) {
 		int depth = Dungeon.depth + 1;
@@ -790,7 +691,7 @@ public class Dungeon {
 				bundle.put(Messages.format(DROPPED, d), droppedItems.get(d));
 			}
 
-			quickslot.storePlaceholders( bundle );
+			// quickslot.storePlaceholders( bundle );
 
 			Bundle limDrops = new Bundle();
 			LimitedDrops.store( limDrops );
@@ -880,7 +781,7 @@ public class Dungeon {
 		Actor.clear();
 		Actor.restoreNextID( bundle );
 
-		quickslot.reset();
+		// quickslot.reset();
 		QuickSlotButton.reset();
 		Toolbar.swappedQuickslots = false;
 
@@ -894,7 +795,7 @@ public class Dungeon {
 		Potion.restore( bundle );
 		Ring.restore( bundle );
 
-		quickslot.restorePlaceholders( bundle );
+		// quickslot.restorePlaceholders( bundle );
 		
 		if (fullLoad) {
 			
@@ -1026,8 +927,8 @@ public class Dungeon {
 
 		updateLevelExplored();
 		Statistics.gameWon = true;
-
-		hero.belongings.identify();
+		// TODO this
+		// hero.belongings.identify();
 
 		Rankings.INSTANCE.submit( true, cause );
 	}
@@ -1176,7 +1077,6 @@ public class Dungeon {
 
 	//we store this to avoid having to re-allocate the array with each pathfind
 	private static boolean[] passable;
-    public static Object hero;
 
 	private static void setupPassable(){
 		if (passable == null || passable.length != Dungeon.level.length())

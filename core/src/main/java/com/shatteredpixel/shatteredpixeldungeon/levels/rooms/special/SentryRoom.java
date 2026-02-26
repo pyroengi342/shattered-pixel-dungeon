@@ -248,7 +248,8 @@ public class SentryRoom extends SpecialRoom {
 
 		@Override
     	protected boolean act() {
-			if (Dungeon.level.heroFOV[pos]){
+					Hero local = Multiplayer.localHero();
+		if (local != null && local.fieldOfView != null && local.fieldOfView[pos]) {
 				Bestiary.setSeen(getClass());
 			}
 

@@ -54,7 +54,8 @@ public class Rotberry extends Plant {
 	public void wither() {
 		Dungeon.level.uproot( pos );
 		
-		if (Dungeon.level.heroFOV[pos]) {
+				Hero local = Multiplayer.localHero();
+		if (local != null && local.fieldOfView != null && local.fieldOfView[pos]) {
 			CellEmitter.get( pos ).burst( LeafParticle.GENERAL, 6 );
 		}
 

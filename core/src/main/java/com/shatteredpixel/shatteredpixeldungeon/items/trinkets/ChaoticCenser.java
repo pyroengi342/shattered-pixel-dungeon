@@ -180,7 +180,7 @@ public class ChaoticCenser extends Trinket {
 
 		//spawn gas in a random visible cell 2-6 tiles away
 		for (int i = 0; i < Dungeon.level.length(); i++){
-			if (Dungeon.level.heroFOV[i] && PathFinder.distance[i] < Integer.MAX_VALUE) {
+			if (curUser.fieldOfView[i] && PathFinder.distance[i] < Integer.MAX_VALUE) {
 				if (PathFinder.distance[i] >= 2 && PathFinder.distance[i] <= 6) {
 					candidateCells.put(i, 0f);
 				}

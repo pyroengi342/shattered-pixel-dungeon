@@ -23,10 +23,13 @@ package com.shatteredpixel.shatteredpixeldungeon.effects;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap;
 import com.watabou.noosa.particles.Emitter;
 import com.watabou.utils.Random;
 import com.watabou.utils.RectF;
+
+import network.Multiplayer;
 
 public class BlobEmitter extends Emitter {
 	
@@ -43,24 +46,29 @@ public class BlobEmitter extends Emitter {
 	public RectF bound = new RectF(0, 0, 1, 1);
 	
 	@Override
-	protected void emit( int index ) {
-		
+	protected void emit(int index) {
 		if (blob.volume <= 0) {
 			return;
 		}
 
-		if (blob.area.isEmpty())
+		if (blob.area.isEmpty()) {
 			blob.setupArea();
-		
+		}
+
 		int[] map = blob.cur;
 		float size = DungeonTilemap.SIZE;
+
+		Hero local = Multiplayer.localHero();
+		if (local == null || local.fieldOfView == null) {
+			return; // нет локального героя – нечего отрисовывать
+		}
 
 		int cell;
 		for (int i = blob.area.left; i < blob.area.right; i++) {
 			for (int j = blob.area.top; j < blob.area.bottom; j++) {
-				cell = i + j*Dungeon.level.width();
-				if (cell < Dungeon.level.heroFOV.length
-						&& (Dungeon.level.heroFOV[cell] || blob.alwaysVisible)
+				cell = i + j * Dungeon.level.width();
+				if (cell >= 0 && cell < local.fieldOfView.length
+						&& (blob.alwaysVisible || local.fieldOfView[cell])
 						&& map[cell] > 0) {
 					float x = (i + Random.Float(bound.left, bound.right)) * size;
 					float y = (j + Random.Float(bound.top, bound.bottom)) * size;

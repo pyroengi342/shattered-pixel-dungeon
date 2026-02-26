@@ -34,6 +34,8 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Callback;
 
+import network.Multiplayer;
+
 public class Greataxe extends MeleeWeapon {
 
 	{
@@ -67,7 +69,9 @@ public class Greataxe extends MeleeWeapon {
 	@Override
 	protected void duelistAbility(Hero hero, Integer target) {
 		if (hero.HP / (float)hero.HT >= 0.5f){
-			GLog.w(Messages.get(this, "ability_cant_use"));
+			if (Multiplayer.localHero() == hero) {
+				GLog.w(Messages.get(this, "ability_cant_use"));
+			}
 			return;
 		}
 
@@ -76,14 +80,18 @@ public class Greataxe extends MeleeWeapon {
 		}
 
 		Char enemy = Actor.findChar(target);
-		if (enemy == null || enemy == hero || hero.isCharmedBy(enemy) || !Dungeon.level.heroFOV[target]) {
-			GLog.w(Messages.get(this, "ability_no_target"));
+		if (enemy == null || enemy == hero || hero.isCharmedBy(enemy) || !hero.fieldOfView[target]) {
+			if (Multiplayer.localHero() == hero) {
+				GLog.w(Messages.get(this, "ability_no_target"));
+			}
 			return;
 		}
 
 		hero.belongings.abilityWeapon = this;
 		if (!hero.canAttack(enemy)){
-			GLog.w(Messages.get(this, "ability_target_range"));
+			if (Multiplayer.localHero() == hero) {
+				GLog.w(Messages.get(this, "ability_target_range"));
+			}
 			hero.belongings.abilityWeapon = null;
 			return;
 		}
@@ -95,14 +103,13 @@ public class Greataxe extends MeleeWeapon {
 				beforeAbilityUsed(hero, enemy);
 				AttackIndicator.target(enemy);
 
-				//+(15+(2*lvl)) damage, roughly +60% base damage, +55% scaling
-				int dmgBoost = augment.damageFactor(15 + 2*buffedLvl());
+				int dmgBoost = augment.damageFactor(15 + 2 * buffedLvl());
 
 				if (hero.attack(enemy, 1, dmgBoost, Char.INFINITE_ACCURACY)){
 					Sample.INSTANCE.play(Assets.Sounds.HIT_STRONG);
 				}
 
-				Invisibility.dispel();
+				Invisibility.dispel(hero);
 				if (!enemy.isAlive()){
 					hero.next();
 					onAbilityKill(hero, enemy);

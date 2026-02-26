@@ -39,6 +39,8 @@ import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Callback;
 import com.watabou.utils.Random;
 
+import network.Multiplayer;
+
 public class WornDartTrap extends Trap {
 
 	{
@@ -92,13 +94,17 @@ public class WornDartTrap extends Trap {
 						Buff.prolong(target, Trap.HazardAssistTracker.class, HazardAssistTracker.DURATION);
 					}
 					final Char finalTarget = target;
-					if (Dungeon.level.heroFOV[pos] || Dungeon.level.heroFOV[target.pos]) {
+
+					Hero local = Multiplayer.localHero();
+					if (local != null && local.fieldOfView != null &&
+							(local.fieldOfView[pos] || local.fieldOfView[target.pos])) {
 						((MissileSprite) ShatteredPixelDungeon.scene().recycle(MissileSprite.class)).
 								reset(pos, finalTarget.sprite, new Dart(), new Callback() {
 									@Override
 									public void call() {
 										int dmg = Random.NormalIntRange(4, 8) - finalTarget.drRoll();
 										finalTarget.damage(dmg, WornDartTrap.this);
+										// TODO validate for local player only
 										if (finalTarget instanceof Hero && !finalTarget.isAlive()){
 											Dungeon.fail( WornDartTrap.this  );
 											GLog.n(Messages.get(WornDartTrap.class, "ondeath"));

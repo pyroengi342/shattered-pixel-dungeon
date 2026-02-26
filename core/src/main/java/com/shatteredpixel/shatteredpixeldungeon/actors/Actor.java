@@ -32,6 +32,8 @@ import com.watabou.utils.Bundlable;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.SparseArray;
 
+import static network.Multiplayer.localHero;
+
 import java.util.HashSet;
 import java.util.List;
 
@@ -171,49 +173,32 @@ public abstract class Actor implements Bundlable {
 	}
 
 	public static synchronized void fixTime() {
-		
 		if (all.isEmpty()) return;
-		
 		float min = Float.MAX_VALUE;
-		for (Actor a : all) {
-			if (a.time < min) {
-				min = a.time;
-			}
-		}
-
-		//Only pull everything back by whole numbers
-		//So that turns always align with a whole number
+		for (Actor a : all) if (a.time < min) min = a.time;
 		min = (int)min;
-		for (Actor a : all) {
-			a.time -= min;
-		}
+		for (Actor a : all) a.time -= min;
 
-		if (Dungeon.hero != null && all.contains( Dungeon.hero ) && !(Dungeon.level instanceof VaultLevel)) {
-			Statistics.duration += min;
-		}
+		if (!(Dungeon.level instanceof VaultLevel)) {
+				// TODO: статистика должна быть у каждого героя отдельно
+				for (Multiplayer.PlayerInfo p : Multiplayer.Players.getAll()) {
+					if (p.hero != null && all.contains(p.hero) && p.hero == localHero()) {
+						Statistics.duration += min;
+					}
+				}
+			}
 		now -= min;
 	}
 	
 	public static void init() {
-            List<Multiplayer.PlayerInfo> players = Multiplayer.Players.getAll();
-            for (int i = 0; i < players.size(); i++) {
-                Multiplayer.PlayerInfo player = players.get(i);
-                add( player.hero );
-            }
-		
-		for (Mob mob : Dungeon.level.mobs) {
-			add( mob );
+		List<Multiplayer.PlayerInfo> players = Multiplayer.Players.getAll();
+		for (int i = 0; i < players.size(); i++) {
+			Multiplayer.PlayerInfo player = players.get(i);
+			add( player.hero );
 		}
-
-		//mobs need to remember their targets after every actor is added
-		for (Mob mob : Dungeon.level.mobs) {
-			mob.restoreEnemy();
-		}
-		
-		for (Blob blob : Dungeon.level.blobs.values()) {
-			add( blob );
-		}
-		
+		for (Mob mob : Dungeon.level.mobs) add( mob );
+		for (Mob mob : Dungeon.level.mobs) mob.restoreEnemy();
+		for (Blob blob : Dungeon.level.blobs.values()) add( blob );
 		current = null;
 	}
 
@@ -248,10 +233,12 @@ public abstract class Actor implements Bundlable {
 	public static boolean keepActorThreadAlive = true;
 	
 	public static void process() {
-//        if (Dungeon.Multiplayer.isMultiplayer && !Dungeon.Multiplayer.isHost) {
-//            // Клиенты ждут сигнала от сервера
-//            waitForServerTurn();
-//        }
+		// We need to wait for servers response
+		if (!Multiplayer.isHost) {
+			clientProcess();
+		} else {
+        	serverOrSingleProcess(); // оригинальный цикл (для хоста или одиночной игры)
+    	}
 		boolean doNext;
 		boolean interrupted = false;
 
@@ -298,12 +285,22 @@ public abstract class Actor implements Bundlable {
 					doNext = false;
 					current = null;
 				} else {
-					doNext = acting.act();
-					if (doNext && (Dungeon.hero == null || !Dungeon.hero.isAlive())) {
-						doNext = false;
-						current = null;
+						doNext = acting.act();
+						if (doNext) {
+							// Проверяем, есть ли живые герои
+							boolean anyHeroAlive = false;
+							for (Multiplayer.PlayerInfo p : Multiplayer.Players.getAll()) {
+								if (p.hero != null && p.hero.isAlive()) {
+									anyHeroAlive = true;
+									break;
+								}
+							}
+							if (!anyHeroAlive) {
+								doNext = false;
+								current = null;
+							}
+						}
 					}
-				}
 			} else {
 				doNext = false;
 			}

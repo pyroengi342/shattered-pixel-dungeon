@@ -54,6 +54,8 @@ import com.watabou.noosa.particles.Emitter;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Random;
 
+import network.Multiplayer;
+
 import java.util.ArrayList;
 
 public class TimekeepersHourglass extends Artifact {
@@ -111,45 +113,51 @@ public class TimekeepersHourglass extends Artifact {
 				}
 			} else if (charge <= 0)         GLog.i( Messages.get(this, "no_charge") );
 			else if (cursed)                GLog.i( Messages.get(this, "cursed") );
-			else GameScene.show(
-						new WndOptions(new ItemSprite(this),
-								Messages.titleCase(name()),
-								Messages.get(this, "prompt"),
-								Messages.get(this, "stasis"),
-								Messages.get(this, "freeze")) {
-							@Override
-							protected void onSelect(int index) {
-								if (index == 0) {
-									GLog.i( Messages.get(TimekeepersHourglass.class, "onstasis") );
+			else {
+				// Показываем окно только локальному игроку
+				if (Multiplayer.localHero() == curUser) {
+					GameScene.show(new WndOptions(new ItemSprite(this),
+							Messages.titleCase(name()),
+							Messages.get(this, "prompt"),
+							Messages.get(this, "stasis"),
+							Messages.get(this, "freeze")) {
+						@Override
+						protected void onSelect(int index) {
+							if (index == 0) {
+								// Стазис
+								if (Multiplayer.localHero() == curUser) {
+									GLog.i(Messages.get(TimekeepersHourglass.class, "onstasis"));
 									GameScene.flash(0x80FFFFFF);
 									Sample.INSTANCE.play(Assets.Sounds.TELEPORT);
-
-									activeBuff = new timeStasis();
-									Talent.onArtifactUsed(curUser);
-									activeBuff.attachTo(curUser);
-								} else if (index == 1) {
-
-									//This might be really good...
-									for (Mob mob : Dungeon.level.mobs.toArray( new Mob[0] )) {
-										if (Dungeon.level.heroFOV[mob.pos]) {
-											artifactProc(mob, visiblyUpgraded(), 1);
-										}
-									}
-
-									GLog.i( Messages.get(TimekeepersHourglass.class, "onfreeze") );
-									GameScene.flash(0x80FFFFFF);
-									Sample.INSTANCE.play(Assets.Sounds.TELEPORT);
-
-									Invisibility.dispel(curUser);
-									activeBuff = new timeFreeze();
-									Talent.onArtifactUsed(curUser);
-									activeBuff.attachTo(curUser);
-									charge--;
-									((timeFreeze)activeBuff).processTime(0f);
 								}
+								activeBuff = new timeStasis();
+								Talent.onArtifactUsed(curUser);
+								activeBuff.attachTo(curUser);
+							} else if (index == 1) {
+								// Заморозка времени
+								// Используем поле зрения текущего пользователя
+								for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
+									if (curUser.fieldOfView[mob.pos]) {
+										artifactProc(mob, visiblyUpgraded(), 1);
+									}
+								}
+								if (Multiplayer.localHero() == curUser) {
+									GLog.i(Messages.get(TimekeepersHourglass.class, "onfreeze"));
+									GameScene.flash(0x80FFFFFF);
+									Sample.INSTANCE.play(Assets.Sounds.TELEPORT);
+								}
+								Invisibility.dispel(curUser);
+								activeBuff = new timeFreeze();
+								Talent.onArtifactUsed(curUser);
+								activeBuff.attachTo(curUser);
+								charge--;
+								((timeFreeze) activeBuff).processTime(0f);
 							}
 						}
-				);
+					});
+				}
+				// Если игрок не локальный — окно не показываем (действие не должно инициироваться)
+			}
 		}
 	}
 

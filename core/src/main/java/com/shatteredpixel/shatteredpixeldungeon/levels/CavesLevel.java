@@ -63,6 +63,8 @@ import com.watabou.utils.Callback;
 import com.watabou.utils.PointF;
 import com.watabou.utils.Random;
 
+import network.Multiplayer;
+
 import java.util.ArrayList;
 
 public class CavesLevel extends RegularLevel {
@@ -271,8 +273,9 @@ public class CavesLevel extends RegularLevel {
 		
 		@Override
 		public void update() {
-			
-			if (visible = (pos < Dungeon.level.heroFOV.length && Dungeon.level.heroFOV[pos])) {
+			Hero local = Multiplayer.localHero();
+    		boolean[] fov = (local != null) ? local.fieldOfView : null;
+			if (visible = (fov != null && pos >= 0 && pos < fov.length && fov[pos])) {
 				
 				super.update();
 

@@ -325,7 +325,7 @@ public class ShadowClone extends ArmorAbility {
 
 			ch.sprite.interruptMotion();
 
-            // Используем fieldOfView текущего героя вместо Dungeon.level.heroFOV
+            // Используем fieldOfView текущего героя вместо Dungeon level heroFOV
             boolean visibleToAnyHero = false;
             for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
                 if (player.hero.fieldOfView[pos] || player.hero.fieldOfView[ch.pos]) {

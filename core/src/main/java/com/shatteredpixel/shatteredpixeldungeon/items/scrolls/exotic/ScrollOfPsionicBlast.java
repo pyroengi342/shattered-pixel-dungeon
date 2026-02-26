@@ -57,7 +57,7 @@ public class ScrollOfPsionicBlast extends ExoticScroll {
 
 		//calculate targets first, in case damaging/blinding a target affects hero vision
 		for (Mob mob : Dungeon.level.mobs.toArray( new Mob[0] )) {
-			if (Dungeon.level.heroFOV[mob.pos]) {
+			if (curUser.fieldOfView[mob.pos]) {
 				targets.add(mob);
 			}
 		}
@@ -67,14 +67,14 @@ public class ScrollOfPsionicBlast extends ExoticScroll {
 			//resistant enemies take 50% current HP at full health, scaling to 75% at 1/2 HP, and 100% at 1/3 hp
 			mob.damage(Math.round(mob.HT/2f + mob.HP/2f), this);
 			if (mob.isAlive()) {
-				Buff.prolong(mob, Blindness.class, Blindness.DURATION);
+				Buff.prolong(mob, Blindness.class, Blindness.DURATION, null);
 			}
 		}
 		
 		curUser.damage(Math.max(0, Math.round(curUser.HT*(0.5f * (float)Math.pow(0.9, targets.size())))), this);
 		if (curUser.isAlive()) {
-			Buff.prolong(curUser, Blindness.class, Blindness.DURATION);
-			Buff.prolong(curUser, Weakness.class, Weakness.DURATION*5f);
+			Buff.prolong(curUser, Blindness.class, Blindness.DURATION, null);
+			Buff.prolong(curUser, Weakness.class, Weakness.DURATION*5f, null);
 			Dungeon.observe(curUser);
 			readAnimation();
 		} else {

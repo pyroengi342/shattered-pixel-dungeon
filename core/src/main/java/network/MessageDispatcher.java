@@ -118,31 +118,3 @@ public class MessageDispatcher {
     private void handleGameState(Bundle bundle) {
         // синхронизация состояния игры
     }
-
-    // Game State Handling
-//    private void handleHeroClass(int playerId, Bundle bundle) {
-//        if (bundle != null && bundle.contains("heroClass")) {
-//            String heroClassName = bundle.getString("heroClass");
-//            HeroClass heroClass = HeroClass.valueOf(heroClassName);
-//
-//            Multiplayer.PlayerInfo player = Multiplayer.Players.get(playerId);
-//            if (player != null) {
-//                Multiplayer.Players.setHeroClass(playerId, heroClass);
-//                System.out.println("Player " + playerId + " selected class: " + heroClassName);
-//
-//                if (mode == NetworkManager.Mode.SERVER) {
-//                    NetworkManager.BundleMessage classMessage = new NetworkManager.BundleMessage();
-//                    classMessage.type = "HERO_CLASS";
-//                    classMessage.playerId = playerId;
-//                    classMessage.bundleData = bundle.toString();
-//
-//                    for (ChannelHandlerContext clientCtx : connectedClients.values()) {
-//                        if (clientCtx.channel().isActive() && clientCtx.channel().hashCode() != playerId) {
-//                            clientCtx.writeAndFlush(classMessage);
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
-}

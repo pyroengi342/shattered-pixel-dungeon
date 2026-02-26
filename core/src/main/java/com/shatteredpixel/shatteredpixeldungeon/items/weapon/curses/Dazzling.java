@@ -34,28 +34,32 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Random;
 
+import network.Multiplayer;
+
 public class Dazzling extends Weapon.Enchantment {
 
 	private static ItemSprite.Glowing BLACK = new ItemSprite.Glowing( 0x000000 );
 
 	@Override
 	public int proc(Weapon weapon, Char attacker, Char defender, int damage ) {
-
 		float procChance = 1/10f * procChanceMultiplier(attacker);
 		if (Random.Float() < procChance) {
+			Hero local = Multiplayer.localHero();
+			boolean visibleToLocal = local != null && local.fieldOfView != null &&
+					(local.fieldOfView[attacker.pos] || local.fieldOfView[defender.pos]);
+
 			for (Char ch : Actor.chars()){
 				if (ch.fieldOfView != null && ch.fieldOfView[defender.pos]){
-					Buff.prolong(ch, Blindness.class, ch == attacker ? Blindness.DURATION : Blindness.DURATION/2f);
-					if (ch instanceof Hero){
+					Buff.prolong(ch, Blindness.class, ch == attacker ? Blindness.DURATION : Blindness.DURATION/2f, this);
+					if (ch instanceof Hero && local != null && ch == local) {
 						GameScene.flash(0x80FFFFFF);
 					}
 				}
 			}
-			if (Dungeon.level.heroFOV[attacker.pos] || Dungeon.level.heroFOV[defender.pos]){
-				Sample.INSTANCE.play( Assets.Sounds.BLAST );
+			if (visibleToLocal) {
+				Sample.INSTANCE.play(Assets.Sounds.BLAST);
 			}
 		}
-
 		return damage;
 	}
 

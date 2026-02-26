@@ -107,18 +107,16 @@ public class Shopkeeper extends NPC {
 		return false;
 	}
 
-	public void processHarm(){
-
-		//do nothing if the shopkeeper is out of the hero's FOV
-		if (!Dungeon.level.heroFOV[pos]){
+	public void processHarm() {
+		// Проверяем, видит ли кто-нибудь из героев эту позицию
+		if (!Multiplayer.isVisibleToAnyHero(pos)) {
 			return;
 		}
 
-		if (turnsSinceHarmed == -1){
+		if (turnsSinceHarmed == -1) {
 			turnsSinceHarmed = 0;
 			yell(Messages.get(this, "warn"));
 
-			//use a new actor as we can't clear the gas while we're in the middle of processing it
 			Actor.add(new Actor() {
 				{
 					actPriority = VFX_PRIO;
@@ -126,20 +124,18 @@ public class Shopkeeper extends NPC {
 
 				@Override
 				protected boolean act() {
-					//cleanses all harmful blobs in the shop
 					ArrayList<Blob> blobs = new ArrayList<>();
-					for (Class c : new BlobImmunity().immunities()){
+					for (Class c : new BlobImmunity().immunities()) {
 						Blob b = Dungeon.level.blobs.get(c);
-						if (b != null && b.volume > 0){
+						if (b != null && b.volume > 0) {
 							blobs.add(b);
 						}
 					}
 
-					PathFinder.buildDistanceMap( pos, BArray.not( Dungeon.level.solid, null ), 4 );
+					PathFinder.buildDistanceMap(pos, BArray.not(Dungeon.level.solid, null), 4);
 
-					for (int i=0; i < Dungeon.level.length(); i++) {
+					for (int i = 0; i < Dungeon.level.length(); i++) {
 						if (PathFinder.distance[i] < Integer.MAX_VALUE) {
-
 							boolean affected = false;
 							for (Blob blob : blobs) {
 								if (blob.cur[i] > 0) {
@@ -148,19 +144,19 @@ public class Shopkeeper extends NPC {
 								}
 							}
 
-							if (affected && Dungeon.level.heroFOV[i]) {
-								CellEmitter.get( i ).burst( Speck.factory( Speck.DISCOVER ), 2 );
+							if (affected) {
+								// Показываем эффект только локальному игроку, если он видит клетку
+								Hero local = Multiplayer.localHero();
+								if (local != null && local.fieldOfView != null && local.fieldOfView[i]) {
+									CellEmitter.get(i).burst(Speck.factory(Speck.DISCOVER), 2);
+								}
 							}
-
 						}
 					}
 					Actor.remove(this);
 					return true;
 				}
 			});
-
-		//There is a 1 turn buffer before more damage/debuffs make the shopkeeper flee
-		//This is mainly to prevent stacked effects from causing an instant flee
 		} else if (turnsSinceHarmed >= 1) {
 			flee();
 		}

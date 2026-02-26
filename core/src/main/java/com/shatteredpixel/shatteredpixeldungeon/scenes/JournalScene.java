@@ -59,7 +59,6 @@ public class JournalScene extends PixelScene {
 
 		super.create();
 
-		Dungeon.hero = null;
 		Badges.loadGlobal();
 		Journal.loadGlobal();
 

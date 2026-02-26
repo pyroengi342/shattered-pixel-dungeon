@@ -43,6 +43,8 @@ import com.watabou.utils.PathFinder;
 import com.watabou.utils.Point;
 import com.watabou.utils.Random;
 
+import network.Multiplayer;
+
 import java.util.ArrayList;
 
 public class RockfallTrap extends Trap {
@@ -89,7 +91,8 @@ public class RockfallTrap extends Trap {
 		boolean seen = false;
 		for (int cell : rockCells){
 
-			if (Dungeon.level.heroFOV[ cell ]){
+			Hero local = Multiplayer.localHero();
+			if (local != null && local.fieldOfView != null && local.fieldOfView[cell]) {
 				CellEmitter.get( cell - Dungeon.level.width() ).start(Speck.factory(Speck.ROCK), 0.07f, 10);
 				seen = true;
 			}

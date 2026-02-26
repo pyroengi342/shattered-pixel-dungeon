@@ -43,7 +43,8 @@ public class StormTrap extends Trap {
 	@Override
 	public void activate() {
 		
-		if (Dungeon.level.heroFOV[pos]){
+				Hero local = Multiplayer.localHero();
+		if (local != null && local.fieldOfView != null && local.fieldOfView[pos]) {
 			Sample.INSTANCE.play( Assets.Sounds.LIGHTNING );
 		}
 		

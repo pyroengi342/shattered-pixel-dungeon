@@ -36,6 +36,8 @@ import com.watabou.utils.BArray;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
+import network.Multiplayer;
+
 import java.util.ArrayList;
 
 public class ArcaneBomb extends Bomb {
@@ -70,29 +72,38 @@ public class ArcaneBomb extends Bomb {
 	@Override
 	public void explode(int cell) {
 		super.explode(cell);
-		
+
 		ArrayList<Char> affected = new ArrayList<>();
-		
-		PathFinder.buildDistanceMap( cell, BArray.not( Dungeon.level.solid, null ), explosionRange() );
+
+		PathFinder.buildDistanceMap(cell, BArray.not(Dungeon.level.solid, null), explosionRange());
+
+		Hero local = Multiplayer.localHero();
+		boolean[] fov = (local != null && local.fieldOfView != null) ? local.fieldOfView : null;
+
 		for (int i = 0; i < PathFinder.distance.length; i++) {
 			if (PathFinder.distance[i] < Integer.MAX_VALUE) {
-				if (Dungeon.level.heroFOV[i]) {
+				if (fov != null && fov[i]) {
 					CellEmitter.get(i).burst(ElmoParticle.FACTORY, 10);
 				}
 				Char ch = Actor.findChar(i);
-				if (ch != null){
+				if (ch != null) {
 					affected.add(ch);
 				}
 			}
 		}
-		
-		for (Char ch : affected){
-			//pierces armor, and damage in 5x5 instead of 3x3
-			int damage = Math.round(Random.NormalIntRange( 4 + Dungeon.scalingDepth(), 12 + 3*Dungeon.scalingDepth() ));
+
+		for (Char ch : affected) {
+			int damage = Math.round(Random.NormalIntRange(4 + Dungeon.scalingDepth(), 12 + 3 * Dungeon.scalingDepth()));
 			ch.damage(damage, this);
-			if (ch instanceof Hero && !ch.isAlive()){
-				Badges.validateDeathFromFriendlyMagic();
-				Dungeon.fail(this);
+
+			// Если умерший персонаж — локальный герой, обрабатываем конец игры
+			if (ch instanceof Hero && !ch.isAlive()) {
+				Hero deadHero = (Hero) ch;
+				if (local != null && deadHero == local) {
+					Badges.validateDeathFromFriendlyMagic();
+					Dungeon.fail(this);
+				}
+				// TODO: в мультиплеере отправить событие смерти другим игрокам
 			}
 		}
 	}

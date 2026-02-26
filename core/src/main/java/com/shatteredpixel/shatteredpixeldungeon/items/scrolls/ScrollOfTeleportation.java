@@ -47,6 +47,8 @@ import com.watabou.utils.PathFinder;
 import com.watabou.utils.Point;
 import com.watabou.utils.Random;
 
+import network.Multiplayer;
+
 import java.util.ArrayList;
 
 public class ScrollOfTeleportation extends Scroll {
@@ -237,7 +239,7 @@ public class ScrollOfTeleportation extends Scroll {
 					&& Actor.findChar(i) == null){
 				if (preferNotSeen && !Dungeon.level.visited[i]){
 					notSeenValid.add(i);
-				} else if (Dungeon.level.heroFOV[i]){
+				} else if (curUser.fieldOfView[i]){
 					visibleValid.add(i);
 				} else {
 					notVisibleValid.add(i);
@@ -275,55 +277,61 @@ public class ScrollOfTeleportation extends Scroll {
 	}
 
 	public static void appear( Char ch, int pos ) {
-
 		ch.sprite.interruptMotion();
 
-		if (Dungeon.level.heroFOV[pos] || Dungeon.level.heroFOV[ch.pos]){
+		Hero local = Multiplayer.localHero();
+		boolean[] fov = (local != null) ? local.fieldOfView : null;
+
+		// Звук телепорта, если локальный игрок видит начальную или конечную позицию
+		if (fov != null && (fov[pos] || fov[ch.pos])) {
 			Sample.INSTANCE.play(Assets.Sounds.TELEPORT);
 		}
 
-		if (Dungeon.level.heroFOV[ch.pos] && ch != curUser ) {
+		// Частицы на старой позиции, если она видна локально и персонаж — не локальный герой
+		if (fov != null && fov[ch.pos] && ch != local) {
 			CellEmitter.get(ch.pos).start(Speck.factory(Speck.LIGHT), 0.2f, 3);
 		}
 
-		ch.move( pos, false );
+		ch.move(pos, false);
 		if (ch.pos == pos) {
 			ch.sprite.interruptMotion();
 			ch.sprite.place(pos);
 		}
 
 		if (ch.invisible == 0) {
-			ch.sprite.alpha( 0 );
-			ch.sprite.parent.add( new AlphaTweener( ch.sprite, 1, 0.4f ) );
+			ch.sprite.alpha(0);
+			ch.sprite.parent.add(new AlphaTweener(ch.sprite, 1, 0.4f));
 		}
 
-		if (Dungeon.level.heroFOV[pos] || ch instanceof Hero ) {
+		// Частицы на новой позиции, если она видна локально или это локальный герой
+		if (fov != null && (fov[pos] || ch == local)) {
 			ch.sprite.emitter().start(Speck.factory(Speck.LIGHT), 0.2f, 3);
 		} else {
-			if (Camera.main.followTarget() == ch.sprite){
-				//clear the follow in this case as the teleport target is going out of vision
+			if (Camera.main.followTarget() == ch.sprite) {
 				Camera.main.panFollow(null, 5f);
 			}
 		}
 	}
-
 	//just plays the VFX for teleporting, without any position changes, does re-press cells though
-	public static void appearVFX( Char ch ){
-		if (Dungeon.level.heroFOV[ch.pos]){
-			Sample.INSTANCE.play(Assets.Sounds.TELEPORT);
-		}
+		public static void appearVFX( Char ch ){
+			Hero local = Multiplayer.localHero();
+			boolean[] fov = (local != null) ? local.fieldOfView : null;
 
-		Dungeon.level.occupyCell(ch);
+			if (fov != null && fov[ch.pos]) {
+				Sample.INSTANCE.play(Assets.Sounds.TELEPORT);
+			}
 
-		if (ch.invisible == 0) {
-			ch.sprite.alpha( 0 );
-			ch.sprite.parent.add( new AlphaTweener( ch.sprite, 1, 0.4f ) );
-		}
+			Dungeon.level.occupyCell(ch);
 
-		if (Dungeon.level.heroFOV[ch.pos]) {
-			ch.sprite.emitter().start(Speck.factory(Speck.LIGHT), 0.2f, 3);
+			if (ch.invisible == 0) {
+				ch.sprite.alpha(0);
+				ch.sprite.parent.add(new AlphaTweener(ch.sprite, 1, 0.4f));
+			}
+
+			if (fov != null && fov[ch.pos]) {
+				ch.sprite.emitter().start(Speck.factory(Speck.LIGHT), 0.2f, 3);
+			}
 		}
-	}
 	
 	@Override
 	public int value() {

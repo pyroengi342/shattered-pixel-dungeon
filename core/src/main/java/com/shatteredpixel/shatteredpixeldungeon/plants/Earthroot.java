@@ -53,7 +53,8 @@ public class Earthroot extends Plant {
 			}
 		}
 		
-		if (Dungeon.level.heroFOV[pos]) {
+				Hero local = Multiplayer.localHero();
+		if (local != null && local.fieldOfView != null && local.fieldOfView[pos]) {
 			CellEmitter.bottom( pos ).start( EarthParticle.FACTORY, 0.05f, 8 );
 			PixelScene.shake( 1, 0.4f );
 		}

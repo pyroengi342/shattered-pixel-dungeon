@@ -23,8 +23,11 @@ package com.shatteredpixel.shatteredpixeldungeon.sprites;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.watabou.noosa.TextureFilm;
+
+import network.Multiplayer;
 
 public class UndeadSprite extends MobSprite {
 	
@@ -53,7 +56,8 @@ public class UndeadSprite extends MobSprite {
 	@Override
 	public void die() {
 		super.die();
-		if (Dungeon.level.heroFOV[ch.pos]) {
+		Hero local = Multiplayer.localHero();
+		if (local != null && local.fieldOfView != null && local.fieldOfView[ch.pos]) {
 			emitter().burst( Speck.factory( Speck.BONE ), 3 );
 		}
 	}

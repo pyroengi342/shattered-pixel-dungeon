@@ -168,7 +168,7 @@ public class WandOfBlastWave extends DamageWand {
 				if (finalCollided && ch.isActive()) {
 					ch.damage(Random.NormalIntRange(finalDist, 2*finalDist), new Knockback());
 					if (ch.isActive()) {
-						Paralysis.prolong(ch, Paralysis.class, 1 + finalDist/2f);
+						Paralysis.prolong(ch, Paralysis.class, 1 + finalDist/2f, this);
 					} else if (ch instanceof Hero){
 						if (cause instanceof WandOfBlastWave){
 							Badges.validateDeathFromFriendlyMagic();
@@ -184,7 +184,7 @@ public class WandOfBlastWave extends DamageWand {
 				if (ch instanceof Hero){
 					Dungeon.observe((Hero) ch);
 					GameScene.updateFog();
-				} else if (Dungeon.level.heroFOV[initialpos] != Dungeon.level.heroFOV[newPos]){
+				} else if (curUser.fieldOfView[initialpos] != curUser.fieldOfView[newPos]){
                     // TODO dunno whats going on
 					Dungeon.observeAll();
 				}
@@ -205,7 +205,7 @@ public class WandOfBlastWave extends DamageWand {
 			Sample.INSTANCE.play( Assets.Sounds.BLAST );
 
 			//brief immunity, to prevent stacking absurd damage with it with things like para gas
-			Buff.prolong(defender, BWaveOnHitTracker.class, 3f);
+			Buff.prolong(defender, BWaveOnHitTracker.class, 3f, this);
 		}
 	}
 

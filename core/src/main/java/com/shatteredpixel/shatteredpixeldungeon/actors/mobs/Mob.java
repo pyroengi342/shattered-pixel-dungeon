@@ -649,8 +649,8 @@ public abstract class Mob extends Char {
 	@Override
 	public void updateSpriteState() {
 		super.updateSpriteState();
-		if (Dungeon.hero.buff(TimekeepersHourglass.timeFreeze.class) != null
-				|| Dungeon.hero.buff(Swiftthistle.TimeBubble.class) != null)
+		if (Multiplayer.localHero().buff(TimekeepersHourglass.timeFreeze.class) != null
+				|| Multiplayer.localHero().buff(Swiftthistle.TimeBubble.class) != null)
 			sprite.add( CharSprite.State.PARALYSED );
 	}
 	
@@ -709,7 +709,6 @@ public abstract class Mob extends Char {
 	
 	@Override
 	public int defenseProc( Char enemy, int damage ) {
-		
 		if (enemy instanceof Hero
 				&& ((Hero) enemy).belongings.attackingWeapon() instanceof MissileWeapon){
 			Statistics.thrownAttacks++;
@@ -721,8 +720,8 @@ public abstract class Mob extends Char {
 			Badges.validateRogueUnlock();
 			//TODO this is somewhat messy, it would be nicer to not have to manually handle delays here
 			// playing the strong hit sound might work best as another property of weapon?
-			if (Dungeon.hero.belongings.attackingWeapon() instanceof SpiritBow.SpiritArrow
-				|| Dungeon.hero.belongings.attackingWeapon() instanceof Dart){
+			if (enemy instanceof Hero && ((Hero) enemy).belongings.attackingWeapon() instanceof SpiritBow.SpiritArrow
+				|| ((Hero) enemy).belongings.attackingWeapon() instanceof Dart){
 				Sample.INSTANCE.playDelayed(Assets.Sounds.HIT_STRONG, 0.125f);
 			} else {
 				Sample.INSTANCE.play(Assets.Sounds.HIT_STRONG);
@@ -749,7 +748,7 @@ public abstract class Mob extends Char {
 			int restoration = Math.min(damage, HP+shielding());
 			
 			//physical damage that doesn't come from the hero is less effective
-			if (enemy != Dungeon.hero){
+			if (!(enemy instanceof Hero)){
 				restoration = Math.round(restoration * 0.4f*Dungeon.hero.pointsInTalent(Talent.SOUL_SIPHON)/3f);
 			}
 			if (restoration > 0) {
@@ -892,7 +891,7 @@ public abstract class Mob extends Char {
 				Badges.validateHazardAssists();
 			}
 
-			rollToDropLoot();
+			rollToDropLoot( );
 
 			if (cause instanceof Hero || cause instanceof Weapon || cause instanceof Weapon.Enchantment){
                 Hero hero = (Hero) cause;
@@ -910,7 +909,7 @@ public abstract class Mob extends Char {
 
 		}
 
-		if (Dungeon.hero.isAlive() && !Dungeon.level.heroFOV[pos]) {
+		if (Multiplayer.localHero().isAlive() && !Multiplayer.localHero().fieldOfView[pos]) {
 			GLog.i( Messages.get(this, "died") );
 		}
 
@@ -924,7 +923,7 @@ public abstract class Mob extends Char {
 			Wraith w = Wraith.spawnAt(pos, Wraith.class);
 			if (w != null) {
 				Buff.affect(w, Corruption.class, cause);
-				if (Dungeon.level.heroFOV[pos]) {
+				if (Multiplayer.localHero().fieldOfView[pos]) {
 					CellEmitter.get(pos).burst(ShadowParticle.CURSE, 6);
 					Sample.INSTANCE.play(Assets.Sounds.CURSED);
 				}
@@ -954,7 +953,6 @@ public abstract class Mob extends Char {
 	}
 	
 	public void rollToDropLoot(){
-		if (Dungeon.hero.lvl > maxLvl + 2) return;
 
 		MasterThievesArmband.StolenTracker stolen = buff(MasterThievesArmband.StolenTracker.class);
 		if (stolen == null || !stolen.itemWasStolen()) {
@@ -1104,8 +1102,8 @@ public abstract class Mob extends Char {
 						float chDist = ch.stealth() + distance(ch);
 						//silent steps rogue talent, which also applies to rogue's shadow clone
 						if ((ch instanceof Hero || ch instanceof ShadowClone.ShadowAlly)
-								&& Dungeon.hero.hasTalent(Talent.SILENT_STEPS)){
-							if (distance(ch) >= 4 - Dungeon.hero.pointsInTalent(Talent.SILENT_STEPS)) {
+								&& ((Hero) ch).hasTalent(Talent.SILENT_STEPS)){
+							if (distance(ch) >= 4 - ((Hero) ch).pointsInTalent(Talent.SILENT_STEPS)) {
 								chDist = Float.POSITIVE_INFINITY;
 							}
 						}

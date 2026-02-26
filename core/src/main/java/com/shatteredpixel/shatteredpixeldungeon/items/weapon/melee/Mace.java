@@ -37,6 +37,8 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Callback;
 
+import network.Multiplayer;
+
 public class Mace extends MeleeWeapon {
 
 	{
@@ -87,14 +89,18 @@ public class Mace extends MeleeWeapon {
 		}
 
 		Char enemy = Actor.findChar(target);
-		if (enemy == null || enemy == hero || hero.isCharmedBy(enemy) || !Dungeon.level.heroFOV[target]) {
-			GLog.w(Messages.get(wep, "ability_no_target"));
+		if (enemy == null || enemy == hero || hero.isCharmedBy(enemy) || !hero.fieldOfView[target]) {
+			if (Multiplayer.localHero() == hero) {
+				GLog.w(Messages.get(wep, "ability_no_target"));
+			}
 			return;
 		}
 
 		hero.belongings.abilityWeapon = wep;
 		if (!hero.canAttack(enemy)){
-			GLog.w(Messages.get(wep, "ability_target_range"));
+			if (Multiplayer.localHero() == hero) {
+				GLog.w(Messages.get(wep, "ability_target_range"));
+			}
 			hero.belongings.abilityWeapon = null;
 			return;
 		}
@@ -121,7 +127,7 @@ public class Mace extends MeleeWeapon {
 						wep.onAbilityKill(hero, enemy);
 					}
 				}
-				Invisibility.dispel();
+				Invisibility.dispel(hero);
 				hero.spendAndNext(hero.attackDelay());
 				wep.afterAbilityUsed(hero);
 			}

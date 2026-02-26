@@ -64,7 +64,7 @@ public class WandOfWarding extends Wand {
 	@Override
 	public int collisionProperties(int target) {
 		if (cursed)                                 return super.collisionProperties(target);
-		else if (!Dungeon.level.heroFOV[target])    return Ballistica.PROJECTILE;
+		else if (!curUser.fieldOfView[target])    return Ballistica.PROJECTILE;
 		else                                        return Ballistica.STOP_TARGET;
 	}
 
@@ -87,8 +87,8 @@ public class WandOfWarding extends Wand {
 			}
 		}
 
-		if (Stasis.getStasisAlly(hero) instanceof Ward){
-			currentWardEnergy += ((Ward) Stasis.getStasisAlly(hero)).tier;
+		if (Stasis.getStasisAlly(owner) instanceof Ward){
+			currentWardEnergy += ((Ward) Stasis.getStasisAlly(owner)).tier;
 		}
 		
 		int maxWardEnergy = 0;

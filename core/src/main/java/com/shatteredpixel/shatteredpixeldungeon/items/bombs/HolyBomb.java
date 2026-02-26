@@ -25,6 +25,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Flare;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShadowParticle;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
@@ -33,6 +34,8 @@ import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.BArray;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
+
+import network.Multiplayer;
 
 import java.util.ArrayList;
 
@@ -50,35 +53,41 @@ public class HolyBomb extends Bomb {
 	@Override
 	public void explode(int cell) {
 		super.explode(cell);
-		
-		if (Dungeon.level.heroFOV[cell]) {
-			new Flare(10, 64).show(curUser.sprite.parent, DungeonTilemap.tileCenterToWorld(cell), 2f);
+
+		Hero local = Multiplayer.localHero();
+		boolean[] fov = (local != null) ? local.fieldOfView : null;
+
+		// Визуальный эффект взрыва – только если локальный герой видит клетку
+		if (fov != null && fov[cell]) {
+			new Flare(10, 64).show(local.sprite.parent, DungeonTilemap.tileCenterToWorld(cell), 2f);
 		}
-		
+
 		ArrayList<Char> affected = new ArrayList<>();
-		
-		PathFinder.buildDistanceMap( cell, BArray.not( Dungeon.level.solid, null ), explosionRange() );
+
+		PathFinder.buildDistanceMap(cell, BArray.not(Dungeon.level.solid, null), explosionRange());
 		for (int i = 0; i < PathFinder.distance.length; i++) {
 			if (PathFinder.distance[i] < Integer.MAX_VALUE) {
 				Char ch = Actor.findChar(i);
 				if (ch != null) {
 					affected.add(ch);
-					
 				}
 			}
 		}
-		
-		for (Char ch : affected){
-			if (ch.properties().contains(Char.Property.UNDEAD) || ch.properties().contains(Char.Property.DEMONIC)){
-				ch.sprite.emitter().start( ShadowParticle.UP, 0.05f, 10 );
-				
-				//bomb deals an additional 50% damage to unholy enemies
-				int damage = Math.round(Random.NormalIntRange( Dungeon.scalingDepth()+4, 12 + 3*Dungeon.scalingDepth() ) * 0.5f);
+
+		for (Char ch : affected) {
+			if (ch.properties().contains(Char.Property.UNDEAD) || ch.properties().contains(Char.Property.DEMONIC)) {
+				// Эффект частиц на нежити/демоне – только если локальный герой видит этого персонажа
+				if (fov != null && fov[ch.pos]) {
+					ch.sprite.emitter().start(ShadowParticle.UP, 0.05f, 10);
+				}
+
+				int damage = Math.round(Random.NormalIntRange(Dungeon.scalingDepth() + 4, 12 + 3 * Dungeon.scalingDepth()) * 0.5f);
 				ch.damage(damage, new HolyDamage());
 			}
 		}
-		
-		Sample.INSTANCE.play( Assets.Sounds.READ );
+
+		// Звук воспроизводится на клиенте (обычно глобально)
+		Sample.INSTANCE.play(Assets.Sounds.READ);
 	}
 
 	public static class HolyDamage{}

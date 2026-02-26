@@ -96,7 +96,7 @@ public class Rapier extends MeleeWeapon {
 
 		Char enemy = Actor.findChar(target);
 		//duelist can lunge out of her FOV, but this wastes the ability instead of cancelling if there is no target
-		if (Dungeon.level.heroFOV[target]) {
+		if (curUser.fieldOfView[target]) {
 			if (enemy == null || enemy == hero || hero.isCharmedBy(enemy)) {
 				GLog.w(Messages.get(wep, "ability_no_target"));
 				return;

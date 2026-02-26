@@ -845,7 +845,9 @@ public class Hero extends Char {
 	public boolean act() {
 		
 		//calls to dungeon.observe will also update hero's local FOV.
-		fieldOfView = Dungeon.level.heroFOV;
+		if (fieldOfView == null || fieldOfView.length != Dungeon.level.length()) {
+        	fieldOfView = new boolean[Dungeon.level.length()];
+    	}
 
 		if (buff(Endure.EndureTracker.class) != null){
 			buff(Endure.EndureTracker.class).endEnduring();

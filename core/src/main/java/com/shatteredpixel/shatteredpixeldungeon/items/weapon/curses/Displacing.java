@@ -23,6 +23,7 @@ package com.shatteredpixel.shatteredpixeldungeon.items.weapon.curses;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
@@ -30,6 +31,8 @@ import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTeleportat
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.watabou.utils.Random;
+
+import network.Multiplayer;
 
 public class Displacing extends Weapon.Enchantment {
 
@@ -43,8 +46,9 @@ public class Displacing extends Weapon.Enchantment {
 
 			int oldpos = defender.pos;
 			if (ScrollOfTeleportation.teleportChar(defender)){
-				if (Dungeon.level.heroFOV[oldpos]) {
-					CellEmitter.get( oldpos ).start( Speck.factory( Speck.LIGHT ), 0.2f, 3 );
+				Hero local = Multiplayer.localHero();
+				if (local != null && local.fieldOfView != null && local.fieldOfView[oldpos]) {
+					CellEmitter.get(oldpos).start(Speck.factory(Speck.LIGHT), 0.2f, 3);
 				}
 
 				if (defender instanceof Mob && ((Mob) defender).state == ((Mob) defender).HUNTING){

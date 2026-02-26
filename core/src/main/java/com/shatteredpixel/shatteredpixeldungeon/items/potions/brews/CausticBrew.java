@@ -49,7 +49,8 @@ public class CausticBrew extends Brew {
 	public void shatter(int cell) {
 
 		splash( cell );
-		if (Dungeon.level.heroFOV[cell]) {
+				Hero local = Multiplayer.localHero();
+		if (local != null && local.fieldOfView != null && local.fieldOfView[cell]) {
 			Sample.INSTANCE.play( Assets.Sounds.SHATTER );
 		}
 		

@@ -37,6 +37,8 @@ import com.watabou.noosa.tweeners.AlphaTweener;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
+import network.Multiplayer;
+
 import java.util.ArrayList;
 
 public class Honeypot extends Item {
@@ -96,7 +98,7 @@ public class Honeypot extends Item {
 	
 	public Item shatter( Char owner, int pos ) {
 		
-		if (Dungeon.level.heroFOV[pos]) {
+		if (Multiplayer.localHero().fieldOfView[pos]) {
 			Sample.INSTANCE.play( Assets.Sounds.SHATTER );
 			Splash.at( pos, 0xffd500, 5 );
 		}

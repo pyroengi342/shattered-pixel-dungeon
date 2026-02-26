@@ -413,7 +413,7 @@ public class InventoryPane extends Component {
 				Actor.chars().contains( lastTarget ) &&
 				lastTarget.isAlive() &&
 				lastTarget.alignment != Char.Alignment.ALLY &&
-				Dungeon.level.heroFOV[lastTarget.pos]) {
+				Multiplayer.localHero().fieldOfView[lastTarget.pos]) {
 
 			targeting = true;
 			CharSprite sprite = lastTarget.sprite;

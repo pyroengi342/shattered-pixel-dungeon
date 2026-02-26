@@ -28,6 +28,8 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.watabou.utils.Bundle;
 
+import network.Multiplayer;
+
 public class DirectableAlly extends NPC {
 
 	{
@@ -81,20 +83,33 @@ public class DirectableAlly extends NPC {
 		}
 	}
 
-	public void directTocell( int cell ){
-		if (!Dungeon.level.heroFOV[cell]
-				|| Actor.findChar(cell) == null
-				|| (Actor.findChar(cell) != Dungeon.hero && Actor.findChar(cell).alignment != Char.Alignment.ENEMY)){
-			defendPos( cell );
+	public void directTocell(int cell) {
+		Hero local = Multiplayer.localHero();
+		if (local == null) return; // команды только от локального игрока
+		// Предполагаем, что этот союзник принадлежит локальному герою
+		// (если есть поле owner, добавьте проверку: if (owner != local) return;)
+
+		// Проверяем видимость клетки локальным героем
+		if (!local.fieldOfView[cell]) {
+			defendPos(cell);
 			return;
 		}
 
-		if (Actor.findChar(cell) instanceof Hero){
+		Char ch = Actor.findChar(cell);
+		if (ch == null) {
+			defendPos(cell);
+			return;
+		}
+
+		if (ch == local) {
+			// Следовать за своим героем
 			followHero();
-
-		} else if (Actor.findChar(cell).alignment == Char.Alignment.ENEMY){
-			targetChar(Actor.findChar(cell));
-
+		} else if (ch.alignment == Char.Alignment.ENEMY) {
+			// Атаковать врага
+			targetChar(ch);
+		} else {
+			// Для нейтральных или союзных существ (например, другой герой) – защищать позицию
+			defendPos(cell);
 		}
 	}
 

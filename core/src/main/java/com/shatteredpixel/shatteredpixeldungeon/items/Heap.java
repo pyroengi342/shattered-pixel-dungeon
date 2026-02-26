@@ -52,6 +52,8 @@ import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundlable;
 import com.watabou.utils.Bundle;
 
+import network.Multiplayer;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -243,7 +245,7 @@ public class Heap implements Bundlable {
 		
 		if (burnt || evaporated) {
 			
-			if (Dungeon.level.heroFOV[pos]) {
+			if (Multiplayer.localHero().fieldOfView[pos]) {
 				if (burnt) {
 					burnFX( pos );
 				} else {

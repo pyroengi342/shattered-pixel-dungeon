@@ -40,6 +40,8 @@ import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.BArray;
 import com.watabou.utils.PathFinder;
 
+import network.Multiplayer;
+
 public class Dagger extends MeleeWeapon {
 	
 	{
@@ -113,30 +115,40 @@ public class Dagger extends MeleeWeapon {
 		}
 
 		PathFinder.buildDistanceMap(hero.pos, BArray.or(Dungeon.level.passable, Dungeon.level.avoid, null), maxDist);
-		if (PathFinder.distance[target] == Integer.MAX_VALUE || !Dungeon.level.heroFOV[target] || hero.rooted) {
-			GLog.w(Messages.get(wep, "ability_target_range"));
-			if (hero.rooted) PixelScene.shake( 1, 1f );
+		if (PathFinder.distance[target] == Integer.MAX_VALUE || !hero.fieldOfView[target] || hero.rooted) {
+			if (Multiplayer.localHero() == hero) {
+				GLog.w(Messages.get(wep, "ability_target_range"));
+				if (hero.rooted) PixelScene.shake(1, 1f);
+			}
 			return;
 		}
 
 		if (Actor.findChar(target) != null) {
-			GLog.w(Messages.get(wep, "ability_occupied"));
+			if (Multiplayer.localHero() == hero) {
+				GLog.w(Messages.get(wep, "ability_occupied"));
+			}
 			return;
 		}
 
 		wep.beforeAbilityUsed(hero, null);
-		Buff.prolong(hero, Invisibility.class, invisTurns-1); //1 fewer turns as ability is instant
+		Buff.prolong(hero, Invisibility.class, invisTurns - 1, null); //1 fewer turns as ability is instant
 
-        hero.sprite.turnTo( hero.pos, target);
-        hero.pos = target;
+		if (hero.sprite != null) {
+			hero.sprite.turnTo(hero.pos, target);
+		}
+		hero.pos = target;
 		Dungeon.level.occupyCell(hero);
-		Dungeon.observe( hero );
+		Dungeon.observe(hero);
 		GameScene.updateFog();
-        hero.checkVisibleMobs();
+		hero.checkVisibleMobs();
 
-        hero.sprite.place( hero.pos );
-		CellEmitter.get( hero.pos ).burst( Speck.factory( Speck.WOOL ), 6 );
-		Sample.INSTANCE.play( Assets.Sounds.PUFF );
+		if (hero.sprite != null) {
+			hero.sprite.place(hero.pos);
+		}
+		if (Multiplayer.localHero() == hero) {
+			CellEmitter.get(hero.pos).burst(Speck.factory(Speck.WOOL), 6);
+			Sample.INSTANCE.play(Assets.Sounds.PUFF);
+		}
 
 		hero.next();
 		wep.afterAbilityUsed(hero);

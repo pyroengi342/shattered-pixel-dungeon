@@ -89,7 +89,7 @@ public class Sword extends MeleeWeapon {
 		}
 
 		Char enemy = Actor.findChar(target);
-		if (enemy == null || enemy == hero || hero.isCharmedBy(enemy) || !Dungeon.level.heroFOV[target]) {
+		if (enemy == null || enemy == hero || hero.isCharmedBy(enemy) || !hero.fieldOfView[target]) {
 			GLog.w(Messages.get(wep, "ability_no_target"));
 			return;
 		}

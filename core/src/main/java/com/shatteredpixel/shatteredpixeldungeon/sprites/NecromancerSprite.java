@@ -24,12 +24,15 @@ package com.shatteredpixel.shatteredpixeldungeon.sprites;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Necromancer;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.watabou.noosa.TextureFilm;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.noosa.particles.Emitter;
+
+import network.Multiplayer;
 
 public class NecromancerSprite extends MobSprite {
 	
@@ -74,7 +77,8 @@ public class NecromancerSprite extends MobSprite {
 	public void update() {
 		super.update();
 		if (summoningBones != null && ((Necromancer) ch).summoningPos != -1){
-			summoningBones.visible = Dungeon.level.heroFOV[((Necromancer) ch).summoningPos];
+			Hero local = Multiplayer.localHero();
+			summoningBones.visible = local.fieldOfView[((Necromancer) ch).summoningPos];
 		}
 	}
 
@@ -129,7 +133,8 @@ public class NecromancerSprite extends MobSprite {
 			}
 			summoningBones = CellEmitter.get(((Necromancer) ch).summoningPos);
 			summoningBones.pour(Speck.factory(Speck.RATTLE), 0.2f);
-			summoningBones.visible = Dungeon.level.heroFOV[((Necromancer) ch).summoningPos];
+	        Hero local = Multiplayer.localHero();
+			summoningBones.visible = local.fieldOfView[((Necromancer) ch).summoningPos];
 			if (visible || summoningBones.visible ) Sample.INSTANCE.play( Assets.Sounds.CHARGEUP, 1f, 0.8f );
 		}
 	}

@@ -331,11 +331,9 @@ public enum Rankings {
 		Bundle data = rec.gameData;
 
 		Actor.clear();
-		Dungeon.hero = null;
 		Dungeon.level = null;
 		Generator.fullReset();
 		Notes.reset();
-		Dungeon.quickslot.reset();
 		QuickSlotButton.reset();
 		Toolbar.swappedQuickslots = false;
 

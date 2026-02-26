@@ -41,6 +41,8 @@ import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Callback;
 import com.watabou.utils.Random;
 
+import network.Multiplayer;
+
 public class PoisonDartTrap extends Trap {
 
 	{
@@ -106,7 +108,9 @@ public class PoisonDartTrap extends Trap {
 						Buff.prolong(target, Trap.HazardAssistTracker.class, HazardAssistTracker.DURATION);
 					}
 					final Char finalTarget = target;
-					if (Dungeon.level.heroFOV[pos] || Dungeon.level.heroFOV[target.pos]) {
+					Hero local = Multiplayer.localHero();
+					if (local != null && local.fieldOfView != null &&
+							(local.fieldOfView[pos] || local.fieldOfView[target.pos])) {
 						((MissileSprite) ShatteredPixelDungeon.scene().recycle(MissileSprite.class)).
 								reset(pos, finalTarget.sprite, new PoisonDart(), new Callback() {
 									@Override

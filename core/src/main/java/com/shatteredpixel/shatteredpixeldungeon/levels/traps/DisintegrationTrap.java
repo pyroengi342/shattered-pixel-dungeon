@@ -39,6 +39,8 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Random;
 
+import network.Multiplayer;
+
 public class DisintegrationTrap extends Trap {
 
 	{
@@ -83,7 +85,9 @@ public class DisintegrationTrap extends Trap {
 			if (target instanceof Mob){
 				Buff.prolong(target, Trap.HazardAssistTracker.class, HazardAssistTracker.DURATION);
 			}
-			if (Dungeon.level.heroFOV[pos] || Dungeon.level.heroFOV[target.pos]) {
+			Hero local = Multiplayer.localHero();
+			if (local != null && local.fieldOfView != null &&
+							(local.fieldOfView[pos] || local.fieldOfView[target.pos])) {
 				Sample.INSTANCE.play(Assets.Sounds.RAY);
 				ShatteredPixelDungeon.scene().add(new Beam.DeathRay(DungeonTilemap.tileCenterToWorld(pos), target.sprite.center()));
 			}

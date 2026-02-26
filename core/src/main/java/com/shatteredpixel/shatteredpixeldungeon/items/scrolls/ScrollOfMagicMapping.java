@@ -23,6 +23,7 @@ package com.shatteredpixel.shatteredpixeldungeon.items.scrolls;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.effects.SpellSprite;
@@ -33,6 +34,8 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
 
+import network.Multiplayer;
+
 public class ScrollOfMagicMapping extends Scroll {
 
 	{
@@ -41,47 +44,51 @@ public class ScrollOfMagicMapping extends Scroll {
 
 	@Override
 	public void doRead() {
-
 		detach(curUser.belongings.backpack);
 		int length = Dungeon.level.length();
 		int[] map = Dungeon.level.map;
 		boolean[] mapped = Dungeon.level.mapped;
 		boolean[] discoverable = Dungeon.level.discoverable;
-		
-		boolean noticed = false;
-		
-		for (int i=0; i < length; i++) {
-			
+
+		boolean globalNoticed = false;
+		boolean localNoticed = false;
+
+		Hero local = Multiplayer.localHero();
+
+		for (int i = 0; i < length; i++) {
 			int terr = map[i];
-			
 			if (discoverable[i]) {
-				
 				mapped[i] = true;
 				if ((Terrain.flags[terr] & Terrain.SECRET) != 0) {
-					
-					Dungeon.level.discover( i );
-					
-					if (Dungeon.level.heroFOV[i]) {
-						GameScene.discoverTile( i, terr );
-						discover( i );
-						
-						noticed = true;
+					Dungeon.level.discover(i);
+					globalNoticed = true;
+					if (local != null && local.fieldOfView != null && local.fieldOfView[i]) {
+						GameScene.discoverTile(i, terr);
+						// Здесь можно добавить вызов для журнала открытий, например ScrollOfMagicMapping.discover(i)
+						localNoticed = true;
 					}
 				}
 			}
 		}
 		GameScene.updateFog();
-		
-		GLog.i( Messages.get(this, "layout") );
-		if (noticed) {
-			Sample.INSTANCE.play( Assets.Sounds.SECRET );
+
+		if (local == curUser) {
+			GLog.i(Messages.get(this, "layout"));
 		}
-		
-		SpellSprite.show( curUser, SpellSprite.MAP );
-		Sample.INSTANCE.play( Assets.Sounds.READ );
+
+		if (localNoticed) {
+			Sample.INSTANCE.play(Assets.Sounds.SECRET);
+		}
+
+		if (local != null && (local == curUser || local.fieldOfView[curUser.pos])) {
+			SpellSprite.show(curUser, SpellSprite.MAP);
+		}
+
+		if (local != null && (local == curUser || local.fieldOfView[curUser.pos])) {
+			Sample.INSTANCE.play(Assets.Sounds.READ);
+		}
 
 		identify();
-
 		readAnimation();
 	}
 	

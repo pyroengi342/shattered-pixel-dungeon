@@ -25,12 +25,15 @@ import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Drowsy;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
+
+import network.Multiplayer;
 
 public class ScrollOfLullaby extends Scroll {
 
@@ -40,21 +43,31 @@ public class ScrollOfLullaby extends Scroll {
 
 	@Override
 	public void doRead() {
-
 		detach(curUser.belongings.backpack);
-		curUser.sprite.centerEmitter().start( Speck.factory( Speck.NOTE ), 0.3f, 5 );
-		Sample.INSTANCE.play( Assets.Sounds.LULLABY );
 
-		for (Mob mob : Dungeon.level.mobs.toArray( new Mob[0] )) {
-			if (Dungeon.level.heroFOV[mob.pos]) {
-				Buff.affect( mob, Drowsy.class, Drowsy.DURATION );
-				mob.sprite.centerEmitter().start( Speck.factory( Speck.NOTE ), 0.3f, 5 );
+		Hero local = Multiplayer.localHero();
+
+		// Эффекты на герое и звук только для локального игрока, если это он читает
+		if (local == curUser) {
+			curUser.sprite.centerEmitter().start(Speck.factory(Speck.NOTE), 0.3f, 5);
+			Sample.INSTANCE.play(Assets.Sounds.LULLABY);
+		}
+
+		for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
+			if (curUser.fieldOfView[mob.pos]) {
+				Buff.affect(mob, Drowsy.class, Drowsy.DURATION);
+				// Показываем частицы на мобе, если локальный игрок его видит
+				if (local != null && local.fieldOfView != null && local.fieldOfView[mob.pos]) {
+					mob.sprite.centerEmitter().start(Speck.factory(Speck.NOTE), 0.3f, 5);
+				}
 			}
 		}
 
-		Buff.affect( curUser, Drowsy.class, Drowsy.DURATION );
+		Buff.affect(curUser, Drowsy.class, Drowsy.DURATION);
 
-		GLog.i( Messages.get(this, "sooth") );
+		if (local == curUser) {
+			GLog.i(Messages.get(this, "sooth"));
+		}
 
 		identify();
 		readAnimation();

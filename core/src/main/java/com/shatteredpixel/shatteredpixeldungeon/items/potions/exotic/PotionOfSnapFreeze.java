@@ -42,7 +42,8 @@ public class PotionOfSnapFreeze extends ExoticPotion {
 	public void shatter(int cell) {
 
 		splash( cell );
-		if (Dungeon.level.heroFOV[cell]) {
+				Hero local = Multiplayer.localHero();
+		if (local != null && local.fieldOfView != null && local.fieldOfView[cell]) {
 			identify();
 
 			Sample.INSTANCE.play( Assets.Sounds.SHATTER );

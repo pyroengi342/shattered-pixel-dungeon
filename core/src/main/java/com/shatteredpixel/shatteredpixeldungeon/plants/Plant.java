@@ -70,7 +70,7 @@ public abstract class Plant implements Bundlable {
 		}
 
         for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
-            if (Dungeon.level.heroFOV[pos] && player.hero.hasTalent(Talent.NATURES_AID)){
+            if (player.hero.fieldOfView[pos] && player.hero.hasTalent(Talent.NATURES_AID)){
                 // 3/5 turns based on talent points spent
                 Barkskin.conditionallyAppend(player.hero, 2, 1 + 2*(player.hero.pointsInTalent(Talent.NATURES_AID)));
             }
@@ -87,7 +87,8 @@ public abstract class Plant implements Bundlable {
 	public void wither() {
 		Dungeon.level.uproot( pos );
 
-		if (Dungeon.level.heroFOV[pos]) {
+		Hero local = Multiplayer.localHero();
+        if (local != null && local.fieldOfView != null) {
 			CellEmitter.get( pos ).burst( LeafParticle.GENERAL, 6 );
 		}
 
@@ -196,7 +197,8 @@ public abstract class Plant implements Bundlable {
 		}
 		
 		public Plant couch( int pos, Level level ) {
-			if (level != null && level.heroFOV != null && level.heroFOV[pos]) {
+			Hero local = Multiplayer.localHero();
+        	if (local != null && local.fieldOfView != null && local.fieldOfView[pos]) {
 				Sample.INSTANCE.play(Assets.Sounds.PLANT);
 			}
 			Plant plant = Reflection.newInstance(plantClass);

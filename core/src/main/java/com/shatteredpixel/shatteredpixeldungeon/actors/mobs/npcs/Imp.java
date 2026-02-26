@@ -69,21 +69,25 @@ public class Imp extends NPC {
 
 	@Override
 	protected boolean act() {
-        for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
-            if (player.hero.buff(AscensionChallenge.class) != null){
-                die(null);
-                return true;
-            }
-        }
-        // TODO heroFOV remake
-        if (!Quest.given && Dungeon.level.visited[pos]) {
-            if (!seenBefore && Dungeon.level.heroFOV[pos]) {
-                yell(Messages.get(this, "hey", Messages.titleCase(Multiplayer.localHero().name())));
-                seenBefore = true;
-            }
-        } else {
-            seenBefore = false;
-        }
+		// Проверка на AscensionChallenge у любого героя
+		for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+			if (player.hero.buff(AscensionChallenge.class) != null){
+				die(null);
+				return true;
+			}
+		}
+
+		Hero local = Multiplayer.localHero();
+		if (!Quest.given && Dungeon.level.visited[pos]) {
+			// Если клетка посещена, но приветствие ещё не было показано,
+			// и локальный герой видит эту клетку сейчас — выводим сообщение
+			if (!seenBefore && local != null && local.fieldOfView != null && local.fieldOfView[pos]) {
+				yell(Messages.get(this, "hey", Messages.titleCase(local.name())));
+				seenBefore = true;
+			}
+		} else {
+			seenBefore = false; // сбрасываем, если клетка не посещена или квест уже дан
+		}
 		return super.act();
 	}
 	

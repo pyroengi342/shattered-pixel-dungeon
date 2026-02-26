@@ -25,10 +25,13 @@ import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.watabou.noosa.audio.Sample;
+
+import network.Multiplayer;
 
 public class Door {
 
@@ -36,7 +39,8 @@ public class Door {
 		Level.set( pos, Terrain.OPEN_DOOR );
 		GameScene.updateMap( pos );
 
-		if (Dungeon.level.heroFOV[pos]) {
+		Hero local = Multiplayer.localHero();
+		if (local != null && local.fieldOfView != null && local.fieldOfView[pos]) {
 			Dungeon.observeAll();
 			Sample.INSTANCE.play( Assets.Sounds.OPEN );
 		}
@@ -53,7 +57,8 @@ public class Door {
 		if (Dungeon.level.heaps.get( pos ) == null && chars <= 1) {
 			Level.set( pos, Terrain.DOOR );
 			GameScene.updateMap( pos );
-			if (Dungeon.level.heroFOV[pos])
+			Hero local = Multiplayer.localHero();
+			if (local != null && local.fieldOfView != null && local.fieldOfView[pos])
 				Dungeon.observeAll();
 		}
 	}

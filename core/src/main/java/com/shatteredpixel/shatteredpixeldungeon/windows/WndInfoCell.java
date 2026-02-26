@@ -33,6 +33,8 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.watabou.noosa.Image;
 
+import network.Multiplayer;
+
 public class WndInfoCell extends Window {
 	
 	private static final float GAP	= 2;
@@ -141,7 +143,7 @@ public class WndInfoCell extends Window {
 		RenderedTextBlock info = PixelScene.renderTextBlock(6);
 		add(info);
 
-		if (Dungeon.level.heroFOV[cell]) {
+		if (Multiplayer.localHero().fieldOfView[cell]) {
 			for (Blob blob : Dungeon.level.blobs.values()) {
 				if (blob.volume > 0 && blob.cur[cell] > 0 && blob.tileDesc() != null) {
 					if (desc.length() > 0) {

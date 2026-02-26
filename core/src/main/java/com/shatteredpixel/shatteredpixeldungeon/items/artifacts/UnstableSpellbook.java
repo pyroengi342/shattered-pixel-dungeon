@@ -207,7 +207,7 @@ public class UnstableSpellbook extends Artifact {
 		if (scroll instanceof ScrollOfLullaby
 				|| scroll instanceof ScrollOfRemoveCurse || scroll instanceof ScrollOfTerror) {
 			for (Mob mob : Dungeon.level.mobs.toArray( new Mob[0] )) {
-				if (Dungeon.level.heroFOV[mob.pos]) {
+				if (curUser.fieldOfView[mob.pos]) {
 					artifactProc(mob, visiblyUpgraded(), 1);
 				}
 			}

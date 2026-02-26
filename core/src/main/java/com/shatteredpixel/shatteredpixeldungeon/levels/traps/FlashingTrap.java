@@ -61,7 +61,8 @@ public class FlashingTrap extends Trap {
 			}
 		}
 		
-		if (Dungeon.level.heroFOV[pos]) {
+				Hero local = Multiplayer.localHero();
+		if (local != null && local.fieldOfView != null && local.fieldOfView[pos]) {
 			GameScene.flash(0x80FFFFFF);
 			Sample.INSTANCE.play( Assets.Sounds.BLAST );
 		}

@@ -223,15 +223,17 @@ public class GameScene extends PixelScene {
 
 	@Override
 	public void create() {
-		
-		if (Dungeon.hero == null || Dungeon.level == null){
+
+		// TODO
+		Hero local = Multiplayer.localHero();
+		if (local == null || Dungeon.level == null){
 			ShatteredPixelDungeon.switchNoFade(TitleScene.class);
 			return;
 		}
 
 		Dungeon.level.playLevelMusic();
 
-		SPDSettings.lastClass(Dungeon.hero.heroClass.ordinal());
+		SPDSettings.lastClass(local.heroClass.ordinal());
 		
 		super.create();
 		Camera.main.zoom( GameMath.gate(minZoom, defaultZoom + SPDSettings.zoom(), maxZoom));
@@ -317,10 +319,20 @@ public class GameScene extends PixelScene {
 		mobs = new Group();
 		add( mobs );
 
-		hero = new HeroSprite();
-		hero.place( Dungeon.hero.pos );
-		hero.updateArmor();
-		mobs.add( hero );
+		// Создаём спрайты для всех героев
+		for (Multiplayer.PlayerInfo info : Multiplayer.Players.getAll()) {
+			Hero h = info.hero;
+			if (h != null) {
+				HeroSprite sprite = new HeroSprite(h);
+				sprite.place(h.pos);
+				sprite.updateArmor(h);
+				mobs.add(sprite);
+				if (h == local) {
+					hero = sprite; // поле hero (спрайт локального героя) используется для камеры и эффектов
+				}
+			}
+		}
+
 		
 		for (Mob mob : Dungeon.level.mobs) {
 			addMobSprite( mob );
@@ -545,26 +557,26 @@ public class GameScene extends PixelScene {
 		switch (InterlevelScene.mode) {
 			case RESURRECT:
 				Sample.INSTANCE.play(Assets.Sounds.TELEPORT);
-				ScrollOfTeleportation.appearVFX( Dungeon.hero );
-				SpellSprite.show(Dungeon.hero, SpellSprite.ANKH);
+				ScrollOfTeleportation.appearVFX( local );
+				SpellSprite.show(local, SpellSprite.ANKH);
 				new Flare( 5, 16 ).color( 0xFFFF00, true ).show( hero, 4f ) ;
 				break;
 			case RETURN:
-				if (Dungeon.level.pit[Dungeon.hero.pos] && !Dungeon.hero.flying){
+				if (Dungeon.level.pit[local.pos] && !local.flying){
 					//delay this so falling into the chasm processes properly
 					ShatteredPixelDungeon.runOnRenderThread(new Callback() {
 						@Override
 						public void call() {
-							ScrollOfTeleportation.appearVFX(Dungeon.hero);
+							ScrollOfTeleportation.appearVFX(local);
 						}
 					});
 				} else {
-					ScrollOfTeleportation.appearVFX(Dungeon.hero);
+					ScrollOfTeleportation.appearVFX(local);
 				}
 				break;
 			case DESCEND:
 			case FALL:
-				if (Dungeon.hero.isAlive()) {
+				if (local.isAlive()) {
 					Badges.validateNoKilling();
 				}
 				break;
@@ -588,7 +600,7 @@ public class GameScene extends PixelScene {
 			Dungeon.droppedItems.remove( Dungeon.depth );
 		}
 
-		Dungeon.hero.next();
+		local.next();
 
 		switch (InterlevelScene.mode){
 			case FALL: case DESCEND: case CONTINUE:
@@ -656,15 +668,15 @@ public class GameScene extends PixelScene {
 			}
 
 			boolean unspentTalents = false;
-			for (int i = 1; i <= Dungeon.hero.talents.size(); i++){
-				if (Dungeon.hero.talentPointsAvailable(i) > 0){
+			for (int i = 1; i <= local.talents.size(); i++){
+				if (local.talentPointsAvailable(i) > 0){
 					unspentTalents = true;
 					break;
 				}
 			}
 			if (unspentTalents){
 				GLog.newLine();
-				GLog.w( Messages.get(Dungeon.hero, "unspent") );
+				GLog.w( Messages.get(local, "unspent") );
 				StatusPane.talentBlink = 10f;
 				WndHero.lastIdx = 1;
 			}
@@ -757,16 +769,16 @@ public class GameScene extends PixelScene {
 		fadeIn();
 
 		//re-show WndResurrect if needed
-		if (!Dungeon.hero.isAlive()){
+		if (!local.isAlive()){
 			//check if hero has an unblessed ankh
 			Ankh ankh = null;
-			for (Ankh i : Dungeon.hero.belongings.getAllItems(Ankh.class)){
+			for (Ankh i : local.belongings.getAllItems(Ankh.class)){
 				if (!i.isBlessed()){
 					ankh = i;
 				}
 			}
 			if (ankh != null && GamesInProgress.gameExists(GamesInProgress.curSlot)) {
-				add(new WndResurrect(ankh));
+				add(new WndResurrect(ankh, local));
 			} else {
 				gameOver();
 			}
@@ -1062,7 +1074,12 @@ public class GameScene extends PixelScene {
 	
 	private synchronized void addMobSprite( Mob mob ) {
 		CharSprite sprite = mob.sprite();
-		sprite.visible = Dungeon.level.heroFOV[mob.pos];
+		Hero local = Multiplayer.localHero();
+		if (local != null && local.fieldOfView != null) {
+			sprite.visible = local.fieldOfView[mob.pos];
+		} else {
+			sprite.visible = false; // на сервере или без героя не отображаем
+		}
 		mobs.add( sprite );
 		sprite.link( mob );
 		sortMobSprites();
@@ -1447,13 +1464,16 @@ public class GameScene extends PixelScene {
 	
 	public static void afterObserve() {
 		if (scene != null) {
+			Hero local = Multiplayer.localHero();
+			boolean[] fov = (local != null) ? local.fieldOfView : null;
+
 			for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
 				if (mob.sprite != null) {
 					if (mob instanceof Mimic && mob.state == mob.PASSIVE && ((Mimic) mob).stealthy() && Dungeon.level.visited[mob.pos]){
-						//mimics stay visible in fog of war after being first seen
+						// mimics stay visible in fog of war after being first seen
 						mob.sprite.visible = true;
 					} else {
-						mob.sprite.visible = Dungeon.level.heroFOV[mob.pos];
+						mob.sprite.visible = (fov != null && fov[mob.pos]);
 					}
 				}
 				if (mob instanceof Ghoul){
@@ -1544,7 +1564,7 @@ public class GameScene extends PixelScene {
 	}
 	
 	public static void bossSlain() {
-		if (Dungeon.hero.isAlive()) {
+		if (Multiplayer.localHero().isAlive()) {
 			Banner bossSlain = new Banner( BannerSprites.get( BannerSprites.Type.BOSS_SLAIN ) );
 			bossSlain.show( 0xFFFFFF, 0.3f, 5f );
 			scene.showBanner( bossSlain );

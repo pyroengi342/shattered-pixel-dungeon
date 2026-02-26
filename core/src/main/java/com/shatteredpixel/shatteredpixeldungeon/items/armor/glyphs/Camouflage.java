@@ -30,6 +30,8 @@ import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.watabou.noosa.audio.Sample;
 
+import network.Multiplayer;
+
 public class Camouflage extends Armor.Glyph {
 
 	private static ItemSprite.Glowing GREEN = new ItemSprite.Glowing( 0x448822 );
@@ -42,8 +44,8 @@ public class Camouflage extends Armor.Glyph {
 
 	public static void activate(Char ch, int level){
 		if (level == -1) return;
-		Buff.prolong(ch, Invisibility.class, Math.round((3 + level/2f)* genericProcChanceMultiplier(ch)));
-		if ( Dungeon.level.heroFOV[ch.pos] ) {
+		Buff.prolong(ch, Invisibility.class, Math.round((3 + level/2f)* genericProcChanceMultiplier(ch)), null);
+		if ( Multiplayer.localHero().fieldOfView[ch.pos] ) {
 			Sample.INSTANCE.play( Assets.Sounds.MELD );
 		}
 	}

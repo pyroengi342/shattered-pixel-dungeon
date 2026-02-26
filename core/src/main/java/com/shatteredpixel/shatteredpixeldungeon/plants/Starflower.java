@@ -32,6 +32,8 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.Flare;
 import com.shatteredpixel.shatteredpixeldungeon.effects.SpellSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 
+import network.Multiplayer;
+
 public class Starflower extends Plant {
 
 	{
@@ -44,7 +46,8 @@ public class Starflower extends Plant {
 
 		if (ch != null) {
 			Buff.prolong(ch, Bless.class, Bless.DURATION);
-			if (Dungeon.level.heroFOV[ch.pos]){
+			Hero local = Multiplayer.localHero();
+			if (local != null && local.fieldOfView != null && local.fieldOfView[pos]) {
 				new Flare(6, 32).color(0xFFFF00, true).show(ch.sprite, 2f);
 			}
 			if (ch instanceof Hero && ((Hero) ch).subClass == HeroSubClass.WARDEN){

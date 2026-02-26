@@ -41,6 +41,8 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndBag;
 import com.watabou.noosa.audio.Sample;
 
+import network.Multiplayer;
+
 import java.util.ArrayList;
 
 //these aren't considered potions internally as most potion effects shouldn't apply to them
@@ -88,7 +90,7 @@ public class LiquidMetal extends Item {
 		} else  {
 
 			Dungeon.level.pressCell( cell );
-			if (Dungeon.level.heroFOV[cell]) {
+			if (Multiplayer.localHero().fieldOfView[cell]) {
 				GLog.i( Messages.get(Potion.class, "shatter") );
 				Sample.INSTANCE.play( Assets.Sounds.SHATTER );
 				Splash.at( cell, 0xBFBFBF, 5 );

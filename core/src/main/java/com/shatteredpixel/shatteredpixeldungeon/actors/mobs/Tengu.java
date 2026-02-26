@@ -272,12 +272,12 @@ public class Tengu extends Mob {
 
 				if (tries <= 0) newPos = pos;
 
-				if (level.heroFOV[pos]) CellEmitter.get( pos ).burst( Speck.factory( Speck.WOOL ), 6 );
+				if (Multiplayer.localHero().fieldOfView[pos]) CellEmitter.get( pos ).burst( Speck.factory( Speck.WOOL ), 6 );
 				
 				sprite.move( pos, newPos );
 				move( newPos );
 				
-				if (level.heroFOV[newPos]) CellEmitter.get( newPos ).burst( Speck.factory( Speck.WOOL ), 6 );
+				if (Multiplayer.localHero().fieldOfView[newPos]) CellEmitter.get( newPos ).burst( Speck.factory( Speck.WOOL ), 6 );
 				Sample.INSTANCE.play( Assets.Sounds.PUFF );
 
 				float fill = 0.9f - 0.5f*((HP-(HT/2f))/(HT/2f));
@@ -302,14 +302,14 @@ public class Tengu extends Mob {
 
 				if (tries <= 0) newPos = pos;
 
-				if (level.heroFOV[pos]) CellEmitter.get( pos ).burst( Speck.factory( Speck.WOOL ), 6 );
+				if (Multiplayer.localHero().fieldOfView[pos]) CellEmitter.get( pos ).burst( Speck.factory( Speck.WOOL ), 6 );
 				
 				sprite.move( pos, newPos );
 				move( newPos );
 				
 				if (arenaJumps < 4) arenaJumps++;
 				
-				if (level.heroFOV[newPos]) CellEmitter.get( newPos ).burst( Speck.factory( Speck.WOOL ), 6 );
+				if (Multiplayer.localHero().fieldOfView[newPos]) CellEmitter.get( newPos ).burst( Speck.factory( Speck.WOOL ), 6 );
 				Sample.INSTANCE.play( Assets.Sounds.PUFF );
 				
 			}
@@ -320,12 +320,12 @@ public class Tengu extends Mob {
 			
 			newPos = level.randomRespawnCell( this );
 			
-			if (level.heroFOV[pos]) CellEmitter.get( pos ).burst( Speck.factory( Speck.WOOL ), 6 );
+			if (Multiplayer.localHero().fieldOfView[pos]) CellEmitter.get( pos ).burst( Speck.factory( Speck.WOOL ), 6 );
 			
 			sprite.move( pos, newPos );
 			move( newPos );
 			
-			if (level.heroFOV[newPos]) CellEmitter.get( newPos ).burst( Speck.factory( Speck.WOOL ), 6 );
+			if (Multiplayer.localHero().fieldOfView[newPos]) CellEmitter.get( newPos ).burst( Speck.factory( Speck.WOOL ), 6 );
 			Sample.INSTANCE.play( Assets.Sounds.PUFF );
 			
 		}
@@ -339,14 +339,14 @@ public class Tengu extends Mob {
 			BossHealthBar.assignBoss(this);
 			if (HP <= HT/2) BossHealthBar.bleed(true);
 			if (HP == HT) {
-				yell(Messages.get(this, "notice_gotcha", Dungeon.hero.name()));
+				yell(Messages.get(this, "notice_gotcha", Multiplayer.localHero().name()));
 				for (Char ch : Actor.chars()){
 					if (ch instanceof DriedRose.GhostHero){
 						((DriedRose.GhostHero) ch).sayBoss();
 					}
 				}
 			} else {
-				yell(Messages.get(this, "notice_have", Dungeon.hero.name()));
+				yell(Messages.get(this, "notice_have", Multiplayer.localHero().name()));
 			}
 		}
 	}
@@ -729,10 +729,10 @@ public class Tengu extends Mob {
 			protected void onThrow(int cell) {
 				super.onThrow(cell);
 				if (throwingChar != null){
-					Buff.append(throwingChar, BombAbility.class).bombPos = cell;
+					Buff.append(throwingChar, BombAbility.class, null).bombPos = cell;
 					throwingChar = null;
 				} else {
-					Buff.append(curUser, BombAbility.class).bombPos = cell;
+					Buff.append(curUser, BombAbility.class, null).bombPos = cell;
 				}
 			}
 			
@@ -758,7 +758,7 @@ public class Tengu extends Mob {
 		for (int i = 0; i < PathFinder.CIRCLE8.length; i++){
 			if (aim.sourcePos+PathFinder.CIRCLE8[i] == aim.path.get(1)){
 				thrower.sprite.zap(target.pos);
-				Buff.append(thrower, Tengu.FireAbility.class).direction = i;
+				Buff.append(thrower, Tengu.FireAbility.class, null).direction = i;
 				
 				thrower.sprite.emitter().start(Speck.factory(Speck.STEAM), .03f, 10);
 				return true;
@@ -876,7 +876,7 @@ public class Tengu extends Mob {
 							//similar to fire.burn(), but Tengu is immune, and hero loses score
 							Char ch = Actor.findChar( cell );
 							if (ch != null && !ch.isImmune(Fire.class) && !(ch instanceof Tengu)) {
-								Buff.affect( ch, Burning.class ).reignite( ch );
+								Buff.affect( ch, Burning.class, null ).reignite( ch );
 							}
 							if (ch instanceof Hero){
 								Statistics.qualifiedForBossChallengeBadge = false;
@@ -994,7 +994,7 @@ public class Tengu extends Mob {
 				target.sprite.parent.add(new Lightning(shockerPos - 1 - Dungeon.level.width(), shockerPos + 1 + Dungeon.level.width(), null));
 				target.sprite.parent.add(new Lightning(shockerPos - 1 + Dungeon.level.width(), shockerPos + 1 - Dungeon.level.width(), null));
 				
-				if (Dungeon.level.distance(Dungeon.hero.pos, shockerPos) <= 1){
+				if (Dungeon.level.distance(Multiplayer.localHero().pos, shockerPos) <= 1){
 					Sample.INSTANCE.play( Assets.Sounds.LIGHTNING );
 				}
 				
@@ -1005,7 +1005,7 @@ public class Tengu extends Mob {
 				target.sprite.parent.add(new Lightning(shockerPos - Dungeon.level.width(), shockerPos + Dungeon.level.width(), null));
 				target.sprite.parent.add(new Lightning(shockerPos - 1, shockerPos + 1, null));
 				
-				if (Dungeon.level.distance(Dungeon.hero.pos, shockerPos) <= 1){
+				if (Dungeon.level.distance(Multiplayer.localHero().pos, shockerPos) <= 1){
 					Sample.INSTANCE.play( Assets.Sounds.LIGHTNING );
 				}
 				
@@ -1123,10 +1123,10 @@ public class Tengu extends Mob {
 			protected void onThrow(int cell) {
 				super.onThrow(cell);
 				if (throwingChar != null){
-					Buff.append(throwingChar, ShockerAbility.class).shockerPos = cell;
+					Buff.append(throwingChar, ShockerAbility.class, null).shockerPos = cell;
 					throwingChar = null;
 				} else {
-					Buff.append(curUser, ShockerAbility.class).shockerPos = cell;
+					Buff.append(curUser, ShockerAbility.class, null).shockerPos = cell;
 				}
 			}
 			

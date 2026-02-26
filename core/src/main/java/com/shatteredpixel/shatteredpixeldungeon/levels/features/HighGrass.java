@@ -45,6 +45,8 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.VaultLevel;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.watabou.utils.Random;
 
+import network.Multiplayer;
+
 public class HighGrass {
 	
 	//prevents items dropped from grass, from trampling that same grass.
@@ -165,7 +167,9 @@ public class HighGrass {
 			GameScene.updateMap(pos);
 			
 			CellEmitter.get(pos).burst(LeafParticle.LEVEL_SPECIFIC, 4);
-			if (Dungeon.level.heroFOV[pos]) Dungeon.observeAll();
+			Hero local = Multiplayer.localHero();
+			if (local != null && local.fieldOfView != null && local.fieldOfView[local.pos])
+				Dungeon.observeAll();
 		}
 	}
 }

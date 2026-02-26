@@ -157,6 +157,8 @@ import com.watabou.utils.Bundle;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
+import network.Multiplayer;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -309,13 +311,16 @@ public abstract class Char extends Actor {
 	}
 	
 	protected boolean moveSprite( int from, int to ) {
-		
-		if (sprite.isVisible() && sprite.parent != null && (Dungeon.level.heroFOV[from] || Dungeon.level.heroFOV[to])) {
-			sprite.move( from, to );
+		Hero local = Multiplayer.localHero();
+		boolean visibleToLocal = local != null && local.fieldOfView != null &&
+				(local.fieldOfView[from] || local.fieldOfView[to]);
+
+		if (sprite.isVisible() && sprite.parent != null && visibleToLocal) {
+			sprite.move(from, to);
 			return true;
 		} else {
 			sprite.turnTo(from, to);
-			sprite.place( to );
+			sprite.place(to);
 			return true;
 		}
 	}
@@ -369,7 +374,9 @@ public abstract class Char extends Actor {
 
 		if (enemy == null) return false;
 		
-		boolean visibleFight = Dungeon.level.heroFOV[pos] || Dungeon.level.heroFOV[enemy.pos];
+		Hero local = Multiplayer.localHero();
+		boolean visibleFight = local != null && local.fieldOfView != null &&
+				(local.fieldOfView[pos] || local.fieldOfView[enemy.pos]);
 
 		if (enemy.isInvulnerable(getClass())) {
 
@@ -1294,12 +1301,13 @@ public abstract class Char extends Actor {
 		}
 
 		pos = step;
-		
-		if (this instanceof Hero) {
-			sprite.visible = Dungeon.level.heroFOV[pos];
+
+		// Устанавливаем видимость спрайта только для локального героя
+		if (this instanceof Hero && Multiplayer.localHero() == this) {
+			sprite.visible = true; // локальный герой всегда видим
 		}
-		
-		Dungeon.level.occupyCell(this );
+
+		Dungeon.level.occupyCell(this);
 	}
 	
 	public int distance( Char other ) {

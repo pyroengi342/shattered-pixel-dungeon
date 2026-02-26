@@ -52,7 +52,8 @@ public class CursingTrap extends Trap {
 
 	@Override
 	public void activate() {
-		if (Dungeon.level.heroFOV[ pos ]) {
+		Hero local = Multiplayer.localHero();
+		if (local != null && local.fieldOfView != null && local.fieldOfView[pos]) {
 			CellEmitter.get(pos).burst(ShadowParticle.UP, 5);
 			Sample.INSTANCE.play(Assets.Sounds.CURSED);
 		}

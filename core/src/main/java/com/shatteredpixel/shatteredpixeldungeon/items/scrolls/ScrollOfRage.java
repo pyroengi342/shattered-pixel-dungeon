@@ -26,12 +26,15 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Amok;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
+
+import network.Multiplayer;
 
 public class ScrollOfRage extends Scroll {
 
@@ -41,20 +44,32 @@ public class ScrollOfRage extends Scroll {
 
 	@Override
 	public void doRead() {
-
 		detach(curUser.belongings.backpack);
-		for (Mob mob : Dungeon.level.mobs.toArray( new Mob[0] )) {
-			mob.beckon( curUser.pos );
-			if (mob.alignment != Char.Alignment.ALLY && Dungeon.level.heroFOV[mob.pos]) {
-				Buff.prolong(mob, Amok.class, 5f);
+
+		Hero local = Multiplayer.localHero();
+
+		// Логика: все мобы бегут к читающему и получают Amok
+		for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
+			mob.beckon(curUser.pos);
+			if (mob.alignment != Char.Alignment.ALLY) {
+				Buff.prolong(mob, Amok.class, 5f, this );
 			}
 		}
 
-		GLog.w( Messages.get(this, "roar") );
+		// Сообщение о рыке – только для локального игрока, если это он прочитал
+		if (local == curUser) {
+			GLog.w(Messages.get(this, "roar"));
+		}
+
 		identify();
-		
-		curUser.sprite.centerEmitter().start( Speck.factory( Speck.SCREAM ), 0.3f, 3 );
-		Sample.INSTANCE.play( Assets.Sounds.CHALLENGE );
+
+		// Визуальный эффект крика на читающем – если локальный игрок видит его или это сам локальный
+		if (local != null && (local == curUser || local.fieldOfView[curUser.pos])) {
+			curUser.sprite.centerEmitter().start(Speck.factory(Speck.SCREAM), 0.3f, 3);
+		}
+
+		// Звук – глобально, слышат все
+		Sample.INSTANCE.play(Assets.Sounds.CHALLENGE);
 
 		readAnimation();
 	}

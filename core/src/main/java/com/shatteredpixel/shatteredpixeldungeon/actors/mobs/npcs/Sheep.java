@@ -34,6 +34,8 @@ import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Random;
 
+import network.Multiplayer;
+
 public class Sheep extends NPC {
 
 	private static final String[] LINE_KEYS = {"Baa!", "Baa?", "Baa.", "Baa..."};
@@ -46,7 +48,7 @@ public class Sheep extends NPC {
 
 	@Override
 	protected boolean act() {
-		if (Dungeon.level.heroFOV[pos]){
+		if (Multiplayer.localHero().fieldOfView[pos]){
 			Bestiary.setSeen(getClass());
 		}
 		HP = 0;

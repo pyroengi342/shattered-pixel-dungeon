@@ -48,6 +48,8 @@ import com.watabou.utils.Bundle;
 import com.watabou.utils.Callback;
 import com.watabou.utils.PathFinder;
 
+import network.Multiplayer;
+
 import java.util.ArrayList;
 
 public class LloydsBeacon extends Artifact {
@@ -194,7 +196,7 @@ public class LloydsBeacon extends Artifact {
 
 			if (target == null) return;
 
-			Invisibility.dispel();
+			Invisibility.dispel(curUser);
 			charge -= Dungeon.scalingDepth() > 20 ? 2 : 1;
 			updateQuickslot();
 
@@ -246,7 +248,7 @@ public class LloydsBeacon extends Artifact {
 												((Mob) ch).state = ((Mob) ch).WANDERING;
 											}
 											ch.sprite.place(ch.pos);
-											ch.sprite.visible = Dungeon.level.heroFOV[pos];
+											ch.sprite.visible = curUser.fieldOfView[pos];
 
 										}
 									}

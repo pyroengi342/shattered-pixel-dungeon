@@ -69,6 +69,8 @@ import com.watabou.utils.Point;
 import com.watabou.utils.Random;
 import com.watabou.utils.Rect;
 
+import network.Multiplayer;
+
 import java.util.ArrayList;
 
 public class CavesBossLevel extends Level {
@@ -352,7 +354,8 @@ public class CavesBossLevel extends Level {
 		int i = gate.top*width();
 		for (int j = gate.left; j < gate.right; j++){
 			set( i+j, Terrain.EMPTY );
-			if (Dungeon.level.heroFOV[i+j]){
+			Hero local = Multiplayer.localHero();
+        	if (local != null && local.fieldOfView != null && local.fieldOfView[i+j]) {
 				CellEmitter.get(i+j).burst(BlastParticle.FACTORY, 10);
 			}
 		}

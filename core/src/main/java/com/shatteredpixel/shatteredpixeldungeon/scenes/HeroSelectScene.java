@@ -103,8 +103,6 @@ public class HeroSelectScene extends PixelScene {
 	public void create() {
 		super.create();
 
-		Dungeon.hero = null;
-
 		Badges.loadGlobal();
 		Journal.loadGlobal();
 
@@ -179,7 +177,6 @@ public class HeroSelectScene extends PixelScene {
                     // Standard behaviour if not multiplayer
                 } else Dungeon.initSeed();
 
-                Dungeon.hero = null;
                 Dungeon.daily = Dungeon.dailyReplay = false;
 
 				ActionIndicator.clearAction();
@@ -818,7 +815,6 @@ public class HeroSelectScene extends PixelScene {
 									Dungeon.dailyReplay = true;
 								}
 
-								Dungeon.hero = null;
 								Dungeon.daily = true;
 								Dungeon.initSeed();
 								ActionIndicator.clearAction();

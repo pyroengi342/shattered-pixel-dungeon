@@ -326,7 +326,7 @@ public class QuickSlotButton extends Button {
 				Actor.chars().contains( lastTarget ) &&
 				lastTarget.isAlive() &&
 				lastTarget.alignment != Char.Alignment.ALLY &&
-				Dungeon.level.heroFOV[lastTarget.pos]) {
+				Multiplayer.localHero().fieldOfView[lastTarget.pos]) {
 
 			targetingSlot = slotNum;
 			CharSprite sprite = lastTarget.sprite;

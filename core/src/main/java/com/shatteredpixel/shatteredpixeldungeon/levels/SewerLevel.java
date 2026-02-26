@@ -270,7 +270,9 @@ public class SewerLevel extends RegularLevel {
 		
 		@Override
 		public void update() {
-			if (visible = (pos < Dungeon.level.heroFOV.length && Dungeon.level.heroFOV[pos])) {
+			Hero local = Multiplayer.localHero();
+    		boolean[] fov = (local != null) ? local.fieldOfView : null;
+			if (visible = (fov != null && pos >= 0 && pos < fov.length && fov[pos])) {
 				
 				super.update();
 				

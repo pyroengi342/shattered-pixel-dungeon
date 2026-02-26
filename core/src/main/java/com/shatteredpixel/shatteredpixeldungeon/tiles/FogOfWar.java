@@ -24,11 +24,14 @@ package com.shatteredpixel.shatteredpixeldungeon.tiles;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.watabou.gltextures.TextureCache;
 import com.watabou.noosa.Image;
 import com.watabou.noosa.NoosaScript;
 import com.watabou.noosa.NoosaScriptNoLighting;
 import com.watabou.utils.Rect;
+
+import network.Multiplayer;
 
 import java.util.ArrayList;
 
@@ -320,11 +323,16 @@ public class FogOfWar extends Image {
 
 	@Override
 	public void draw() {
-
-		if (!toUpdate.isEmpty()){
-			updateTexture(Dungeon.level.heroFOV, Dungeon.level.visited, Dungeon.level.mapped);
+		if (!toUpdate.isEmpty()) {
+			Hero local = Multiplayer.localHero();
+			if (local != null && local.fieldOfView != null) {
+				updateTexture(local.fieldOfView, Dungeon.level.visited, Dungeon.level.mapped);
+			} else {
+				// Если локального героя нет (например, на сервере), пропускаем обновление.
+				// Можно также заполнить всё чёрным, но в серверном контексте отрисовка не требуется.
+				return;
+			}
 		}
-
 		super.draw();
 	}
 	

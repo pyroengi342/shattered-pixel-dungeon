@@ -59,6 +59,8 @@ import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 import com.watabou.utils.Reflection;
 
+import network.Multiplayer;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -135,25 +137,29 @@ public class Bomb extends Item {
 	}
 
 	public void explode(int cell){
-		//We're blowing up, so no need for a fuse anymore.
+		// We're blowing up, so no need for a fuse anymore.
 		this.fuse = null;
 
-		Sample.INSTANCE.play( Assets.Sounds.BLAST );
+		Sample.INSTANCE.play(Assets.Sounds.BLAST);
 
 		if (explodesDestructively()) {
 
 			ArrayList<Integer> affectedCells = new ArrayList<>();
 			ArrayList<Char> affectedChars = new ArrayList<>();
-			
-			if (Dungeon.level.heroFOV[cell]) {
+
+			Hero local = Multiplayer.localHero();
+			boolean[] fov = (local != null && local.fieldOfView != null) ? local.fieldOfView : null;
+
+			if (fov != null && fov[cell]) {
 				CellEmitter.center(cell).burst(BlastParticle.FACTORY, 30);
 			}
-			
+
 			boolean terrainAffected = false;
 			boolean[] explodable = new boolean[Dungeon.level.length()];
-			BArray.not( Dungeon.level.solid, explodable);
-			BArray.or( Dungeon.level.flamable, explodable, explodable);
-			PathFinder.buildDistanceMap( cell, explodable, explosionRange() );
+			BArray.not(Dungeon.level.solid, explodable);
+			BArray.or(Dungeon.level.flamable, explodable, explodable);
+			PathFinder.buildDistanceMap(cell, explodable, explosionRange());
+
 			for (int i = 0; i < PathFinder.distance.length; i++) {
 				if (PathFinder.distance[i] != Integer.MAX_VALUE) {
 					affectedCells.add(i);
@@ -164,8 +170,8 @@ public class Bomb extends Item {
 				}
 			}
 
-			for (int i : affectedCells){
-				if (Dungeon.level.heroFOV[i]) {
+			for (int i : affectedCells) {
+				if (fov != null && fov[i]) {
 					CellEmitter.get(i).burst(SmokeParticle.FACTORY, 4);
 				}
 
@@ -175,36 +181,38 @@ public class Bomb extends Item {
 					terrainAffected = true;
 				}
 
-				//destroys items / triggers bombs caught in the blast.
 				Heap heap = Dungeon.level.heaps.get(i);
 				if (heap != null) {
 					heap.explode();
 				}
 			}
-			
-			for (Char ch : affectedChars){
 
-				//if they have already been killed by another bomb
-				if(!ch.isAlive()){
+			for (Char ch : affectedChars) {
+				if (!ch.isAlive()) {
 					continue;
 				}
 
-				int dmg = Random.NormalIntRange(4 + Dungeon.scalingDepth(), 12 + 3*Dungeon.scalingDepth());
+				int dmg = Random.NormalIntRange(4 + Dungeon.scalingDepth(), 12 + 3 * Dungeon.scalingDepth());
 				dmg -= ch.drRoll();
 
 				if (dmg > 0) {
 					ch.damage(dmg, this);
 				}
-				
+
 				if (ch instanceof Hero && !ch.isAlive()) {
-					if (this instanceof ConjuredBomb){
+					Hero deadHero = (Hero) ch;
+					if (this instanceof ConjuredBomb) {
 						Badges.validateDeathFromFriendlyMagic();
 					}
-					GLog.n(Messages.get(this, "ondeath"));
-					Dungeon.fail(this);
+					// Показываем сообщение о смерти только локальному игроку, если умер его герой
+					if (local != null && deadHero == local) {
+						GLog.n(Messages.get(this, "ondeath"));
+						Dungeon.fail(this);
+					}
+					// TODO: для мультиплеера отправить событие смерти другим игрокам
 				}
 			}
-			
+
 			if (terrainAffected) {
 				Dungeon.observeAll();
 			}

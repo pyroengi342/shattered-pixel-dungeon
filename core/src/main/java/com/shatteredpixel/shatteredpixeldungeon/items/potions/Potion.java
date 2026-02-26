@@ -334,7 +334,8 @@ public class Potion extends Item {
 	
 	public void shatter( int cell ) {
 		splash( cell );
-		if (Dungeon.level.heroFOV[cell]) {
+				Hero local = Multiplayer.localHero();
+		if (local != null && local.fieldOfView != null && local.fieldOfView[cell]) {
 			GLog.i( Messages.get(Potion.class, "shatter") );
 			Sample.INSTANCE.play( Assets.Sounds.SHATTER );
 		}
@@ -427,7 +428,8 @@ public class Potion extends Item {
 			Buff.detach(ch, Ooze.class);
 		}
 
-		if (Dungeon.level.heroFOV[cell]) {
+				Hero local = Multiplayer.localHero();
+		if (local != null && local.fieldOfView != null && local.fieldOfView[cell]) {
 			if (ch != null) {
 				Splash.at(ch.sprite.center(), splashColor(), 5);
 			} else {
