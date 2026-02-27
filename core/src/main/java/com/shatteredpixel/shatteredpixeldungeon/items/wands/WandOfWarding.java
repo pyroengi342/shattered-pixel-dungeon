@@ -117,15 +117,13 @@ public class WandOfWarding extends Wand {
 		
 		return super.tryToZap(owner, target);
 	}
-	
+
 	@Override
 	public void onZap(Ballistica bolt) {
-
 		int target = bolt.collisionPos;
 		Char ch = Actor.findChar(target);
 		if (ch != null && !(ch instanceof Ward)){
 			if (bolt.dist > 1) target = bolt.path.get(bolt.dist-1);
-
 			ch = Actor.findChar(target);
 			if (ch != null && !(ch instanceof Ward)){
 				GLog.w( Messages.get(this, "bad_location"));
@@ -146,20 +144,18 @@ public class WandOfWarding extends Wand {
 				GLog.w( Messages.get(this, "bad_location"));
 				Dungeon.level.pressCell(target);
 			}
-			
 		} else if (!Dungeon.level.passable[target]){
 			GLog.w( Messages.get(this, "bad_location"));
 			Dungeon.level.pressCell(target);
-
 		} else {
 			Ward ward = new Ward();
+			ward.setOwner(curUser);
 			ward.pos = target;
 			ward.wandLevel = buffedLvl();
 			GameScene.add(ward, 1f);
 			Dungeon.level.occupyCell(ward);
 			ward.sprite.emitter().burst(MagicMissile.WardParticle.UP, ward.tier);
 			Dungeon.level.pressCell(target);
-
 		}
 	}
 
@@ -227,6 +223,16 @@ public class WandOfWarding extends Wand {
 	}
 
 	public static class Ward extends NPC {
+
+		private int ownerID = -1;
+
+		public void setOwner(Hero owner) {
+			this.ownerID = owner.id();
+		}
+
+		public Hero getOwner() {
+			return (Hero) Actor.findById(ownerID);
+		}
 
 		public int tier = 1;
 		private int wandLevel = 1;
@@ -375,8 +381,11 @@ public class WandOfWarding extends Wand {
 			int dmg = Hero.heroDamageIntRange( 2 + wandLevel, 8 + 4*wandLevel );
 			Char enemy = this.enemy;
 			enemy.damage( dmg, this );
-			if (enemy.isAlive()){
-				Wand.wandProc(enemy, wandLevel, 1);
+			if (enemy.isAlive()) {
+				Hero owner = getOwner();
+				if (owner != null) {
+					Wand.wandProc(owner, enemy, wandLevel, 1);
+				}
 			}
 
 			if (!enemy.isAlive() && enemy instanceof Hero) {
@@ -436,7 +445,9 @@ public class WandOfWarding extends Wand {
 		@Override
 		public void destroy() {
 			super.destroy();
-			Dungeon.observe( curUser );
+			Hero owner = getOwner();
+			if (owner != null)
+				Dungeon.observe(owner);
 			GameScene.updateFog(pos, viewDistance+1);
 		}
 		
@@ -447,9 +458,8 @@ public class WandOfWarding extends Wand {
 
 		@Override
 		public boolean interact( Char c ) {
-			if (c != curUser){
+			if (c != getOwner())
 				return true;
-			}
 			Game.runOnRenderThread(new Callback() {
 				@Override
 				public void call() {
@@ -495,6 +505,7 @@ public class WandOfWarding extends Wand {
 		private static final String TIER = "tier";
 		private static final String WAND_LEVEL = "wand_level";
 		private static final String TOTAL_ZAPS = "total_zaps";
+		private static final String OWNER_ID = "owner_id";
 
 		@Override
 		public void storeInBundle(Bundle bundle) {
@@ -502,6 +513,7 @@ public class WandOfWarding extends Wand {
 			bundle.put(TIER, tier);
 			bundle.put(WAND_LEVEL, wandLevel);
 			bundle.put(TOTAL_ZAPS, totalZaps);
+			bundle.put(OWNER_ID, ownerID);
 		}
 
 		@Override
@@ -511,6 +523,7 @@ public class WandOfWarding extends Wand {
 			viewDistance = 3 + tier;
 			wandLevel = bundle.getInt(WAND_LEVEL);
 			totalZaps = bundle.getInt(TOTAL_ZAPS);
+			ownerID = bundle.getInt(OWNER_ID);
 		}
 	}
 }

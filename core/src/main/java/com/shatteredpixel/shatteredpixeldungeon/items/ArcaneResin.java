@@ -163,35 +163,31 @@ public class ArcaneResin extends Item {
 		}
 
 		@Override
-		public Item brew(ArrayList<Item> ingredients) {
+		public Item brew(ArrayList<Item> ingredients, Hero hero) {
 			Item result = sampleOutput(ingredients);
-			Wand w = (Wand)ingredients.get(0);
-
-			if (!w.levelKnown){
-				result.quantity(resinQuantity(w));
+			Wand w = (Wand) ingredients.get(0);
+			if (!w.levelKnown) {
+				result.quantity(resinQuantity(w, hero));
 			}
 			w.quantity(0);
-
 			return result;
 		}
 
 		@Override
 		public Item sampleOutput(ArrayList<Item> ingredients) {
-			Wand w = (Wand)ingredients.get(0);
-
-			if (w.levelKnown){
-				return new ArcaneResin().quantity(resinQuantity(w));
+			Wand w = (Wand) ingredients.get(0);
+			if (w.levelKnown) {
+				return new ArcaneResin().quantity(resinQuantity(w, null));
 			} else {
 				return new ArcaneResin();
 			}
 		}
 
-		private int resinQuantity(Wand w){
+		private int resinQuantity(Wand w, Hero hero) {
 			int level = w.level() - w.resinBonus;
-			int quantity = 2*(level+1);
-			
-			if (w.curUser.heroClass != HeroClass.MAGE && w.curUser.hasTalent(Talent.WAND_PRESERVATION)){
-				quantity += w.curUser.pointsInTalent(Talent.WAND_PRESERVATION);
+			int quantity = 2 * (level + 1);
+			if (hero != null && hero.heroClass != HeroClass.MAGE && hero.hasTalent(Talent.WAND_PRESERVATION)) {
+				quantity += hero.pointsInTalent(Talent.WAND_PRESERVATION);
 			}
 			return quantity;
 		}

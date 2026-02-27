@@ -79,7 +79,7 @@ public class LostBackpack extends Item {
 		Sample.INSTANCE.play( Assets.Sounds.DEWDROP );
 		hero.spendAndNext(pickupDelay());
 		GameScene.pickUp( this, pos );
-		((HeroSprite)hero.sprite).updateArmor();
+		((HeroSprite)hero.sprite).updateArmor(hero);
 
 		Notes.remove(Notes.Landmark.LOST_PACK);
 		return true;

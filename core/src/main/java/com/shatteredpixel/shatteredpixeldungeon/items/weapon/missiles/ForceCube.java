@@ -54,7 +54,7 @@ public class ForceCube extends MissileWeapon {
 		sticky = false;
 	}
 
-	@Override
+
 	public void hitSound(float pitch) {
 		//no hitsound as it never hits enemies directly
 	}
@@ -133,7 +133,7 @@ public class ForceCube extends MissileWeapon {
 			});
 		}
 		
-		WandOfBlastWave.BlastWave.blast(cell);
+		WandOfBlastWave.BlastWave.blast(curUser, cell);
 		Sample.INSTANCE.play( Assets.Sounds.BLAST );
 	}
 }

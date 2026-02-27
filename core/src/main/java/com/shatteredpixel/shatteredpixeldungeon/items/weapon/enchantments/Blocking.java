@@ -53,7 +53,7 @@ public class Blocking extends Weapon.Enchantment {
 		if (Random.Float() < procChance){
 			float powerMulti = Math.max(1f, procChance);
 
-			BlockBuff b = Buff.affect(attacker, BlockBuff.class);
+			BlockBuff b = Buff.affect(attacker, BlockBuff.class, this);
 			int shield = Math.round(powerMulti * (2 + weapon.buffedLvl()));
 			b.setShield(shield);
 			attacker.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(shield), FloatingText.SHIELDING);

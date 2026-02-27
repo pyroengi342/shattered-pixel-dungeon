@@ -1,6 +1,7 @@
 /*
  * Pixel Dungeon
- * Copyright (C) 2012-2015 Oleg Dolya
+
+* Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
  * Copyright (C) 2014-2025 Evan Debenham

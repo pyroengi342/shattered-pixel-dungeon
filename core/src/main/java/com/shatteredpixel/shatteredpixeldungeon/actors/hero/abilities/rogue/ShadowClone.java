@@ -114,7 +114,7 @@ public class ShadowClone extends ArmorAbility {
 
 				ShadowAlly.appear(ally, ally.pos);
 
-				Invisibility.dispel();
+				Invisibility.dispel(hero);
 				hero.spendAndNext(Actor.TICK);
 
 			} else {

@@ -200,7 +200,7 @@ abstract public class ClassArmor extends Armor {
 				usesTargeting = false;
 				GLog.w( Messages.get(this, "low_charge") );
 			} else  {
-				usesTargeting = hero.armorAbility.useTargeting();
+				usesTargeting = hero.armorAbility.useTargeting(hero);
 				hero.armorAbility.use(this, hero);
 			}
 			
@@ -234,7 +234,7 @@ abstract public class ClassArmor extends Armor {
 								if (hero.belongings.armor == armor){
 									hero.belongings.armor = null;
 									if (hero.sprite instanceof HeroSprite) {
-										((HeroSprite) hero.sprite).updateArmor();
+										((HeroSprite) hero.sprite).updateArmor(hero);
 									}
 								}
 								level(armor.trueLevel());

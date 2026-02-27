@@ -1,24 +1,3 @@
-/*
- * Pixel Dungeon
- * Copyright (C) 2012-2015 Oleg Dolya
- *
- * Shattered Pixel Dungeon
- * Copyright (C) 2014-2025 Evan Debenham
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>
- */
-
 package com.shatteredpixel.shatteredpixeldungeon.items;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
@@ -50,352 +29,358 @@ import com.watabou.utils.GameMath;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import network.AudioWrapper;
+import network.Multiplayer;
+
 public class BrokenSeal extends Item {
 
-	public static final String AC_AFFIX = "AFFIX";
+    public static final String AC_AFFIX = "AFFIX";
+    public static final String AC_INFO = "INFO_WINDOW";
 
-	//only to be used from the quickslot, for tutorial purposes mostly.
-	public static final String AC_INFO = "INFO_WINDOW";
+    {
+        image = ItemSpriteSheet.SEAL;
+        cursedKnown = levelKnown = true;
+        unique = true;
+        bones = false;
+        defaultAction = AC_INFO;
+    }
 
-	{
-		image = ItemSpriteSheet.SEAL;
+    private Armor.Glyph glyph;
 
-		cursedKnown = levelKnown = true;
-		unique = true;
-		bones = false;
+    // Методы, требующие героя, теперь принимают его параметром
+    public boolean canTransferGlyph(Hero hero) {
+        if (glyph == null) {
+            return false;
+        }
+        if (hero.pointsInTalent(Talent.RUNIC_TRANSFERENCE) == 2) {
+            return true;
+        } else if (hero.pointsInTalent(Talent.RUNIC_TRANSFERENCE) == 1
+                && (Arrays.asList(Armor.Glyph.common).contains(glyph.getClass())
+                || Arrays.asList(Armor.Glyph.uncommon).contains(glyph.getClass()))) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 
-		defaultAction = AC_INFO;
-	}
+    public Armor.Glyph getGlyph() {
+        return glyph;
+    }
 
-	private Armor.Glyph glyph;
+    public void setGlyph(Armor.Glyph glyph) {
+        this.glyph = glyph;
+    }
 
-	public boolean canTransferGlyph(){
-		if (glyph == null){
-			return false;
-		}
-		if (curUser.pointsInTalent(Talent.RUNIC_TRANSFERENCE) == 2){
-			return true;
-		} else if (curUser.pointsInTalent(Talent.RUNIC_TRANSFERENCE) == 1
-			&& (Arrays.asList(Armor.Glyph.common).contains(glyph.getClass())
-				|| Arrays.asList(Armor.Glyph.uncommon).contains(glyph.getClass()))){
-			return true;
-		} else {
-			return false;
-		}
-	}
+    public int maxShield(int armTier, int armLvl, Hero hero) {
+        return 3 + 2 * armTier + hero.pointsInTalent(Talent.IRON_WILL);
+    }
 
-	public Armor.Glyph getGlyph(){
-		return glyph;
-	}
+    @Override
+    public ItemSprite.Glowing glowing() {
+        return glyph != null ? glyph.glowing() : null;
+    }
 
-	public void setGlyph( Armor.Glyph glyph ){
-		this.glyph = glyph;
-	}
+    @Override
+    public ArrayList<String> actions(Hero hero) {
+        ArrayList<String> actions = super.actions(hero);
+        actions.add(AC_AFFIX);
+        return actions;
+    }
 
-	public int maxShield( int armTier, int armLvl ){
-		// 5-15, based on equip tier and iron will
-		return 3 + 2*armTier + curUser.pointsInTalent(Talent.IRON_WILL);
-	}
+    @Override
+    public void execute(Hero hero, String action) {
+        super.execute(hero, action);
+        if (action.equals(AC_AFFIX)) {
+            // Сохраняем героя для использования в селекторе
+            final Hero currentHero = hero;
+            GameScene.selectItem(new ArmorSelector(currentHero, this));
+        } else if (action.equals(AC_INFO)) {
+            GameScene.show(new WndUseItem(null, this));
+        }
+    }
 
-	@Override
-	public ItemSprite.Glowing glowing() {
-		return glyph != null ? glyph.glowing() : null;
-	}
+    // outgoing может быть самой печатью или бронёй
+    public void affixToArmor(Armor armor, Item outgoing, Hero hero) {
+        if (armor != null) {
+            if (!armor.cursedKnown) {
+                if (hero == Multiplayer.localHero()) {
+                    GLog.w(Messages.get(BrokenSeal.class, "unknown_armor"));
+                }
+            } else if (armor.cursed && (getGlyph() == null || !getGlyph().curse())) {
+                if (hero == Multiplayer.localHero()) {
+                    GLog.w(Messages.get(BrokenSeal.class, "cursed_armor"));
+                }
+            } else if (armor.glyph != null && getGlyph() != null
+                    && canTransferGlyph(hero)
+                    && armor.glyph.getClass() != getGlyph().getClass()) {
 
-	@Override
-	public ArrayList<String> actions(Hero hero) {
-		ArrayList<String> actions =  super.actions(hero);
-		actions.add(AC_AFFIX);
-		return actions;
-	}
+                // Показываем окно только локальному герою
+                if (hero == Multiplayer.localHero()) {
+                    GameScene.show(new WndOptions(new ItemSprite(ItemSpriteSheet.SEAL),
+                            Messages.get(BrokenSeal.class, "choose_title"),
+                            Messages.get(BrokenSeal.class, "choose_desc", armor.glyph.name(), getGlyph().name()),
+                            armor.glyph.name(),
+                            getGlyph().name()) {
+                        @Override
+                        protected void onSelect(int index) {
+                            if (index == -1) return;
 
-	@Override
-	public void execute(Hero hero, String action) {
+                            if (outgoing == BrokenSeal.this) {
+                                // detach у печени требует героя
+                                detach(hero.belongings.backpack);
+                            } else if (outgoing instanceof Armor) {
+                                ((Armor) outgoing).detachSeal();
+                            }
 
-		super.execute(hero, action);
+                            if (index == 0) setGlyph(null);
 
-		if (action.equals(AC_AFFIX)){
-			curItem = this;
-			GameScene.selectItem(armorSelector);
-		} else if (action.equals(AC_INFO)) {
-			GameScene.show(new WndUseItem(null, this));
-		}
-	}
+                            if (hero == Multiplayer.localHero()) {
+                                GLog.p(Messages.get(BrokenSeal.class, "affix"));
+                                hero.sprite.operate(hero.pos);
+                                AudioWrapper.playGlobal(Assets.Sounds.UNLOCK);
+                            }
+                            armor.affixSeal(BrokenSeal.this);
+                        }
 
-	//outgoing is either the seal itself as an item, or an armor the seal is affixed to
-	public void affixToArmor(Armor armor, Item outgoing){
-		if (armor != null) {
-			if (!armor.cursedKnown){
-				GLog.w(Messages.get(BrokenSeal.class, "unknown_armor"));
+                        @Override
+                        public void hide() {
+                            super.hide();
+                            hero.next();
+                        }
+                    });
+                }
+            } else {
+                if (outgoing == this) {
+                    detach(hero.belongings.backpack);
+                } else if (outgoing instanceof Armor) {
+                    ((Armor) outgoing).detachSeal();
+                }
 
-			} else if (armor.cursed && (getGlyph() == null || !getGlyph().curse())){
-				GLog.w(Messages.get(BrokenSeal.class, "cursed_armor"));
+                if (hero == Multiplayer.localHero()) {
+                    GLog.p(Messages.get(BrokenSeal.class, "affix"));
+                    hero.sprite.operate(hero.pos);
+                    AudioWrapper.playGlobal(Assets.Sounds.UNLOCK);
+                }
+                armor.affixSeal(this);
+                hero.next();
+            }
+        }
+    }
 
-			}else if (armor.glyph != null && getGlyph() != null
-					&& canTransferGlyph()
-					&& armor.glyph.getClass() != getGlyph().getClass()) {
+    @Override
+    public String name() {
+        return glyph != null ? glyph.name(super.name()) : super.name();
+    }
 
-				GameScene.show(new WndOptions(new ItemSprite(ItemSpriteSheet.SEAL),
-						Messages.get(BrokenSeal.class, "choose_title"),
-						Messages.get(BrokenSeal.class, "choose_desc", armor.glyph.name(), getGlyph().name()),
-						armor.glyph.name(),
-						getGlyph().name()){
-					@Override
-					protected void onSelect(int index) {
-						if (index == -1) return;
+    @Override
+    public String info() {
+        String info = super.info();
+        if (glyph != null) {
+            info += "\n\n" + Messages.get(this, "inscribed", glyph.name());
+            info += " " + glyph.desc();
+        }
+        return info;
+    }
 
-						if (outgoing == BrokenSeal.this) {
-							detach(curUser.belongings.backpack);
-						} else if (outgoing instanceof Armor){
-							((Armor) outgoing).detachSeal();
-						}
+    @Override
+    public boolean isUpgradable() {
+        return level() == 0;
+    }
 
-						if (index == 0) setGlyph(null);
-						//if index is 1, then the glyph transfer happens in affixSeal
+    // Внутренний класс для выбора брони, хранит героя
+    private static class ArmorSelector extends WndBag.ItemSelector {
+        private Hero hero;
+        private BrokenSeal seal;
 
-						GLog.p(Messages.get(BrokenSeal.class, "affix"));
-						curUser.sprite.operate(curUser.pos);
-						Sample.INSTANCE.play(Assets.Sounds.UNLOCK);
-						armor.affixSeal(BrokenSeal.this);
-					}
+        ArmorSelector(Hero hero, BrokenSeal seal) {
+            this.hero = hero;
+            this.seal = seal;
+        }
 
-					@Override
-					public void hide() {
-						super.hide();
-						curUser.next();
-					}
-				});
+        @Override
+        public String textPrompt() {
+            return Messages.get(BrokenSeal.class, "prompt");
+        }
 
-			} else {
-				if (outgoing == this) {
-					detach(curUser.belongings.backpack);
-				} else if (outgoing instanceof Armor){
-					((Armor) outgoing).detachSeal();
-				}
+        @Override
+        public Class<? extends Bag> preferredBag() {
+            return Belongings.Backpack.class;
+        }
 
-				GLog.p(Messages.get(BrokenSeal.class, "affix"));
-				curUser.sprite.operate(curUser.pos);
-				Sample.INSTANCE.play(Assets.Sounds.UNLOCK);
-				armor.affixSeal(this);
-				curUser.next();
-			}
-		}
-	}
+        @Override
+        public boolean itemSelectable(Item item) {
+            return item instanceof Armor;
+        }
 
-	@Override
-	public String name() {
-		return glyph != null ? glyph.name( super.name() ) : super.name();
-	}
+        @Override
+        public void onSelect(Item item) {
+            if (item instanceof Armor) {
+                seal.affixToArmor((Armor) item, seal, hero);
+            }
+        }
+    }
 
-	@Override
-	public String info() {
-		String info = super.info();
-		if (glyph != null){
-			info += "\n\n" + Messages.get(this, "inscribed", glyph.name());
-			info += " " + glyph.desc();
-		}
-		return info;
-	}
+    private static final String GLYPH = "glyph";
 
-	@Override
-	//scroll of upgrade can be used directly once, same as upgrading armor the seal is affixed to then removing it.
-	public boolean isUpgradable() {
-		return level() == 0;
-	}
+    @Override
+    public void storeInBundle(Bundle bundle) {
+        super.storeInBundle(bundle);
+        bundle.put(GLYPH, glyph);
+    }
 
-	protected static WndBag.ItemSelector armorSelector = new WndBag.ItemSelector() {
+    @Override
+    public void restoreFromBundle(Bundle bundle) {
+        super.restoreFromBundle(bundle);
+        glyph = (Armor.Glyph) bundle.get(GLYPH);
+    }
 
-		@Override
-		public String textPrompt() {
-			return  Messages.get(BrokenSeal.class, "prompt");
-		}
+    public static class WarriorShield extends ShieldBuff {
 
-		@Override
-		public Class<?extends Bag> preferredBag(){
-			return Belongings.Backpack.class;
-		}
+        {
+            type = buffType.POSITIVE;
+            detachesAtZero = false;
+            shieldUsePriority = 2;
+        }
 
-		@Override
-		public boolean itemSelectable(Item item) {
-			return item instanceof Armor;
-		}
+        private Armor armor;
+        private int cooldown = 0;
+        private float turnsSinceEnemies = 0;
+        private static int COOLDOWN_START = 150;
 
-		@Override
-		public void onSelect( Item item ) {
-			if (item instanceof Armor) {
-				BrokenSeal seal = (BrokenSeal) curItem;
-				seal.affixToArmor((Armor)item, seal);
-			}
-		}
-	};
+        @Override
+        public int icon() {
+            if (coolingDown() || shielding() > 0 || cooldown < 0) {
+                return BuffIndicator.SEAL_SHIELD;
+            } else {
+                return BuffIndicator.NONE;
+            }
+        }
 
-	private static final String GLYPH = "glyph";
+        @Override
+        public void tintIcon(Image icon) {
+            icon.resetColor();
+            if (coolingDown() && shielding() == 0) {
+                icon.brightness(0.3f);
+            } else if (cooldown < 0) {
+                icon.invert();
+            }
+        }
 
-	@Override
-	public void storeInBundle(Bundle bundle) {
-		super.storeInBundle(bundle);
-		bundle.put(GLYPH, glyph);
-	}
+        @Override
+        public float iconFadePercent() {
+            if (shielding() > 0) {
+                return GameMath.gate(0, 1f - shielding() / (float) maxShield(), 1);
+            } else if (coolingDown()) {
+                return GameMath.gate(0, cooldown / (float) COOLDOWN_START, 1);
+            } else if (cooldown < 0) {
+                return GameMath.gate(0, (COOLDOWN_START + cooldown) / (float) COOLDOWN_START, 1);
+            } else {
+                return 0;
+            }
+        }
 
-	@Override
-	public void restoreFromBundle(Bundle bundle) {
-		super.restoreFromBundle(bundle);
-		glyph = (Armor.Glyph)bundle.get(GLYPH);
-	}
+        @Override
+        public String iconTextDisplay() {
+            if (shielding() > 0) {
+                return Integer.toString(shielding());
+            } else if (coolingDown() || cooldown < 0) {
+                return Integer.toString(cooldown);
+            } else {
+                return "";
+            }
+        }
 
-	public static class WarriorShield extends ShieldBuff {
+        @Override
+        public String desc() {
+            if (shielding() > 0) {
+                return Messages.get(this, "desc_active", shielding(), cooldown);
+            } else if (cooldown < 0) {
+                return Messages.get(this, "desc_negative_cooldown", cooldown);
+            } else {
+                return Messages.get(this, "desc_cooldown", cooldown);
+            }
+        }
 
-		{
-			type = buffType.POSITIVE;
+        @Override
+        public synchronized boolean act() {
+            if (cooldown > 0 && Regeneration.regenOn(((Hero) target))) {
+                cooldown--;
+            }
 
-			detachesAtZero = false;
-			shieldUsePriority = 2;
-		}
+            if (shielding() > 0) {
+                if (((Hero) target).visibleEnemies() == 0 && target.buff(Combo.class) == null) {
+                    turnsSinceEnemies += HoldFast.buffDecayFactor(target);
+                    if (turnsSinceEnemies >= 5) {
+                        if (cooldown > 0) {
+                            float percentLeft = shielding() / (float) maxShield();
+                            cooldown = Math.max(0, (int) (cooldown - COOLDOWN_START * (percentLeft / 2f)));
+                        }
+                        decShield(shielding());
+                    }
+                } else {
+                    turnsSinceEnemies = 0;
+                }
+            }
 
-		private Armor armor;
+            if (shielding() <= 0 && maxShield() <= 0 && cooldown == 0) {
+                detach();
+            }
 
-		private int cooldown = 0;
-		private float turnsSinceEnemies = 0;
+            spend(TICK);
+            return true;
+        }
 
-		private static int COOLDOWN_START = 150;
+        public synchronized void activate() {
+            incShield(maxShield());
+            cooldown = Math.max(0, cooldown + COOLDOWN_START);
+            turnsSinceEnemies = 0;
+        }
 
-		@Override
-		public int icon() {
-			if (coolingDown() || shielding() > 0 || cooldown < 0){
-				return BuffIndicator.SEAL_SHIELD;
-			} else {
-				return BuffIndicator.NONE;
-			}
-		}
+        public boolean coolingDown() {
+            return cooldown > 0;
+        }
 
-		@Override
-		public void tintIcon(Image icon) {
-			icon.resetColor();
-			if (coolingDown() && shielding() == 0){
-				icon.brightness(0.3f);
-			} else if (cooldown < 0) {
-				icon.invert();
-			}
-		}
+        public void reduceCooldown(float percentage) {
+            cooldown -= Math.round(COOLDOWN_START * percentage);
+            cooldown = Math.max(cooldown, -COOLDOWN_START);
+        }
 
-		@Override
-		public float iconFadePercent() {
-			if (shielding() > 0){
-				return GameMath.gate(0, 1f - shielding()/(float)maxShield(), 1);
-			} else if (coolingDown()){
-				return GameMath.gate(0, cooldown / (float)COOLDOWN_START, 1);
-			} else if (cooldown < 0) {
-				return GameMath.gate(0, (COOLDOWN_START+cooldown) / (float)COOLDOWN_START, 1);
-			} else {
-				return 0;
-			}
-		}
+        public synchronized void setArmor(Armor arm) {
+            armor = arm;
+        }
 
-		@Override
-		public String iconTextDisplay() {
-			if (shielding() > 0){
-				return Integer.toString(shielding());
-			} else if (coolingDown() || cooldown < 0){
-				return Integer.toString(cooldown);
-			} else {
-				return "";
-			}
-		}
+        public synchronized int maxShield() {
+            // target уже является владельцем баффа
+            Hero owner = (Hero) target;
+            if (owner.heroClass != HeroClass.WARRIOR && owner.hasTalent(Talent.IRON_WILL)) {
+                return owner.pointsInTalent(Talent.IRON_WILL);
+            }
+            if (armor != null && armor.isEquipped(owner) && armor.checkSeal() != null) {
+                return armor.checkSeal().maxShield(armor.tier, armor.level(), owner);
+            } else {
+                return 0;
+            }
+        }
 
-		@Override
-		public String desc() {
-			if (shielding() > 0) {
-				return Messages.get(this, "desc_active", shielding(), cooldown);
-			} else if (cooldown < 0) {
-				return Messages.get(this, "desc_negative_cooldown", cooldown);
-			} else {
-				return Messages.get(this, "desc_cooldown", cooldown);
-			}
-		}
+        public static final String COOLDOWN = "cooldown";
+        public static final String TURNS_SINCE_ENEMIES = "turns_since_enemies";
 
-		@Override
-		public synchronized boolean act() {
-			if (cooldown > 0 && Regeneration.regenOn()){
-				cooldown--;
-			}
+        @Override
+        public void storeInBundle(Bundle bundle) {
+            super.storeInBundle(bundle);
+            bundle.put(COOLDOWN, cooldown);
+            bundle.put(TURNS_SINCE_ENEMIES, turnsSinceEnemies);
+        }
 
-			if (shielding() > 0){
-				if (curUser.visibleEnemies() == 0 && curUser.buff(Combo.class) == null){
-					turnsSinceEnemies += HoldFast.buffDecayFactor(target);
-					if (turnsSinceEnemies >= 5){
-						if (cooldown > 0) {
-							float percentLeft = shielding() / (float)maxShield();
-							//max of 50% cooldown refund
-							cooldown = Math.max(0, (int)(cooldown - COOLDOWN_START * (percentLeft / 2f)));
-						}
-						decShield(shielding());
-					}
-				} else {
-					turnsSinceEnemies = 0;
-				}
-			}
-			
-			if (shielding() <= 0 && maxShield() <= 0 && cooldown == 0){
-				detach();
-			}
-			
-			spend(TICK);
-			return true;
-		}
-
-		public synchronized void activate() {
-			incShield(maxShield());
-			cooldown = Math.max(0, cooldown+COOLDOWN_START);
-			turnsSinceEnemies = 0;
-		}
-
-		public boolean coolingDown(){
-			return cooldown > 0;
-		}
-
-		public void reduceCooldown(float percentage){
-			cooldown -= Math.round(COOLDOWN_START*percentage);
-			cooldown = Math.max(cooldown, -COOLDOWN_START);
-		}
-
-		public synchronized void setArmor(Armor arm){
-			armor = arm;
-		}
-
-		public synchronized int maxShield() {
-			//metamorphed iron will logic
-			if (((Hero)target).heroClass != HeroClass.WARRIOR && ((Hero) target).hasTalent(Talent.IRON_WILL)){
-				return ((Hero) target).pointsInTalent(Talent.IRON_WILL);
-			}
-
-			if (armor != null && armor.isEquipped((Hero)target) && armor.checkSeal() != null) {
-				return armor.checkSeal().maxShield(armor.tier, armor.level());
-			} else {
-				return 0;
-			}
-		}
-
-		public static final String COOLDOWN = "cooldown";
-		public static final String TURNS_SINCE_ENEMIES = "turns_since_enemies";
-
-		@Override
-		public void storeInBundle(Bundle bundle) {
-			super.storeInBundle(bundle);
-			bundle.put(COOLDOWN, cooldown);
-			bundle.put(TURNS_SINCE_ENEMIES, turnsSinceEnemies);
-		}
-
-		@Override
-		public void restoreFromBundle(Bundle bundle) {
-			super.restoreFromBundle(bundle);
-			if (bundle.contains(COOLDOWN)) {
-				cooldown = bundle.getInt(COOLDOWN);
-				turnsSinceEnemies = bundle.getFloat(TURNS_SINCE_ENEMIES);
-
-			//if we have shield from pre-3.1, have it last a bit
-			} else if (shielding() > 0) {
-				turnsSinceEnemies = -100;
-			}
-		}
-	}
+        @Override
+        public void restoreFromBundle(Bundle bundle) {
+            super.restoreFromBundle(bundle);
+            if (bundle.contains(COOLDOWN)) {
+                cooldown = bundle.getInt(COOLDOWN);
+                turnsSinceEnemies = bundle.getFloat(TURNS_SINCE_ENEMIES);
+            } else if (shielding() > 0) {
+                turnsSinceEnemies = -100;
+            }
+        }
+    }
 }

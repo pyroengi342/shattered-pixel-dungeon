@@ -231,7 +231,7 @@ public class CloakOfShadows extends Artifact {
 		@Override
 		public boolean act() {
 			if (charge < chargeCap && !cursed && target.buff(MagicImmune.class) == null) {
-				if (activeBuff == null && Regeneration.regenOn(curUser) {
+				if (activeBuff == null && Regeneration.regenOn(curUser)) {
 					float missing = (chargeCap - charge);
 					if (level() > 7) missing += 5*(level() - 7)/3f;
 					float turnsToCharge = (45 - missing);
@@ -305,10 +305,10 @@ public class CloakOfShadows extends Artifact {
 			if (super.attachTo( target )) {
 				target.invisible++;
 				if (target instanceof Hero && ((Hero) target).subClass == HeroSubClass.ASSASSIN){
-					Buff.affect(target, Preparation.class);
+					Buff.affect(target, Preparation.class, this);
 				}
 				if (target instanceof Hero && ((Hero) target).hasTalent(Talent.PROTECTIVE_SHADOWS)){
-					Buff.affect(target, Talent.ProtectiveShadowsTracker.class);
+					Buff.affect(target, Talent.ProtectiveShadowsTracker.class, this);
 				}
 				return true;
 			} else {

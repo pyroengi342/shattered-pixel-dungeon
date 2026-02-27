@@ -407,7 +407,8 @@ public class SpiritBow extends Weapon {
 
 				user.sprite.zap(cell);
 				((MissileSprite) user.sprite.parent.recycle(MissileSprite.class)).
-						reset(user.sprite,
+						reset(user,
+							user.sprite,
 								cell,
 								this,
 								new Callback() {

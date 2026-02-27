@@ -162,7 +162,7 @@ public class WarpBeacon extends ArmorAbility {
 								ScrollOfTeleportation.appear(hero, tracker.pos);
 							}
 
-							Invisibility.dispel();
+							Invisibility.dispel(hero);
 							Dungeon.observe(hero);
 							GameScene.updateFog();
 							hero.checkVisibleMobs();
@@ -177,7 +177,7 @@ public class WarpBeacon extends ArmorAbility {
 
 							//transition before dispel, to cancel out trap effects
 							Level.beforeTransition();
-							Invisibility.dispel();
+							Invisibility.dispel(hero);
 							InterlevelScene.mode = InterlevelScene.Mode.RETURN;
 							InterlevelScene.returnDepth = tracker.depth;
 							InterlevelScene.returnBranch = tracker.branch;
@@ -218,7 +218,7 @@ public class WarpBeacon extends ArmorAbility {
 
 			hero.sprite.operate(target);
 			Sample.INSTANCE.play(Assets.Sounds.TELEPORT);
-			Invisibility.dispel();
+			Invisibility.dispel(hero);
 			hero.spendAndNext(Actor.TICK);
 		}
 	}

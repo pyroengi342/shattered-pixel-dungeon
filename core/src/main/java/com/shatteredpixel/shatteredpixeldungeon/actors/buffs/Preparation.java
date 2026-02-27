@@ -1,24 +1,3 @@
-/*
- * Pixel Dungeon
- * Copyright (C) 2012-2015 Oleg Dolya
- *
- * Shattered Pixel Dungeon
- * Copyright (C) 2014-2025 Evan Debenham
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>
- */
-
 package com.shatteredpixel.shatteredpixeldungeon.actors.buffs;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
@@ -44,7 +23,6 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.BitmapText;
 import com.watabou.noosa.Image;
 import com.watabou.noosa.Visual;
-import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.PathFinder;
 
@@ -58,7 +36,6 @@ import java.util.List;
 public class Preparation extends Buff implements ActionIndicator.Action {
 	
 	{
-		//always acts after other buffs, so invisibility effects can process first
 		actPriority = BUFF_PRIO - 1;
 		type = buffType.POSITIVE;
 	}
@@ -87,8 +64,8 @@ public class Preparation extends Buff implements ActionIndicator.Action {
 				{.50f, .67f, .83f, 1.0f}
 		};
 
-		public float KOThreshold(){
-			return KOThresholds[ordinal()][Dungeon.hero.pointsInTalent(Talent.ENHANCED_LETHALITY)];
+		public float KOThreshold(Hero hero){
+			return KOThresholds[ordinal()][hero.pointsInTalent(Talent.ENHANCED_LETHALITY)];
 		}
 
 		//1st index is prep level, 2nd is talent level
@@ -99,16 +76,16 @@ public class Preparation extends Buff implements ActionIndicator.Action {
 				{4, 6, 8, 10}
 		};
 
-		public int blinkDistance(){
-			return blinkRanges[ordinal()][Dungeon.hero.pointsInTalent(Talent.ASSASSINS_REACH)];
+		public int blinkDistance(Hero hero){
+			return blinkRanges[ordinal()][hero.pointsInTalent(Talent.ASSASSINS_REACH)];
 		}
 		
-		public boolean canKO(Char defender){
+		public boolean canKO(Char defender, Hero hero){
 			if (defender.properties().contains(Char.Property.MINIBOSS)
 					|| defender.properties().contains(Char.Property.BOSS)){
-				return (defender.HP/(float)defender.HT) < (KOThreshold()/5f);
+				return (defender.HP/(float)defender.HT) < (KOThreshold(hero)/5f);
 			} else {
-				return (defender.HP/(float)defender.HT) < KOThreshold();
+				return (defender.HP/(float)defender.HT) < KOThreshold(hero);
 			}
 		}
 		
@@ -139,8 +116,12 @@ public class Preparation extends Buff implements ActionIndicator.Action {
 	public boolean act() {
 		if (target.invisible > 0){
 			turnsInvis++;
-			if (AttackLevel.getLvl(turnsInvis).blinkDistance() > 0 && target instanceof Hero){
-				ActionIndicator.setAction(this);
+			// Показываем действие в UI только для локального героя
+			if (target instanceof Hero && target == Multiplayer.localHero()) {
+				AttackLevel lvl = AttackLevel.getLvl(turnsInvis);
+				if (lvl.blinkDistance((Hero)target) > 0) {
+					ActionIndicator.setAction(this);
+				}
 			}
 			spend(TICK);
 		} else {
@@ -152,7 +133,9 @@ public class Preparation extends Buff implements ActionIndicator.Action {
 	@Override
 	public void detach() {
 		super.detach();
-		ActionIndicator.clearAction(this);
+		if (target instanceof Hero && target == Multiplayer.localHero()) {
+			ActionIndicator.clearAction(this);
+		}
 	}
 
 	public int attackLevel(){
@@ -164,7 +147,9 @@ public class Preparation extends Buff implements ActionIndicator.Action {
 	}
 
 	public boolean canKO( Char defender ){
-		return !defender.isInvulnerable(target.getClass()) && AttackLevel.getLvl(turnsInvis).canKO(defender);
+		if (!(target instanceof Hero)) return false;
+		return !defender.isInvulnerable(target.getClass()) 
+				&& AttackLevel.getLvl(turnsInvis).canKO(defender, (Hero)target);
 	}
 	
 	@Override
@@ -194,19 +179,21 @@ public class Preparation extends Buff implements ActionIndicator.Action {
 	public String desc() {
 		String desc = Messages.get(this, "desc");
 		
+		if (!(target instanceof Hero)) return desc; // на всякий случай
+		Hero hero = (Hero) target;
 		AttackLevel lvl = AttackLevel.getLvl(turnsInvis);
 
 		desc += "\n\n" + Messages.get(this, "desc_dmg",
 				(int)(lvl.baseDmgBonus*100),
-				(int)(lvl.KOThreshold()*100),
-				(int)(lvl.KOThreshold()*20));
+				(int)(lvl.KOThreshold(hero)*100),
+				(int)(lvl.KOThreshold(hero)*20));
 		
 		if (lvl.damageRolls > 1){
 			desc += " " + Messages.get(this, "desc_dmg_likely");
 		}
 		
-		if (lvl.blinkDistance() > 0){
-			desc += "\n\n" + Messages.get(this, "desc_blink", lvl.blinkDistance());
+		if (lvl.blinkDistance(hero) > 0){
+			desc += "\n\n" + Messages.get(this, "desc_blink", lvl.blinkDistance(hero));
 		}
 		
 		desc += "\n\n" + Messages.get(this, "desc_invis_time", turnsInvis);
@@ -225,7 +212,9 @@ public class Preparation extends Buff implements ActionIndicator.Action {
 	public void restoreFromBundle(Bundle bundle) {
 		super.restoreFromBundle(bundle);
 		turnsInvis = bundle.getInt(TURNS);
-		ActionIndicator.setAction(this);
+		if (target instanceof Hero && target == Multiplayer.localHero()) {
+			ActionIndicator.setAction(this);
+		}
 	}
 	
 	@Override
@@ -275,70 +264,66 @@ public class Preparation extends Buff implements ActionIndicator.Action {
 		@Override
 		public void onSelect(Integer cell) {
 			if (cell == null) return;
+			if (!(target instanceof Hero)) return;
+			Hero hero = (Hero) target;
+			
 			final Char enemy = Actor.findChar( cell );
-			if (enemy == null || ((Hero) target).isCharmedBy(enemy) || enemy instanceof NPC || !Multiplayer.localHero().fieldOfView[cell] || enemy instanceof Hero){
+			if (enemy == null || hero.isCharmedBy(enemy) || enemy instanceof NPC || !hero.fieldOfView[cell] || enemy instanceof Hero){
 				GLog.w(Messages.get(Preparation.class, "no_target"));
 			} else {
 
-				//just attack them then!
-				if (((Hero) target).canAttack(enemy)){
-                    ((Hero) target).curAction = new HeroAction.Attack( enemy );
-                    ((Hero) target).next();
+				if (hero.canAttack(enemy)){
+					hero.curAction = new HeroAction.Attack( enemy );
+					hero.next();
 					return;
 				}
 				
 				AttackLevel lvl = AttackLevel.getLvl(turnsInvis);
 
-				PathFinder.buildDistanceMap(((Hero) target).pos,BArray.or(Dungeon.level.passable, Dungeon.level.avoid, null), lvl.blinkDistance());
+				PathFinder.buildDistanceMap(hero.pos, BArray.or(Dungeon.level.passable, Dungeon.level.avoid, null), lvl.blinkDistance(hero));
 				int dest = -1;
 				for (int i : PathFinder.NEIGHBOURS8){
-					//cannot blink into a cell that's occupied or impassable, only over them
 					if (Actor.findChar(cell+i) != null)     continue;
-					if (!Dungeon.level.passable[cell+i] && !(target.flying && Dungeon.level.avoid[cell+i])) {
+					if (!Dungeon.level.passable[cell+i] && !(hero.flying && Dungeon.level.avoid[cell+i])) {
 						continue;
 					}
 
 					if (dest == -1 || PathFinder.distance[dest] > PathFinder.distance[cell+i]){
 						dest = cell+i;
-					//if two cells have the same pathfinder distance, prioritize the one with the closest true distance to the hero
 					} else if (PathFinder.distance[dest] == PathFinder.distance[cell+i]){
-						if (Dungeon.level.trueDistance(((Hero) target).pos, dest) > Dungeon.level.trueDistance(((Hero) target).pos, cell+i)){
+						if (Dungeon.level.trueDistance(hero.pos, dest) > Dungeon.level.trueDistance(hero.pos, cell+i)){
 							dest = cell+i;
 						}
 					}
-
 				}
 
-				if (dest == -1 || PathFinder.distance[dest] == Integer.MAX_VALUE || ((Hero) target).rooted){
+				if (dest == -1 || PathFinder.distance[dest] == Integer.MAX_VALUE || hero.rooted){
 					GLog.w(Messages.get(Preparation.class, "out_of_reach"));
-					if (((Hero) target).rooted) PixelScene.shake( 1, 1f );
+					if (hero.rooted) PixelScene.shake( 1, 1f );
 					return;
 				}
 				
-				((Hero) target).pos = dest;
-				Dungeon.level.occupyCell(((Hero) target));
-				//prevents the hero from being interrupted by seeing new enemies
-                if (target instanceof Hero)
-                {
-                    // TODO entire methods needs to be rebuilt
-                    Dungeon.observe( (Hero) target);
-                }
+				hero.pos = dest;
+				Dungeon.level.occupyCell(hero);
+				Dungeon.observe(hero);
 				GameScene.updateFog();
-				((Hero) target).checkVisibleMobs();
+				hero.checkVisibleMobs();
 				
-				((Hero) target).sprite.place( ((Hero) target).pos );
-				((Hero) target).sprite.turnTo( ((Hero) target).pos, cell);
-				CellEmitter.get( ((Hero) target).pos ).burst( Speck.factory( Speck.WOOL ), 6 );
-				AudioWrapper.play( Assets.Sounds.PUFF, target.pos );
+				hero.sprite.place(hero.pos);
+				hero.sprite.turnTo(hero.pos, cell);
+				CellEmitter.get(hero.pos).burst( Speck.factory( Speck.WOOL ), 6 );
+				AudioWrapper.play(Assets.Sounds.PUFF, hero.pos);
 
-				((Hero) target).curAction = new HeroAction.Attack( enemy );
-				((Hero) target).next();
+				hero.curAction = new HeroAction.Attack( enemy );
+				hero.next();
 			}
 		}
 		
 		@Override
 		public String prompt() {
-			return Messages.get(Preparation.class, "prompt", AttackLevel.getLvl(turnsInvis).blinkDistance());
+			if (!(target instanceof Hero)) return "";
+			Hero hero = (Hero) target;
+			return Messages.get(Preparation.class, "prompt", AttackLevel.getLvl(turnsInvis).blinkDistance(hero));
 		}
 	};
 }

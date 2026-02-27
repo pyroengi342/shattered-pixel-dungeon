@@ -288,7 +288,7 @@ public abstract class YogFist extends Mob {
 				GameScene.updateMap( enemy.pos );
 				CellEmitter.get( enemy.pos ).burst( Speck.factory( Speck.STEAM ), 10 );
 			} else {
-				Buff.affect( enemy, Burning.class , this)reignite( enemy );
+				Buff.affect( enemy, Burning.class , this).reignite( enemy );
 			}
 
 			for (int i : PathFinder.NEIGHBOURS9){
@@ -495,7 +495,7 @@ public abstract class YogFist extends Mob {
 			if (!isInvulnerable(src.getClass()) && !(src instanceof Viscosity.DeferedDamage)){
 				dmg = Math.round( dmg * resist( src.getClass() ));
 				if (dmg >= 0) {
-					Buff.affect(this, Viscosity.DeferedDamage.class, this)extend(dmg);
+					Buff.affect(this, Viscosity.DeferedDamage.class, this).extend(dmg);
 					sprite.showStatus(CharSprite.WARNING, Messages.get(Viscosity.class, "deferred", dmg));
 				}
 			} else{

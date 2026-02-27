@@ -115,7 +115,7 @@ public class Spear extends MeleeWeapon {
 						//trim it to just be the part that goes past them
 						trajectory = new Ballistica(trajectory.collisionPos, trajectory.path.get(trajectory.path.size() - 1), Ballistica.PROJECTILE);
 						//knock them back along that ballistica
-						WandOfBlastWave.throwChar(enemy, trajectory, 1, true, false, hero);
+						WandOfBlastWave.throwChar(enemy, trajectory, 1, true, false, hero, hero);
 					} else if (!enemy.isAlive()) {
 						wep.onAbilityKill(hero, enemy);
 					}

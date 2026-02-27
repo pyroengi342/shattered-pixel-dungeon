@@ -161,7 +161,7 @@ public class Rapier extends MeleeWeapon {
 					});
 				} else {
 					//spends charge but otherwise does not count as an ability use
-					Charger charger = Buff.affect(hero, Charger.class);
+					Charger charger = Buff.affect(hero, Charger.class, this);
 					charger.partialCharge -= 1;
 					while (charger.partialCharge < 0 && charger.charges > 0) {
 						charger.charges--;

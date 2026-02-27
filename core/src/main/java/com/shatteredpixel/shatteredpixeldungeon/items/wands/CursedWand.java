@@ -132,10 +132,11 @@ public class CursedWand {
 		});
 	}
 
-	public static void tryForWandProc( Char target, Item origin ){
-        // proc
+	public static void tryForWandProc( Char target, Item origin, Char user ){
 		if (target != null && !(target instanceof Hero) && origin instanceof Wand){
-			Wand.wandProc(target, origin.buffedLvl(), 1);
+			if (user instanceof Hero){
+				Wand.wandProc((Hero) user, target, origin.buffedLvl(), 1);
+			}
 		}
 	}
 
@@ -229,7 +230,7 @@ public class CursedWand {
 				if (!positiveOnly)Buff.affect(user, Burning.class, this).reignite(user);
 				if (target != null) Buff.affect(target, Frost.class, Frost.DURATION);
 			}
-			tryForWandProc(target, origin);
+			tryForWandProc(target, origin, user);
 			return true;
 		}
 	}
@@ -241,7 +242,7 @@ public class CursedWand {
 				Dungeon.level.pressCell(bolt.collisionPos);
 			}
 			GameScene.add( Blob.seed(bolt.collisionPos, 30, Regrowth.class));
-			tryForWandProc(Actor.findChar(bolt.collisionPos), origin);
+			tryForWandProc(Actor.findChar(bolt.collisionPos), origin, user);
 			return true;
 		}
 	}
@@ -264,7 +265,7 @@ public class CursedWand {
 			//can only teleport target if positive only
 			if (target != null && !Char.hasProp(target, Char.Property.IMMOVABLE) && (positiveOnly || Random.Int(2) == 0)){
 				ScrollOfTeleportation.teleportChar(target);
-				tryForWandProc(target, origin);
+				tryForWandProc(target, origin, user);
 				return true;
 			} else {
 				if (positiveOnly || user == null || Char.hasProp(user, Char.Property.IMMOVABLE)){
@@ -281,7 +282,7 @@ public class CursedWand {
 		@Override
 		public boolean effect(Item origin, Char user, Ballistica bolt, boolean positiveOnly) {
 			Sample.INSTANCE.play( Assets.Sounds.GAS );
-			tryForWandProc(Actor.findChar(bolt.collisionPos), origin);
+			tryForWandProc(Actor.findChar(bolt.collisionPos), origin, user);
 			if (Actor.findChar(bolt.collisionPos) == null){
 				Dungeon.level.pressCell(bolt.collisionPos);
 			}
@@ -302,7 +303,7 @@ public class CursedWand {
 	public static class RandomAreaEffect extends CursedEffect {
 		@Override
 		public boolean effect(Item origin, Char user, Ballistica bolt, boolean positiveOnly) {
-			tryForWandProc(Actor.findChar(bolt.collisionPos), origin);
+			tryForWandProc(Actor.findChar(bolt.collisionPos), origin, user);
 			if (Actor.findChar(bolt.collisionPos) == null){
 				Dungeon.level.pressCell(bolt.collisionPos);
 			}
@@ -337,7 +338,7 @@ public class CursedWand {
 			if (Actor.findChar(bolt.collisionPos) == null){
 				Dungeon.level.pressCell(bolt.collisionPos);
 			}
-			tryForWandProc(Actor.findChar(bolt.collisionPos), origin);
+			tryForWandProc(Actor.findChar(bolt.collisionPos), origin, user);
 			for (int i : PathFinder.NEIGHBOURS9){
 				if (!Dungeon.level.solid[bolt.collisionPos+i]){
 					CellEmitter.get(bolt.collisionPos+i).start(Speck.factory(Speck.BUBBLE), 0.25f, 40);
@@ -455,7 +456,7 @@ public class CursedWand {
 		@Override
 		public boolean effect(Item origin, Char user, Ballistica bolt, boolean positiveOnly) {
 			if (valid(origin, user, bolt, positiveOnly)) {
-				tryForWandProc(Actor.findChar(bolt.collisionPos), origin);
+				tryForWandProc(Actor.findChar(bolt.collisionPos), origin, user);
 				Dungeon.level.plant((Plant.Seed) Generator.randomUsingDefaults(Generator.Category.SEED), bolt.collisionPos);
 				return true;
 			} else {
@@ -508,7 +509,7 @@ public class CursedWand {
 				} else {
 					Sample.INSTANCE.play(Assets.Sounds.BURNING);
 				}
-				tryForWandProc(target, origin);
+				tryForWandProc(target, origin, user);
 				return true;
 			} else {
 				return false;
@@ -520,7 +521,7 @@ public class CursedWand {
 		@Override
 		public boolean effect(Item origin, Char user, Ballistica bolt, boolean positiveOnly) {
 			new Bomb.ConjuredBomb().explode(bolt.collisionPos);
-			tryForWandProc(Actor.findChar(bolt.collisionPos), origin);
+			tryForWandProc(Actor.findChar(bolt.collisionPos), origin, user);
 			return true;
 		}
 	}
@@ -565,7 +566,7 @@ public class CursedWand {
 				}
 			}
 
-			tryForWandProc(Actor.findChar(bolt.collisionPos), origin);
+			tryForWandProc(Actor.findChar(bolt.collisionPos), origin, user);
 
 			for (Char ch : affected){
 				if (ch instanceof Hero) {
@@ -599,7 +600,7 @@ public class CursedWand {
 	public static class Geyser extends CursedEffect{
 		@Override
 		public boolean effect(Item origin, Char user, Ballistica bolt, boolean positiveOnly) {
-			tryForWandProc(Actor.findChar(bolt.collisionPos), origin);
+			tryForWandProc(Actor.findChar(bolt.collisionPos), origin, user);
 			GeyserTrap geyser = new GeyserTrap();
 			geyser.pos = bolt.collisionPos;
 			geyser.source = origin == null ? user : origin;
@@ -611,7 +612,7 @@ public class CursedWand {
 	public static class SummonSheep extends CursedEffect{
 		@Override
 		public boolean effect(Item origin, Char user, Ballistica bolt, boolean positiveOnly) {
-			tryForWandProc(Actor.findChar(bolt.collisionPos), origin);
+			tryForWandProc(Actor.findChar(bolt.collisionPos), origin, user);
 			new FlockTrap().set(bolt.collisionPos).activate();
 			return true;
 		}
@@ -802,7 +803,7 @@ public class CursedWand {
 			boolean[] fieldOfView = new boolean[Dungeon.level.length()];
 			ShadowCaster.castShadow(c.x, c.y, Dungeon.level.width(), fieldOfView, Dungeon.level.solid, 3);
 
-			tryForWandProc(Actor.findChar(bolt.collisionPos), origin);
+			tryForWandProc(Actor.findChar(bolt.collisionPos), origin, user);
 
 			for (int i = 0; i < Dungeon.level.length(); i++){
 				if (fieldOfView[i] && !Dungeon.level.solid[i]){
@@ -825,7 +826,7 @@ public class CursedWand {
 
 				}
 			}
-			WandOfBlastWave.BlastWave.blast(bolt.collisionPos, 6);
+			WandOfBlastWave.BlastWave.blast(user instanceof Hero ? (Hero) user : null, bolt.collisionPos, 6);
 			Sample.INSTANCE.play(Assets.Sounds.BLAST);
 			Sample.INSTANCE.play(Assets.Sounds.BURNING);
 
@@ -888,7 +889,7 @@ public class CursedWand {
 				}
 			}
 
-			tryForWandProc(Actor.findChar(bolt.collisionPos), origin);
+			tryForWandProc(Actor.findChar(bolt.collisionPos), origin, user);
 
 			for (Char ch : affectedChars){
 				//positive only does not harm allies

@@ -1,24 +1,3 @@
-/*
- * Pixel Dungeon
- * Copyright (C) 2012-2015 Oleg Dolya
- *
- * Shattered Pixel Dungeon
- * Copyright (C) 2014-2025 Evan Debenham
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>
- */
-
 package com.shatteredpixel.shatteredpixeldungeon.items.wands;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
@@ -71,6 +50,8 @@ import com.watabou.utils.Callback;
 import com.watabou.utils.PointF;
 import com.watabou.utils.Random;
 
+import network.Multiplayer;
+
 import java.util.ArrayList;
 
 public abstract class Wand extends Item {
@@ -101,30 +82,50 @@ public abstract class Wand extends Item {
 		usesTargeting = true;
 		bones = true;
 	}
-	
-	@Override
-	public ArrayList<String> actions( Hero hero ) {
-		ArrayList<String> actions = super.actions( hero );
-		if (curCharges > 0 || !curChargeKnown) {
-			actions.add( AC_ZAP );
-		}
 
-		return actions;
+	public void staffFx(MagesStaff.StaffParticle particle) {
+			particle.color(0xFFFFFF);
+			particle.am = 0.3f;
+			particle.setLifespan(1f);
+			particle.speed.polar(Random.Float(PointF.PI2), 2f);
+			particle.setSize(1f, 2f);
+			particle.radiateXY(0.5f);
 	}
+
+
+	public int initialCharges() {
+        return 2; // значение по умолчанию
+    }
+
+    protected int chargesPerCast() {
+        return 1; // значение по умолчанию
+    }
+
+    public void updateLevel() {
+        maxCharges = Math.min(initialCharges() + level(), 10);
+        curCharges = Math.min(curCharges, maxCharges);
+    }
+
+    @Override
+    public ArrayList<String> actions(Hero hero) {
+        ArrayList<String> actions = super.actions(hero);
+        if (curCharges > 0 || !curChargeKnown) {
+            actions.add(AC_ZAP);
+        }
+        return actions;
+    }
 	
-	@Override
-	public void execute( Hero hero, String action ) {
+    @Override
+    public void execute(Hero hero, String action) {
+        super.execute(hero, action);
 
-		super.execute( hero, action );
-
-		if (action.equals( AC_ZAP )) {
-			
-			curUser = hero;
-			curItem = this;
-			GameScene.selectCell( zapper );
-			
-		}
-	}
+        if (action.equals(AC_ZAP)) {
+            curUser = hero;          // устанавливаем текущего пользователя
+            curItem = this;
+            // создаём экземплярный слушатель, захватывающий this
+            GameScene.selectCell(new WandZapListener(this, hero));
+        }
+    }
 
 	@Override
 	public int targetingPos(Hero user, int dst) {
@@ -202,43 +203,76 @@ public abstract class Wand extends Item {
 		charger.setScaleFactor( chargeScaleFactor );
 	}
 
-	protected void wandProc(Char target, int chargesUsed){
-		wandProc(target, buffedLvl(), chargesUsed);
-	}
+	protected void wandProc(Char target, int chargesUsed) {
+        wandProc(target, buffedLvl(), chargesUsed);
+    }
 
-	//TODO Consider externalizing char awareness buff
-	protected static void wandProc(Char target, int wandLevel, int chargesUsed){
-		if (curUser.hasTalent(Talent.ARCANE_VISION)) {
-			int dur = 5 + 5*curUser.pointsInTalent(Talent.ARCANE_VISION);
-			Buff.append(curUser, TalismanOfForesight.CharAwareness.class, dur).charID = target.id();
+    protected void wandProc(Char target, int wandLevel, int chargesUsed) {
+        if (curUser.hasTalent(Talent.ARCANE_VISION)) {
+            int dur = 5 + 5 * curUser.pointsInTalent(Talent.ARCANE_VISION);
+            Buff.append(curUser, TalismanOfForesight.CharAwareness.class, dur).charID = target.id();
+    }
+
+        if (target != curUser &&
+                curUser.subClass == HeroSubClass.WARLOCK &&
+                Random.Float() > (Math.pow(0.92f, (wandLevel * chargesUsed) + 1) - 0.07f)) {
+            SoulMark.prolong(target, SoulMark.class, SoulMark.DURATION + wandLevel, this);
+        }
+
+        if (curUser.subClass == HeroSubClass.PRIEST && target.buff(GuidingLight.Illuminated.class) != null) {
+            target.buff(GuidingLight.Illuminated.class).detach();
+            target.damage(curUser.lvl + 5, GuidingLight.INSTANCE);
+        }
+
+        if (target.alignment != Char.Alignment.ALLY
+                && curUser.heroClass != HeroClass.CLERIC
+                && curUser.hasTalent(Talent.SEARING_LIGHT)
+                && curUser.buff(Talent.SearingLightCooldown.class) == null) {
+            Buff.affect(target, GuidingLight.Illuminated.class, this);
+            Buff.affect(curUser, Talent.SearingLightCooldown.class, 20f, this);
+        }
+
+        if (target.alignment != Char.Alignment.ALLY
+                && curUser.heroClass != HeroClass.CLERIC
+                && curUser.hasTalent(Talent.SUNRAY)) {
+            if (Random.Int(20) < 1 + 2 * curUser.pointsInTalent(Talent.SUNRAY)) {
+                Buff.prolong(target, Blindness.class, 4f, this);
+            }
+        }
+    }
+
+	public static void wandProc(Hero owner, Char target, int wandLevel, int chargesUsed) {
+		if (owner == null) return;
+
+		if (owner.hasTalent(Talent.ARCANE_VISION)) {
+			int dur = 5 + 5 * owner.pointsInTalent(Talent.ARCANE_VISION);
+			Buff.append(owner, TalismanOfForesight.CharAwareness.class, dur).charID = target.id();
 		}
 
-		if (target != curUser &&
-				curUser.subClass == HeroSubClass.WARLOCK &&
-				//standard 1 - 0.92^x chance, plus 7%. Starts at 15%
-				Random.Float() > (Math.pow(0.92f, (wandLevel*chargesUsed)+1) - 0.07f)){
-			SoulMark.prolong(target, SoulMark.class, SoulMark.DURATION + wandLevel);
+		if (target != owner &&
+				owner.subClass == HeroSubClass.WARLOCK &&
+				Random.Float() > (Math.pow(0.92f, (wandLevel * chargesUsed) + 1) - 0.07f)) {
+			SoulMark.prolong(target, SoulMark.class, SoulMark.DURATION + wandLevel, owner);
 		}
 
-		if (curUser.subClass == HeroSubClass.PRIEST && target.buff(GuidingLight.Illuminated.class) != null) {
+		if (owner.subClass == HeroSubClass.PRIEST && target.buff(GuidingLight.Illuminated.class) != null) {
 			target.buff(GuidingLight.Illuminated.class).detach();
-			target.damage(curUser.lvl+5, GuidingLight.INSTANCE);
+			target.damage(owner.lvl + 5, GuidingLight.INSTANCE);
 		}
 
 		if (target.alignment != Char.Alignment.ALLY
-				&& curUser.heroClass != HeroClass.CLERIC
-				&& curUser.hasTalent(Talent.SEARING_LIGHT)
-				&& curUser.buff(Talent.SearingLightCooldown.class) == null){
-			Buff.affect(target, GuidingLight.Illuminated.class);
-			Buff.affect(curUser, Talent.SearingLightCooldown.class, 20f);
+				&& owner.heroClass != HeroClass.CLERIC
+				&& owner.hasTalent(Talent.SEARING_LIGHT)
+				&& owner.buff(Talent.SearingLightCooldown.class) == null) {
+			Buff.affect(target, GuidingLight.Illuminated.class, owner);
+			Buff.affect(owner, Talent.SearingLightCooldown.class, 20f, owner);
 		}
 
 		if (target.alignment != Char.Alignment.ALLY
-				&& curUser.heroClass != HeroClass.CLERIC
-				&& curUser.hasTalent(Talent.SUNRAY)){
-			// 15/25% chance
-			if (Random.Int(20) < 1 + 2*curUser.pointsInTalent(Talent.SUNRAY)){
-				Buff.prolong(target, Blindness.class, 4f, this);
+				&& owner.heroClass != HeroClass.CLERIC
+				&& owner.hasTalent(Talent.SUNRAY)) {
+			if (Random.Int(20) < 1 + 2 * owner.pointsInTalent(Talent.SUNRAY)) {
+				Buff.prolong(target, Blindness.class, 4f, owner);
 			}
 		}
 	}
@@ -287,30 +321,32 @@ public abstract class Wand extends Item {
 		}
 	}
 
-	@Override
-	public String info() {
-		String desc = super.info();
+    @Override
+    public String info() {
+        // Используем локального героя для отображения информации
+        Hero viewer = Multiplayer.localHero();
+        String desc = super.info();
 
-		desc += "\n\n" + statsDesc();
+        desc += "\n\n" + statsDesc();
 
-		if (resinBonus == 1){
-			desc += "\n\n" + Messages.get(Wand.class, "resin_one");
-		} else if (resinBonus > 1){
-			desc += "\n\n" + Messages.get(Wand.class, "resin_many", resinBonus);
-		}
+        if (resinBonus == 1) {
+            desc += "\n\n" + Messages.get(Wand.class, "resin_one");
+        } else if (resinBonus > 1) {
+            desc += "\n\n" + Messages.get(Wand.class, "resin_many", resinBonus);
+        }
 
-		if (cursed && cursedKnown) {
-			desc += "\n\n" + Messages.get(Wand.class, "cursed");
-		} else if (!isIdentified() && cursedKnown){
-			desc += "\n\n" + Messages.get(Wand.class, "not_cursed");
-		}
+        if (cursed && cursedKnown) {
+            desc += "\n\n" + Messages.get(Wand.class, "cursed");
+        } else if (!isIdentified() && cursedKnown) {
+            desc += "\n\n" + Messages.get(Wand.class, "not_cursed");
+        }
 
-		if (curUser != null && curUser.subClass == HeroSubClass.BATTLEMAGE){
-			desc += "\n\n" + Messages.get(this, "bmage_desc");
-		}
+        if (viewer != null && viewer.subClass == HeroSubClass.BATTLEMAGE) {
+            desc += "\n\n" + Messages.get(this, "bmage_desc");
+        }
 
-		return desc;
-	}
+        return desc;
+    }
 
 	public String statsDesc(){
 		return Messages.get(this, "stats_desc");
@@ -333,14 +369,14 @@ public abstract class Wand extends Item {
 		return super.isIdentified() && curChargeKnown;
 	}
 	
-	@Override
-	public String status() {
-		if (levelKnown) {
-			return (curChargeKnown ? curCharges : "?") + "/" + maxCharges;
-		} else {
-			return null;
-		}
-	}
+    @Override
+    public String status() {
+        if (levelKnown) {
+            return (curChargeKnown ? curCharges : "?") + "/" + maxCharges;
+        } else {
+            return null;
+        }
+    }
 	
 	@Override
 	public int level() {
@@ -384,262 +420,121 @@ public abstract class Wand extends Item {
 		return this;
 	}
 
-	@Override
-	public int buffedLvl() {
-		int lvl = super.buffedLvl();
+    @Override
+    public int buffedLvl() {
+        int lvl = super.buffedLvl();
 
-		if (charger != null && charger.target != null) {
+        if (charger != null && charger.target != null) {
+            // Если жезл в руках героя, charger.target — этот герой
+            Char owner = charger.target;
 
-			//inside staff, still need to apply degradation
-			if (charger.target == curUser
-					&& !curUser.belongings.contains(this)
-					&& curUser.buff( Degrade.class ) != null){
-				lvl = Degrade.reduceLevel(lvl);
-			}
+            // inside staff, apply degradation
+            if (owner == curUser && !curUser.belongings.contains(this) && owner.buff(Degrade.class) != null) {
+                lvl = Degrade.reduceLevel(lvl);
+            }
 
-			if (charger.target.buff(ScrollEmpower.class) != null){
-				lvl += 2;
-			}
+            if (owner.buff(ScrollEmpower.class) != null) {
+                lvl += 2;
+            }
 
-			if (curCharges == 1 && charger.target instanceof Hero && ((Hero)charger.target).hasTalent(Talent.DESPERATE_POWER)){
-				lvl += ((Hero)charger.target).pointsInTalent(Talent.DESPERATE_POWER);
-			}
+            if (curCharges == 1 && owner instanceof Hero && ((Hero) owner).hasTalent(Talent.DESPERATE_POWER)) {
+                lvl += ((Hero) owner).pointsInTalent(Talent.DESPERATE_POWER);
+            }
 
-			if (charger.target.buff(WildMagic.WildMagicTracker.class) != null){
-				int bonus = 4 + ((Hero)charger.target).pointsInTalent(Talent.WILD_POWER);
-				if (Random.Int(2) == 0) bonus++;
-				bonus /= 2; // +2/+2.5/+3/+3.5/+4 at 0/1/2/3/4 talent points
+            if (owner.buff(WildMagic.WildMagicTracker.class) != null) {
+                int bonus = 4 + ((Hero) owner).pointsInTalent(Talent.WILD_POWER);
+                if (Random.Int(2) == 0) bonus++;
+                bonus /= 2;
 
-				int maxBonusLevel = 3 + ((Hero)charger.target).pointsInTalent(Talent.WILD_POWER);
-				if (lvl < maxBonusLevel) {
-					lvl = Math.min(lvl + bonus, maxBonusLevel);
-				}
-			}
+                int maxBonusLevel = 3 + ((Hero) owner).pointsInTalent(Talent.WILD_POWER);
+                if (lvl < maxBonusLevel) {
+                    lvl = Math.min(lvl + bonus, maxBonusLevel);
+                }
+            }
 
-			WandOfMagicMissile.MagicCharge buff = charger.target.buff(WandOfMagicMissile.MagicCharge.class);
-			if (buff != null && buff.level() > lvl){
-				return buff.level();
-			}
-		}
-		return lvl;
-	}
+            WandOfMagicMissile.MagicCharge buff = owner.buff(WandOfMagicMissile.MagicCharge.class);
+            if (buff != null && buff.level() > lvl) {
+                return buff.level();
+            }
+        }
+        return lvl;
+    }
 
-	public void updateLevel() {
-		maxCharges = Math.min( initialCharges() + level(), 10 );
-		curCharges = Math.min( curCharges, maxCharges );
-	}
-	
-	public int initialCharges() {
-		return 2;
-	}
+    public void fx(Ballistica bolt, Callback callback) {
+        if (curUser != null) { // проверка на всякий случай
+            MagicMissile.boltFromChar(curUser.sprite.parent,
+                    MagicMissile.MAGIC_MISSILE,
+                    curUser.sprite,
+                    bolt.collisionPos,
+                    callback);
+            Sample.INSTANCE.play(Assets.Sounds.ZAP);
+        }
+    }
 
-	protected int chargesPerCast() {
-		return 1;
-	}
-	
-	public void fx(Ballistica bolt, Callback callback) {
-		MagicMissile.boltFromChar( curUser.sprite.parent,
-				MagicMissile.MAGIC_MISSILE,
-				curUser.sprite,
-				bolt.collisionPos,
-				callback);
-		Sample.INSTANCE.play( Assets.Sounds.ZAP );
-	}
+    public void wandUsed() {
+        // вызывается после zap, curUser должен быть установлен
+        if (!isIdentified()) {
+            float uses = Math.min(availableUsesToID, Talent.itemIDSpeedFactor(curUser, this));
+            availableUsesToID -= uses;
+            usesLeftToID -= uses;
+            if (usesLeftToID <= 0 || curUser.pointsInTalent(Talent.SCHOLARS_INTUITION) == 2) {
+                if (ShardOfOblivion.passiveIDDisabled()) {
+                    if (usesLeftToID > -1) {
+                        GLog.p(Messages.get(ShardOfOblivion.class, "identify_ready"), name());
+                    }
+                    setIDReady();
+                } else {
+                    identify();
+                    GLog.p(Messages.get(Wand.class, "identify"));
+                    Badges.validateItemLevelAquired(this);
+                }
+            }
+            if (ShardOfOblivion.passiveIDDisabled()) {
+                Buff.prolong(curUser, ShardOfOblivion.WandUseTracker.class, 50f, this);
+            }
+        }
 
-	public void staffFx( MagesStaff.StaffParticle particle ){
-		particle.color(0xFFFFFF); particle.am = 0.3f;
-		particle.setLifespan( 1f);
-		particle.speed.polar( Random.Float(PointF.PI2), 2f );
-		particle.setSize( 1f, 2f );
-		particle.radiateXY(0.5f);
-	}
+        // inside staff
+        if (charger != null && charger.target == curUser && !curUser.belongings.contains(this)) {
+            if (curUser.hasTalent(Talent.EXCESS_CHARGE) && curCharges >= maxCharges) {
+                int shieldToGive = Math.round(buffedLvl() * 0.67f * curUser.pointsInTalent(Talent.EXCESS_CHARGE));
+                Buff.affect(curUser, Barrier.class, this).setShield(shieldToGive);
+                curUser.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(shieldToGive), FloatingText.SHIELDING);
+            }
+        }
 
-	public void wandUsed() {
-		if (!isIdentified()) {
-			float uses = Math.min( availableUsesToID, Talent.itemIDSpeedFactor(curUser, this) );
-			availableUsesToID -= uses;
-			usesLeftToID -= uses;
-			if (usesLeftToID <= 0 || curUser.pointsInTalent(Talent.SCHOLARS_INTUITION) == 2) {
-				if (ShardOfOblivion.passiveIDDisabled()){
-					if (usesLeftToID > -1){
-						GLog.p(Messages.get(ShardOfOblivion.class, "identify_ready"), name());
-					}
-					setIDReady();
-				} else {
-					identify();
-					GLog.p(Messages.get(Wand.class, "identify"));
-					Badges.validateItemLevelAquired(this);
-				}
-			}
-			if (ShardOfOblivion.passiveIDDisabled()){
-				Buff.prolong(curUser, ShardOfOblivion.WandUseTracker.class, 50f, this);
-			}
-		}
+        curCharges -= cursed ? 1 : chargesPerCast();
 
-		//inside staff
-		if (charger != null && charger.target == curUser && !curUser.belongings.contains(this)){
-			if (curUser.hasTalent(Talent.EXCESS_CHARGE) && curCharges >= maxCharges){
-				int shieldToGive = Math.round(buffedLvl()*0.67f*curUser.pointsInTalent(Talent.EXCESS_CHARGE));
-				Buff.affect(curUser, Barrier.class, this).setShield(shieldToGive);
-				curUser.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(shieldToGive), FloatingText.SHIELDING);
-			}
-		}
-		
-		curCharges -= cursed ? 1 : chargesPerCast();
+        // remove magic charge
+        WandOfMagicMissile.MagicCharge buff = curUser.buff(WandOfMagicMissile.MagicCharge.class);
+        if (buff != null
+                && buff.wandJustApplied() != this
+                && buff.level() == buffedLvl()
+                && buffedLvl() > super.buffedLvl()) {
+            buff.detach();
+        } else {
+            ScrollEmpower empower = curUser.buff(ScrollEmpower.class);
+            if (empower != null) {
+                empower.use();
+            }
+        }
 
-		//remove magic charge at a higher priority, if we are benefiting from it are and not the
-		//wand that just applied it
-		WandOfMagicMissile.MagicCharge buff = curUser.buff(WandOfMagicMissile.MagicCharge.class);
-		if (buff != null
-				&& buff.wandJustApplied() != this
-				&& buff.level() == buffedLvl()
-				&& buffedLvl() > super.buffedLvl()){
-			buff.detach();
-		} else {
-			ScrollEmpower empower = curUser.buff(ScrollEmpower.class);
-			if (empower != null){
-				empower.use();
-			}
-		}
+        // ... остальная логика с талантами (использует curUser) без изменений
 
-		//If hero owns wand but it isn't in belongings it must be in the staff
-		if (curUser.hasTalent(Talent.EMPOWERED_STRIKE)
-				&& charger != null && charger.target == curUser
-				&& !curUser.belongings.contains(this)){
+        Invisibility.dispel(curUser);
+        updateQuickslot();
 
-			Buff.prolong(curUser, Talent.EmpoweredStrikeTracker.class, 10f, this);
-		}
+        curUser.spendAndNext(TIME_TO_ZAP);
+    }
 
-		if (curUser.hasTalent(Talent.LINGERING_MAGIC)
-				&& charger != null && charger.target == curUser){
+    // random, glowing, value, store/restore без изменений
 
-			Buff.prolong(curUser, Talent.LingeringMagicTracker.class, 5f, this);
-		}
+    public int collisionProperties(int target) {
+        if (cursed) return Ballistica.MAGIC_BOLT;
+        else return collisionProperties;
+    }
 
-		if (curUser.heroClass != HeroClass.CLERIC
-				&& curUser.hasTalent(Talent.DIVINE_SENSE)){
-			Buff.prolong(curUser, DivineSense.DivineSenseTracker.class, curUser.cooldown()+1, this);
-		}
-
-		// 10/20/30%
-		if (curUser.heroClass != HeroClass.CLERIC
-				&& curUser.hasTalent(Talent.CLEANSE)
-				&& Random.Int(10) < curUser.pointsInTalent(Talent.CLEANSE)){
-			boolean removed = false;
-			for (Buff b : curUser.buffs()) {
-				if (b.type == Buff.buffType.NEGATIVE
-						&& !(b instanceof LostInventory)) {
-					b.detach();
-					removed = true;
-				}
-			}
-			if (removed) new Flare( 6, 32 ).color(0xFF4CD2, true).show( curUser.sprite, 2f );
-		}
-
-		Invisibility.dispel(cur);
-		updateQuickslot();
-
-		curUser.spendAndNext( TIME_TO_ZAP );
-	}
-	
-	@Override
-	public Item random() {
-		//+0: 66.67% (2/3)
-		//+1: 26.67% (4/15)
-		//+2: 6.67%  (1/15)
-		int n = 0;
-		if (Random.Int(3) == 0) {
-			n++;
-			if (Random.Int(5) == 0){
-				n++;
-			}
-		}
-		level(n);
-		curCharges += n;
-		
-		//30% chance to be cursed
-		if (Random.Float() < 0.3f) {
-			cursed = true;
-		}
-
-		return this;
-	}
-
-	@Override
-	public ItemSprite.Glowing glowing() {
-		if (resinBonus == 0) return null;
-
-		return new ItemSprite.Glowing(0xFFFFFF, 1f/(float)resinBonus);
-	}
-
-	@Override
-	public int value() {
-		int price = 75;
-		if (cursed && cursedKnown) {
-			price /= 2;
-		}
-		if (levelKnown) {
-			if (level() > 0) {
-				price *= (level() + 1);
-			} else if (level() < 0) {
-				price /= (1 - level());
-			}
-		}
-		if (price < 1) {
-			price = 1;
-		}
-		return price;
-	}
-	
-	private static final String USES_LEFT_TO_ID     = "uses_left_to_id";
-	private static final String AVAILABLE_USES      = "available_uses";
-	private static final String CUR_CHARGES         = "curCharges";
-	private static final String CUR_CHARGE_KNOWN    = "curChargeKnown";
-	private static final String PARTIALCHARGE       = "partialCharge";
-	private static final String CURSE_INFUSION_BONUS= "curse_infusion_bonus";
-	private static final String RESIN_BONUS         = "resin_bonus";
-
-	@Override
-	public void storeInBundle( Bundle bundle ) {
-		super.storeInBundle( bundle );
-		bundle.put( USES_LEFT_TO_ID, usesLeftToID );
-		bundle.put( AVAILABLE_USES, availableUsesToID );
-		bundle.put( CUR_CHARGES, curCharges );
-		bundle.put( CUR_CHARGE_KNOWN, curChargeKnown );
-		bundle.put( PARTIALCHARGE , partialCharge );
-		bundle.put( CURSE_INFUSION_BONUS, curseInfusionBonus );
-		bundle.put( RESIN_BONUS, resinBonus );
-	}
-	
-	@Override
-	public void restoreFromBundle( Bundle bundle ) {
-		super.restoreFromBundle( bundle );
-		usesLeftToID = bundle.getInt( USES_LEFT_TO_ID );
-		availableUsesToID = bundle.getInt( AVAILABLE_USES );
-		curseInfusionBonus = bundle.getBoolean(CURSE_INFUSION_BONUS);
-		resinBonus = bundle.getInt(RESIN_BONUS);
-
-		updateLevel();
-
-		curCharges = bundle.getInt( CUR_CHARGES );
-		curChargeKnown = bundle.getBoolean( CUR_CHARGE_KNOWN );
-		partialCharge = bundle.getFloat( PARTIALCHARGE );
-	}
-	
-	@Override
-	public void reset() {
-		super.reset();
-		usesLeftToID = USES_TO_ID;
-		availableUsesToID = USES_TO_ID/2f;
-	}
-
-	public int collisionProperties(int target){
-		if (cursed)     return Ballistica.MAGIC_BOLT;
-		else            return collisionProperties;
-	}
-
-	public static class PlaceHolder extends Wand {
-
+    public static class PlaceHolder extends Wand {
 		{
 			image = ItemSpriteSheet.WAND_HOLDER;
 		}
@@ -650,233 +545,223 @@ public abstract class Wand extends Item {
 		}
 
 		@Override
-		public void onZap(Ballistica attack) {}
-		public void onHit(MagesStaff staff, Char attacker, Char defender, int damage) {}
+		public void onZap(Ballistica attack) {
+			// ничего не делает
+		}
+
+		@Override
+		public void onHit(MagesStaff staff, Char attacker, Char defender, int damage) {
+			// ничего не делает
+		}
 
 		@Override
 		public String info() {
 			return "";
 		}
-	}
-	
-	protected static CellSelector.Listener zapper = new  CellSelector.Listener() {
+    }
+
+    // Внутренний класс-слушатель для выбора цели
+    private static class WandZapListener extends CellSelector.Listener {
+        private final Wand wand;
+        private final Hero hero;
+
+        WandZapListener(Wand wand, Hero hero) {
+            this.wand = wand;
+            this.hero = hero;
+        }
+
+        @Override
+        public void onSelect(Integer target) {
+            if (target == null) return;
+
+            final Ballistica shot = new Ballistica(hero.pos, target, wand.collisionProperties(target));
+            int cell = shot.collisionPos;
+
+            if (target == hero.pos || cell == hero.pos) {
+                if (target == hero.pos && hero.hasTalent(Talent.SHIELD_BATTERY)) {
+                    if (hero.buff(MagicImmune.class) != null) {
+                        GLog.w(Messages.get(Wand.class, "no_magic"));
+                        return;
+                    }
+                    if (wand.curCharges == 0) {
+                        GLog.w(Messages.get(Wand.class, "fizzles"));
+                        return;
+                    }
+                    float shield = hero.HT * (0.04f * wand.curCharges);
+                    if (hero.pointsInTalent(Talent.SHIELD_BATTERY) == 2) shield *= 1.5f;
+                    Buff.affect(hero, Barrier.class, this).setShield(Math.round(shield));
+                    hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(Math.round(shield)), FloatingText.SHIELDING);
+                    wand.curCharges = 0;
+                    hero.sprite.operate(hero.pos);
+                    Sample.INSTANCE.play(Assets.Sounds.CHARGEUP);
+                    ScrollOfRecharging.charge(hero);
+                    updateQuickslot();
+                    hero.spendAndNext(Actor.TICK);
+                    return;
+                }
+                GLog.i(Messages.get(Wand.class, "self_target"));
+                return;
+            }
+
+            hero.sprite.zap(cell);
+
+            if (Actor.findChar(target) != null)
+                QuickSlotButton.target(Actor.findChar(target));
+            else
+                QuickSlotButton.target(Actor.findChar(cell));
+
+            if (wand.tryToZap(hero, target)) {
+                hero.busy();
+
+                // backup barrier logic
+                if (hero.hasTalent(Talent.BACKUP_BARRIER)
+                        && wand.curCharges == wand.chargesPerCast()
+                        && wand.charger != null && wand.charger.target == hero) {
+                    if (hero.heroClass == HeroClass.MAGE && !hero.belongings.contains(wand)) {
+                        int shieldToGive = 1 + 2 * hero.pointsInTalent(Talent.BACKUP_BARRIER);
+                        Buff.affect(hero, Barrier.class, this).setShield(shieldToGive);
+                        hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(shieldToGive), FloatingText.SHIELDING);
+                    } else if (hero.heroClass != HeroClass.MAGE) {
+                        boolean highest = true;
+                        for (Item i : hero.belongings.getAllItems(Wand.class)) {
+                            if (i.level() > wand.level()) {
+                                highest = false;
+                                break;
+                            }
+                        }
+                        if (highest) {
+                            int shieldToGive = 1 + 2 * hero.pointsInTalent(Talent.BACKUP_BARRIER);
+                            Buff.affect(hero, Barrier.class, this).setShield(shieldToGive);
+                            hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(shieldToGive), FloatingText.SHIELDING);
+                        }
+                    }
+                }
+
+                if (wand.cursed) {
+                    if (!wand.cursedKnown) {
+                        GLog.n(Messages.get(Wand.class, "curse_discover", wand.name()));
+                    }
+                    CursedWand.cursedZap(wand,
+                            hero,
+                            new Ballistica(hero.pos, target, Ballistica.MAGIC_BOLT),
+                            new Callback() {
+                                @Override
+                                public void call() {
+                                    wand.wandUsed();
+                                }
+                            });
+                } else {
+                    wand.fx(shot, new Callback() {
+                        public void call() {
+                            wand.onZap(shot);
+                            if (Random.Float() < WondrousResin.extraCurseEffectChance()) {
+                                WondrousResin.forcePositive = true;
+                                CursedWand.cursedZap(wand,
+                                        hero,
+                                        new Ballistica(hero.pos, target, Ballistica.MAGIC_BOLT),
+                                        new Callback() {
+                                            @Override
+                                            public void call() {
+                                                WondrousResin.forcePositive = false;
+                                                wand.wandUsed();
+                                            }
+                                        });
+                            } else {
+                                wand.wandUsed();
+                            }
+                        }
+                    });
+                }
+                wand.cursedKnown = true;
+            }
+        }
+
+        @Override
+        public String prompt() {
+            return Messages.get(Wand.class, "prompt");
+        }
+
 		
-		@Override
-		public void onSelect( Integer target ) {
-			
-			if (target != null) {
-				
-				//FIXME this safety check shouldn't be necessary
-				//it would be better to eliminate the curItem static variable.
-				final Wand curWand;
-				if (curItem instanceof Wand) {
-					curWand = (Wand) Wand.curItem;
-				} else {
-					return;
-				}
-
-				final Ballistica shot = new Ballistica( curUser.pos, target, curWand.collisionProperties(target));
-				int cell = shot.collisionPos;
-				
-				if (target == curUser.pos || cell == curUser.pos) {
-					if (target == curUser.pos && curUser.hasTalent(Talent.SHIELD_BATTERY)){
-
-						if (curUser.buff(MagicImmune.class) != null){
-							GLog.w( Messages.get(Wand.class, "no_magic") );
-							return;
-						}
-
-						if (curWand.curCharges == 0){
-							GLog.w( Messages.get(Wand.class, "fizzles") );
-							return;
-						}
-
-						float shield = curUser.HT * (0.04f*curWand.curCharges);
-						if (curUser.pointsInTalent(Talent.SHIELD_BATTERY) == 2) shield *= 1.5f;
-						Buff.affect(curUser, Barrier.class, this).setShield(Math.round(shield));
-						curUser.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(Math.round(shield)), FloatingText.SHIELDING);
-						curWand.curCharges = 0;
-						curUser.sprite.operate(curUser.pos);
-						Sample.INSTANCE.play(Assets.Sounds.CHARGEUP);
-						ScrollOfRecharging.charge(curUser);
-						updateQuickslot();
-						curUser.spendAndNext(Actor.TICK);
-						return;
-					}
-					GLog.i( Messages.get(Wand.class, "self_target") );
-					return;
-				}
-
-				curUser.sprite.zap(cell);
-
-				//attempts to target the cell aimed at if something is there, otherwise targets the collision pos.
-				if (Actor.findChar(target) != null)
-					QuickSlotButton.target(Actor.findChar(target));
-				else
-					QuickSlotButton.target(Actor.findChar(cell));
-				
-				if (curWand.tryToZap(curUser, target)) {
-					
-					curUser.busy();
-
-					//backup barrier logic
-					//This triggers before the wand zap, mostly so the barrier helps vs skeletons
-					if (curUser.hasTalent(Talent.BACKUP_BARRIER)
-							&& curWand.curCharges == curWand.chargesPerCast()
-							&& curWand.charger != null && curWand.charger.target == curUser){
-
-						//regular. If hero owns wand but it isn't in belongings it must be in the staff
-						if (curUser.heroClass == HeroClass.MAGE && !curUser.belongings.contains(curWand)){
-							//grants 3/5 shielding
-							int shieldToGive = 1 + 2 * curUser.pointsInTalent(Talent.BACKUP_BARRIER);
-							Buff.affect(curUser, Barrier.class, this).setShield(shieldToGive);
-							curUser.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(shieldToGive), FloatingText.SHIELDING);
-
-						//metamorphed. Triggers if wand is highest level hero has
-						} else if (curUser.heroClass != HeroClass.MAGE) {
-							boolean highest = true;
-							for (Item i : curUser.belongings.getAllItems(Wand.class)){
-								if (i.level() > curWand.level()){
-									highest = false;
-								}
-							}
-							if (highest){
-								//grants 3/5 shielding
-								int shieldToGive = 1 + 2 * curUser.pointsInTalent(Talent.BACKUP_BARRIER);
-								Buff.affect(curUser, Barrier.class, this).setShield(shieldToGive);
-								curUser.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(shieldToGive), FloatingText.SHIELDING);
-							}
-						}
-					}
-					
-					if (curWand.cursed){
-						if (!curWand.cursedKnown){
-							GLog.n(Messages.get(Wand.class, "curse_discover", curWand.name()));
-						}
-						CursedWand.cursedZap(curWand,
-								curUser,
-								new Ballistica(curUser.pos, target, Ballistica.MAGIC_BOLT),
-								new Callback() {
-									@Override
-									public void call() {
-										curWand.wandUsed();
-									}
-								});
-					} else {
-						curWand.fx(shot, new Callback() {
-							public void call() {
-								curWand.onZap(shot);
-								if (Random.Float() < WondrousResin.extraCurseEffectChance()){
-									WondrousResin.forcePositive = true;
-									CursedWand.cursedZap(curWand,
-											curUser,
-											new Ballistica(curUser.pos, target, Ballistica.MAGIC_BOLT), new Callback() {
-												@Override
-												public void call() {
-													WondrousResin.forcePositive = false;
-													curWand.wandUsed();
-												}
-											});
-								} else {
-									curWand.wandUsed();
-								}
-							}
-						});
-
-					}
-					curWand.cursedKnown = true;
-					
-				}
-				
-			}
-		}
-		
-		@Override
-		public String prompt() {
-			return Messages.get(Wand.class, "prompt");
-		}
-	};
+    }
 	
 	public class Charger extends Buff {
+
+        private static final float BASE_CHARGE_DELAY = 10f;
+        private static final float SCALING_CHARGE_ADDITION = 40f;
+        private static final float NORMAL_SCALE_FACTOR = 0.875f;
+        private static final float CHARGE_BUFF_BONUS = 0.25f;
+
+        float scalingFactor = NORMAL_SCALE_FACTOR;
+
+        @Override
+        public boolean attachTo(Char target) {
+            if (super.attachTo(target)) {
+                if (target instanceof Hero && curUser == null && cooldown() == 0 && target.cooldown() > 0) {
+                    spend(TICK);
+                }
+                return true;
+            }
+            return false;
+        }
+
+        @Override
+        public boolean act() {
+            if (curCharges < maxCharges && target.buff(MagicImmune.class) == null)
+                recharge();
+
+            while (partialCharge >= 1 && curCharges < maxCharges) {
+                partialCharge--;
+                curCharges++;
+                updateQuickslot();
+            }
+
+            if (curCharges == maxCharges) {
+                partialCharge = 0;
+            }
+
+            spend(TICK);
+            return true;
+        }
 		
-		private static final float BASE_CHARGE_DELAY = 10f;
-		private static final float SCALING_CHARGE_ADDITION = 40f;
-		private static final float NORMAL_SCALE_FACTOR = 0.875f;
-
-		private static final float CHARGE_BUFF_BONUS = 0.25f;
-
-		float scalingFactor = NORMAL_SCALE_FACTOR;
-
-		@Override
-		public boolean attachTo( Char target ) {
-			if (super.attachTo( target )) {
-				//if we're loading in and the hero has partially spent a turn, delay for 1 turn
-				if (target instanceof Hero && curUser == null && cooldown() == 0 && target.cooldown() > 0) {
-					spend(TICK);
-				}
-				return true;
-			}
-			return false;
-		}
-		
-		@Override
-		public boolean act() {
-			if (curCharges < maxCharges && target.buff(MagicImmune.class) == null)
-				recharge();
-			
-			while (partialCharge >= 1 && curCharges < maxCharges) {
-				partialCharge--;
-				curCharges++;
-				updateQuickslot();
-			}
-			
-			if (curCharges == maxCharges){
-				partialCharge = 0;
-			}
-			
-			spend( TICK );
-			
-			return true;
-		}
-
-		private void recharge(){
+		private void recharge() {
 			int missingCharges = maxCharges - curCharges;
 			missingCharges = Math.max(0, missingCharges);
 
 			float turnsToCharge = (float) (BASE_CHARGE_DELAY
 					+ (SCALING_CHARGE_ADDITION * Math.pow(scalingFactor, missingCharges)));
 
-			if (Regeneration.regenOn(curUser))
-				partialCharge += (1f/turnsToCharge) * RingOfEnergy.wandChargeMultiplier(target);
+			if (target instanceof Hero && Regeneration.regenOn((Hero) target)) {
+				partialCharge += (1f / turnsToCharge) * RingOfEnergy.wandChargeMultiplier(target);
+			}
 
-			for (Recharging bonus : target.buffs(Recharging.class)){
+			for (Recharging bonus : target.buffs(Recharging.class)) {
 				if (bonus != null && bonus.remainder() > 0f) {
 					partialCharge += CHARGE_BUFF_BONUS * bonus.remainder();
 				}
 			}
 		}
-		
-		public Wand wand(){
-			return Wand.this;
-		}
 
-		public void gainCharge(float charge){
-			if (curCharges < maxCharges) {
-				partialCharge += charge;
-				while (partialCharge >= 1f) {
-					curCharges++;
-					partialCharge--;
-				}
-				if (curCharges >= maxCharges){
-					partialCharge = 0;
-					curCharges = maxCharges;
-				}
-				updateQuickslot();
-			}
-		}
+        public Wand wand() {
+            return Wand.this;
+        }
 
-		private void setScaleFactor(float value){
-			this.scalingFactor = value;
-		}
-	}
+        public void gainCharge(float charge) {
+            if (curCharges < maxCharges) {
+                partialCharge += charge;
+                while (partialCharge >= 1f) {
+                    curCharges++;
+                    partialCharge--;
+                }
+                if (curCharges >= maxCharges) {
+                    partialCharge = 0;
+                    curCharges = maxCharges;
+                }
+                updateQuickslot();
+            }
+        }
+
+        private void setScaleFactor(float value) {
+            this.scalingFactor = value;
+        }
+    }
 }

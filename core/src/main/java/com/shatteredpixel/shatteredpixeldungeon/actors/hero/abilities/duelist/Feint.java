@@ -110,7 +110,7 @@ public class Feint extends ArmorAbility {
 				}
 				hero.pos = target;
 				Dungeon.level.occupyCell(hero);
-				Invisibility.dispel();
+				Invisibility.dispel(hero);
 				hero.next();
 			}
 		});

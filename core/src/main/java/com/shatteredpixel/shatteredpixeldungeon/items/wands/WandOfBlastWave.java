@@ -71,7 +71,7 @@ public class WandOfBlastWave extends DamageWand {
 	@Override
 	public void onZap(Ballistica bolt) {
 		Sample.INSTANCE.play( Assets.Sounds.BLAST );
-		BlastWave.blast(bolt.collisionPos);
+		BlastWave.blast(curUser, bolt.collisionPos);
 
 		//presses all tiles in the AOE first, with the exception of tengu dart traps
 		for (int i : PathFinder.NEIGHBOURS9){
@@ -93,7 +93,7 @@ public class WandOfBlastWave extends DamageWand {
 						&& ch.pos == bolt.collisionPos + i) {
 					Ballistica trajectory = new Ballistica(ch.pos, ch.pos + i, Ballistica.MAGIC_BOLT);
 					int strength = Math.round(1.5f + buffedLvl() / 2f);
-					throwChar(ch, trajectory, strength, false, true, this);
+					throwChar(ch, trajectory, strength, false, true, this, curUser);
 				}
 
 			}
@@ -110,14 +110,14 @@ public class WandOfBlastWave extends DamageWand {
 					&& bolt.path.size() > bolt.dist+1 && ch.pos == bolt.collisionPos) {
 				Ballistica trajectory = new Ballistica(ch.pos, bolt.path.get(bolt.dist + 1), Ballistica.MAGIC_BOLT);
 				int strength = buffedLvl() + 3;
-				throwChar(ch, trajectory, strength, false, true, this);
+				throwChar(ch, trajectory, strength, false, true, this, curUser);
 			}
 		}
 		
 	}
 
-	public static void throwChar(final Char ch, final Ballistica trajectory, int power,
-	                             boolean closeDoors, boolean collideDmg, Object cause){
+		public static void throwChar(final Char ch, final Ballistica trajectory, int power,
+	            boolean closeDoors, boolean collideDmg, Object cause, final Hero owner){
 		if (ch.properties().contains(Char.Property.BOSS)) {
 			power = (power+1)/2;
 		}
@@ -184,8 +184,7 @@ public class WandOfBlastWave extends DamageWand {
 				if (ch instanceof Hero){
 					Dungeon.observe((Hero) ch);
 					GameScene.updateFog();
-				} else if (curUser.fieldOfView[initialpos] != curUser.fieldOfView[newPos]){
-                    // TODO dunno whats going on
+				} else if (owner != null && owner.fieldOfView[initialpos] != owner.fieldOfView[newPos]){
 					Dungeon.observeAll();
 				}
 			}
@@ -201,7 +200,7 @@ public class WandOfBlastWave extends DamageWand {
 			defender.buff(Paralysis.class).detach();
 			int dmg = Random.NormalIntRange(8+2*buffedLvl(), 12+3*buffedLvl());
 			defender.damage(Math.round(procChanceMultiplier(attacker) * dmg), this);
-			BlastWave.blast(defender.pos);
+			BlastWave.blast(curUser, defender.pos);
 			Sample.INSTANCE.play( Assets.Sounds.BLAST );
 
 			//brief immunity, to prevent stacking absurd damage with it with things like para gas
@@ -270,12 +269,13 @@ public class WandOfBlastWave extends DamageWand {
 			}
 		}
 
-		public static void blast(int pos) {
-			blast(pos, 3);
+		public static void blast(Hero owner, int pos) {
+			blast(owner, pos, 3);
 		}
 
-		public static void blast(int pos, float radius) {
-			Group parent = curUser.sprite.parent;
+		public static void blast(Hero owner, int pos, float radius) {
+			if (owner == null) return;
+			Group parent = owner.sprite.parent;
 			BlastWave b = (BlastWave) parent.recycle(BlastWave.class);
 			parent.bringToFront(b);
 			b.reset(pos, radius);

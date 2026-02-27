@@ -64,7 +64,7 @@ public class Endure extends ArmorAbility {
 
 		armor.charge -= chargeUse(hero);
 		armor.updateQuickslot();
-		Invisibility.dispel();
+		Invisibility.dispel(hero);
 		hero.spendAndNext(3f);
 	}
 

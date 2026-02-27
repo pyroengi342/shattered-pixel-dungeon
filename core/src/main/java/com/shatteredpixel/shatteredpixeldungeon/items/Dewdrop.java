@@ -105,7 +105,7 @@ public class Dewdrop extends Item {
 		if (heal > 0 || shield > 0) {
 
 			if (heal > 0 && quantity > 1 && VialOfBlood.delayBurstHealing()){
-				Healing healing = Buff.affect(hero, Healing.class);
+				Healing healing = Buff.affect(hero, Healing.class, VialOfBlood.class);
 				healing.setHeal(heal, 0, VialOfBlood.maxHealPerTurn());
 				healing.applyVialEffect();
 			} else {
@@ -116,7 +116,7 @@ public class Dewdrop extends Item {
 			}
 
 			if (shield > 0) {
-				Buff.affect(hero, Barrier.class, this)incShield(shield);
+				Buff.affect(hero, Barrier.class, VialOfBlood.class).incShield(shield);
 				hero.sprite.showStatusWithIcon( CharSprite.POSITIVE, Integer.toString(shield), FloatingText.SHIELDING );
 			}
 

@@ -100,7 +100,7 @@ public class Crossbow extends MeleeWeapon {
 					4,
 					true,
 					true,
-					this);
+					this, curUser);
 			attacker.buff(Crossbow.ChargedShot.class).detach();
 		}
 		return dmg;
@@ -146,7 +146,7 @@ public class Crossbow extends MeleeWeapon {
 		}
 
 		beforeAbilityUsed(hero, null);
-		Buff.affect(hero, ChargedShot.class);
+		Buff.affect(hero, ChargedShot.class, this);
 		hero.sprite.operate(hero.pos);
 		hero.next();
 		afterAbilityUsed(hero);

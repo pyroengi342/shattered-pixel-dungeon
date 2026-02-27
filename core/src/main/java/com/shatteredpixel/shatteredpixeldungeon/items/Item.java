@@ -283,10 +283,6 @@ public class Item implements Bundlable {
 		updateQuickslot();
 		return true;
 	}
-	
-	// public final boolean collect() {
-	// 	return collect( curUser.belongings.backpack, curUser );
-	// }
 
     public final boolean collect(Hero hero) {
         return collect( hero.belongings.backpack );
@@ -595,7 +591,6 @@ public class Item implements Bundlable {
 	private static final String LEVEL_KNOWN		= "levelKnown";
 	private static final String CURSED			= "cursed";
 	private static final String CURSED_KNOWN	= "cursedKnown";
-	private static final String QUICKSLOT		= "quickslotpos";
 	private static final String KEPT_LOST       = "kept_lost";
 	private static final String CUSTOM_NOTE_ID = "custom_note_id";
 	
@@ -652,26 +647,27 @@ public class Item implements Bundlable {
 	}
 	
 
-	public void cast( final Hero user, final int dst ) {
-		final int cell = throwPos( user, dst );
-		user.sprite.zap( cell );
+	public void cast(final Hero user, final int dst) {
+		final int cell = throwPos(user, dst);
+		user.sprite.zap(cell);
 		user.busy();
 
 		throwSound();
 
-		Char enemy = Actor.findChar( cell );
+		Char enemy = Actor.findChar(cell);
 		QuickSlotButton.target(enemy);
-		
+
 		final float delay = castDelay(user, cell);
 
 		if (enemy != null) {
-			((MissileSprite) user.sprite.parent.recycle(MissileSprite.class)).
-					reset(user.sprite,
-							enemy.sprite,
-							this,
-							new Callback() {
-						@Override
-						public void call() {
+			((MissileSprite) user.sprite.parent.recycle(MissileSprite.class))
+					.reset(user,                          // атакующий
+						user.sprite,                   // откуда (спрайт героя)
+						enemy.sprite,                  // куда (спрайт врага)
+						this,                           // предмет
+						new Callback() {
+							@Override
+							public void call() {
 							Item i = Item.this.detach(user.belongings.backpack); // передаём user
 							if (i != null) i.onThrow(cell);
 							if (user.hasTalent(Talent.IMPROVISED_PROJECTILES)
@@ -692,13 +688,14 @@ public class Item implements Bundlable {
 						}
 					});
 		} else {
-			((MissileSprite) user.sprite.parent.recycle(MissileSprite.class)).
-					reset(user.sprite,
-							cell,
-							this,
-							new Callback() {
-						@Override
-						public void call() {
+			((MissileSprite) user.sprite.parent.recycle(MissileSprite.class))
+					.reset(user,                          // атакующий
+						user.sprite,                   // откуда (спрайт героя)
+						cell,                           // куда (клетка)
+						this,                           // предмет
+						new Callback() {
+							@Override
+							public void call() {
 							Item i = Item.this.detach(user.belongings.backpack);
 							user.spend(delay);
 							if (i != null) i.onThrow(cell);

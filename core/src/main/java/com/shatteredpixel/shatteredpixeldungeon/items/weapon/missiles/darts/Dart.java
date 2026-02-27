@@ -336,7 +336,7 @@ public class Dart extends MissileWeapon {
 						}
 						
 						TippedDart newDart = TippedDart.getTipped((Plant.Seed) item, maxToTip);
-						if (!newDart.collect()) Dungeon.level.drop(newDart, curUser.pos).sprite.drop();
+						if (!newDart.collect(curUser)) Dungeon.level.drop(newDart, curUser.pos).sprite.drop();
 						
 						curUser.spend( 1f );
 						curUser.busy();
@@ -352,7 +352,7 @@ public class Dart extends MissileWeapon {
 						}
 						
 						TippedDart newDart = TippedDart.getTipped((Plant.Seed) item, singleSeedDarts);
-						if (!newDart.collect()) Dungeon.level.drop(newDart, curUser.pos).sprite.drop();
+						if (!newDart.collect(curUser)) Dungeon.level.drop(newDart, curUser.pos).sprite.drop();
 						
 						curUser.spend( 1f );
 						curUser.busy();

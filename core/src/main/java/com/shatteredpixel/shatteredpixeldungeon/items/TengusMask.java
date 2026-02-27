@@ -39,6 +39,8 @@ import com.shatteredpixel.shatteredpixeldungeon.windows.WndChooseSubclass;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.noosa.particles.Emitter;
 
+import network.AudioWrapper;
+
 import java.util.ArrayList;
 
 public class TengusMask extends Item {
@@ -67,11 +69,8 @@ public class TengusMask extends Item {
 		super.execute( hero, action );
 
 		if (action.equals( AC_WEAR )) {
-			
 			curUser = hero;
-
 			GameScene.show( new WndChooseSubclass( this, hero ) );
-			
 		}
 	}
 	
@@ -103,11 +102,11 @@ public class TengusMask extends Item {
 		Talent.initSubclassTalents(curUser);
 
 		if (way == HeroSubClass.ASSASSIN && curUser.invisible > 0){
-			Buff.affect(curUser, Preparation.class);
+			Buff.affect(curUser, Preparation.class, this);
 		}
 		
 		curUser.sprite.operate( curUser.pos );
-		Sample.INSTANCE.play( Assets.Sounds.MASTERY );
+		AudioWrapper.play( Assets.Sounds.MASTERY, curUser.pos );
 		
 		Emitter e = curUser.sprite.centerEmitter();
 		e.pos(e.x-2, e.y-6, 4, 4);

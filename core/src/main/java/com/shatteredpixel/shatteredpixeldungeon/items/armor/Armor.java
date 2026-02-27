@@ -191,7 +191,7 @@ public class Armor extends EquipableItem {
 			BrokenSeal detaching = detachSeal();
 			GLog.i( Messages.get(Armor.class, "detach_seal") );
 			hero.sprite.operate(hero.pos);
-			if (!detaching.collect()){
+			if (!detaching.collect(hero)){
 				Dungeon.level.drop(detaching, hero.pos);
 			}
 			updateQuickslot();
@@ -271,7 +271,7 @@ public class Armor extends EquipableItem {
 						protected void onSelect(int index) {
 							super.onSelect(index);
 							if (index == 0){
-								seal.affixToArmor(Armor.this, oldArmor);
+								seal.affixToArmor(Armor.this, oldArmor, hero);
 								updateQuickslot();
 							}
 							super.hide();
@@ -333,7 +333,7 @@ public class Armor extends EquipableItem {
 			if (detaching.level() > 0){
 				degrade();
 			}
-			if (detaching.canTransferGlyph()){
+			if (detaching.canTransferGlyph(curUser)){
 				inscribe(null);
 			} else {
 				detaching.setGlyph(null);
@@ -634,7 +634,7 @@ public class Armor extends EquipableItem {
 		}
 
 		if (seal != null) {
-			info += "\n\n" + Messages.get(Armor.class, "seal_attached", seal.maxShield(tier, level()));
+			info += "\n\n" + Messages.get(Armor.class, "seal_attached", seal.maxShield(tier, level(), curUser));
 		}
 		
 		return info;
@@ -820,7 +820,7 @@ public class Armor extends EquipableItem {
 
 		public static float genericProcChanceMultiplier( Char defender ){
 			float multi = RingOfArcana.enchantPowerMultiplier(defender);
-
+	
 			if (curUser.alignment == defender.alignment
 					&& curUser.buff(AuraOfProtection.AuraBuff.class) != null
 					&& (Dungeon.level.distance(defender.pos, curUser.pos) <= 2 || defender.buff(LifeLinkSpell.LifeLinkSpellBuff.class) != null)){

@@ -83,8 +83,8 @@ public class WandOfLivingEarth extends DamageWand {
 			}
 		}
 
-		if (Stasis.getStasisAlly(hero) instanceof EarthGuardian){
-			guardian = (EarthGuardian)Stasis.getStasisAlly(hero);
+		if (Stasis.getStasisAlly(curUser) instanceof EarthGuardian){
+			guardian = (EarthGuardian)Stasis.getStasisAlly(curUser);
 		}
 
 		RockArmor buff = curUser.buff(RockArmor.class);
@@ -95,7 +95,7 @@ public class WandOfLivingEarth extends DamageWand {
 			armorToAdd = 0;
 		} else {
 			if (buff == null && guardian == null) {
-				buff = Buff.affect(curUser, RockArmor.class);
+				buff = Buff.affect(curUser, RockArmor.class, this);
 			}
 			if (buff != null) {
 				buff.addArmor( buffedLvl(), armorToAdd);
@@ -238,7 +238,7 @@ public class WandOfLivingEarth extends DamageWand {
 			guardian.setInfo(curUser, buffedLvl(), armor);
 		} else {
 			attacker.sprite.centerEmitter().burst(MagicMissile.EarthParticle.ATTRACT, 8 + buffedLvl() / 2);
-			Buff.affect(attacker, RockArmor.class, this)addArmor( buffedLvl(), armor);
+			Buff.affect(attacker, RockArmor.class, this).addArmor( buffedLvl(), armor);
 		}
 	}
 	
@@ -381,6 +381,16 @@ public class WandOfLivingEarth extends DamageWand {
 			HP = HT = 0;
 		}
 
+		private int ownerID = -1;
+
+		public void setOwner(Hero owner) {
+			if (owner != null) this.ownerID = owner.id();
+		}
+
+		public Hero getOwner() {
+			return (Hero) Actor.findById(ownerID);
+		}
+
 		private int wandLevel = -1;
 
 		public void setInfo(Hero hero, int wandLevel, int healthToAdd){
@@ -392,8 +402,8 @@ public class WandOfLivingEarth extends DamageWand {
 				sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(healthToAdd), FloatingText.HEALING);
 			}
 			HP = Math.min(HT, HP + healthToAdd);
-			//half of hero's evasion
 			defenseSkill = (hero.lvl + 4)/2;
+			setOwner(hero); // обновляем владельца при каждом вызове
 		}
 
 		@Override
@@ -460,16 +470,20 @@ public class WandOfLivingEarth extends DamageWand {
 			wandLevel = bundle.getInt(WAND_LEVEL);
 		}
 
+
 		private class Wandering extends Mob.Wandering{
 
 			@Override
 			public boolean act(boolean enemyInFOV, boolean justAlerted) {
+				Hero owner = getOwner();
 				if (!enemyInFOV){
-					Buff.affect(curUser, RockArmor.class).addArmor(wandLevel, HP);
-					if (buff(PowerOfMany.PowerBuff.class) != null){
-						Buff.affect(curUser, RockArmor.class).powerOfManyTurns = buff(PowerOfMany.PowerBuff.class).cooldown()+1;
+					if (owner != null) {
+						Buff.affect(owner, RockArmor.class, this).addArmor(wandLevel, HP);
+						if (buff(PowerOfMany.PowerBuff.class) != null){
+							Buff.affect(owner, RockArmor.class, this).powerOfManyTurns = buff(PowerOfMany.PowerBuff.class).cooldown()+1;
+						}
+						owner.sprite.centerEmitter().burst(MagicMissile.EarthParticle.ATTRACT, 8 + wandLevel/2);
 					}
-					curUser.sprite.centerEmitter().burst(MagicMissile.EarthParticle.ATTRACT, 8 + wandLevel/2);
 					destroy();
 					sprite.die();
 					return true;
@@ -477,7 +491,6 @@ public class WandOfLivingEarth extends DamageWand {
 					return super.act(enemyInFOV, justAlerted);
 				}
 			}
-
 		}
 
 	}

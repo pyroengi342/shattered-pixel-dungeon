@@ -48,7 +48,7 @@ public class Grim extends Weapon.Enchantment {
 
 		//we defer logic using an actor here so we can know the true final damage
 		//see Char.damage
-		Buff.affect(defender, GrimTracker.class, this)maxChance = maxChance;
+		Buff.affect(defender, GrimTracker.class, this).maxChance = maxChance;
 
 		if (defender.buff(GrimTracker.class) != null
 				&& attacker instanceof Hero

@@ -1,24 +1,3 @@
-/*
- * Pixel Dungeon
- * Copyright (C) 2012-2015 Oleg Dolya
- *
- * Shattered Pixel Dungeon
- * Copyright (C) 2014-2025 Evan Debenham
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>
- */
-
 package com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
@@ -60,6 +39,8 @@ import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import network.Multiplayer;
+
 abstract public class MissileWeapon extends Weapon {
 
 	{
@@ -72,10 +53,8 @@ abstract public class MissileWeapon extends Weapon {
 		usesTargeting = true;
 	}
 
-	//TODO maybe make this like actor IDs, instead of random? collisions unlikely, but it's messy
 	public long setID = new SecureRandom().nextLong();
 
-	//whether or not this instance of the item exists purely to trigger its effect. i.e. no dropping
 	public boolean spawnedForEffect = false;
 	
 	protected boolean sticky = true;
@@ -86,54 +65,70 @@ abstract public class MissileWeapon extends Weapon {
 	
 	public boolean holster;
 	
-	//used to reduce durability from the source weapon stack, rather than the one being thrown.
 	public MissileWeapon parent;
 	
 	public int tier;
 
 	protected int usesToID(){
-		return 10; //half of a melee weapon
+		return 10;
 	}
 	
-	@Override
-	public int min() {
-		if (curUser != null){
-			return Math.max(0, min(buffedLvl() + RingOfSharpshooting.levelDamageBonus(curUser)));
+	// Новые методы с параметром владельца для расчёта урона с учётом кольца
+	public int min(Char owner) {
+		int lvl = buffedLvl();
+		if (owner instanceof Hero) {
+			return Math.max(0, min(lvl) + RingOfSharpshooting.levelDamageBonus((Hero) owner));
 		} else {
-			return Math.max(0 , min( buffedLvl() ));
+			return Math.max(0, min(lvl));
 		}
 	}
+	
+	public int max(Char owner) {
+		int lvl = buffedLvl();
+		if (owner instanceof Hero) {
+			return Math.max(0, max(lvl) + RingOfSharpshooting.levelDamageBonus((Hero) owner));
+		} else {
+			return Math.max(0, max(lvl));
+		}
+	}
+	
+	// Старые методы для обратной совместимости (используют curUser)
+	// @Override
+	// public int min() {
+	// 	if (curUser != null) {
+	// 		return min(curUser);
+	// 	} else {
+	// 		return Math.max(0, min(buffedLvl()));
+	// 	}
+	// }
 	
 	@Override
 	public int min(int lvl) {
-		return  2 * tier +                      //base
-				lvl;                            //level scaling
+		return 2 * tier + lvl;
 	}
 	
-	@Override
-	public int max() {
-		if (curUser != null){
-			return Math.max(0, max( buffedLvl() + RingOfSharpshooting.levelDamageBonus(curUser) ));
-		} else {
-			return Math.max(0 , max( buffedLvl() ));
-		}
-	}
+	// @Override
+	// public int max() {
+	// 	if (curUser != null) {
+	// 		return max(curUser);
+	// 	} else {
+	// 		return Math.max(0, max(buffedLvl()));
+	// 	}
+	// }
 	
 	@Override
 	public int max(int lvl) {
-		return  5 * tier +                      //base
-				tier*lvl;                       //level scaling
+		return 5 * tier + tier * lvl;
 	}
 	
 	public int STRReq(int lvl){
-		int req = STRReq(tier, lvl) - 1; //1 less str than normal for their tier
+		int req = STRReq(tier, lvl) - 1;
 		if (masteryPotionBonus){
 			req -= 2;
 		}
 		return req;
 	}
 
-	//use the parent item if this has been thrown from a parent
 	public int buffedLvl(){
 		if (parent != null) {
 			return parent.buffedLvl();
@@ -147,9 +142,10 @@ abstract public class MissileWeapon extends Weapon {
 			durability = MAX_DURABILITY;
 			extraThrownLeft = false;
 			quantity = defaultQuantity();
-			Buff.affect(curUser, UpgradedSetTracker.class, this)levelThresholds.put(setID, trueLevel()+1);
+			if (curUser != null) {
+				Buff.affect(curUser, UpgradedSetTracker.class, this).levelThresholds.put(setID, trueLevel()+1);
+			}
 		}
-		//thrown weapons don't get curse weakened
 		boolean wasCursed = cursed;
 		super.upgrade( enchant );
 		if (wasCursed && hasCurseEnchant()){
@@ -164,7 +160,9 @@ abstract public class MissileWeapon extends Weapon {
 			durability = MAX_DURABILITY;
 			extraThrownLeft = false;
 			quantity = defaultQuantity();
-			Buff.affect(curUser, UpgradedSetTracker.class, this)levelThresholds.put(setID, trueLevel()+1);
+			if (curUser != null) {
+				Buff.affect(curUser, UpgradedSetTracker.class, this).levelThresholds.put(setID, trueLevel()+1);
+			}
 		}
 		return super.upgrade();
 	}
@@ -188,13 +186,12 @@ abstract public class MissileWeapon extends Weapon {
 	
 	@Override
 	public int throwPos(Hero user, int dst) {
-
 		int projecting = 0;
 		if (hasEnchant(Projecting.class, user)){
 			projecting += 4;
 		}
 		if ((!(this instanceof SpiritBow.SpiritArrow) && Random.Int(3) < user.pointsInTalent(Talent.SHARED_ENCHANTMENT))){
-			SpiritBow bow = curUser.belongings.getItem(SpiritBow.class);
+			SpiritBow bow = user.belongings.getItem(SpiritBow.class); // заменили curUser на user
 			if (bow != null && bow.hasEnchant(Projecting.class, user)) {
 				projecting += 4;
 			}
@@ -212,9 +209,7 @@ abstract public class MissileWeapon extends Weapon {
 	@Override
 	public float accuracyFactor(Char owner, Char target) {
 		float accFactor = super.accuracyFactor(owner, target);
-
 		accFactor *= adjacentAccFactor(owner, target);
-
 		return accFactor;
 	}
 
@@ -232,9 +227,9 @@ abstract public class MissileWeapon extends Weapon {
 
 	@Override
 	public void doThrow(Hero hero) {
-		parent = null; //reset parent before throwing, just in case
+		parent = null;
 		if (((levelKnown && level() > 0) || hasGoodEnchant() || masteryPotionBonus || enchantHardened)
-				&& !extraThrownLeft && quantity() == 1 && durabilityLeft() <= durabilityPerUse()){
+				&& !extraThrownLeft && quantity() == 1 && durabilityLeft() <= durabilityPerUse(level(), hero)){
 			GameScene.show(new WndOptions(new ItemSprite(this), Messages.titleCase(title()),
 					Messages.get(MissileWeapon.class, "break_upgraded_warn_desc"),
 					Messages.get(MissileWeapon.class, "break_upgraded_warn_yes"),
@@ -248,7 +243,6 @@ abstract public class MissileWeapon extends Weapon {
 						InventoryPane.cancelTargeting();
 					}
 				}
-
 				@Override
 				public void onBackPressed() {
 					super.onBackPressed();
@@ -256,7 +250,6 @@ abstract public class MissileWeapon extends Weapon {
 					InventoryPane.cancelTargeting();
 				}
 			});
-
 		} else {
 			super.doThrow(hero);
 		}
@@ -268,8 +261,8 @@ abstract public class MissileWeapon extends Weapon {
 		if (enemy == null || enemy == curUser) {
 			parent = null;
 
-			//metamorphed seer shot logic
-			if (curUser.hasTalent(Talent.SEER_SHOT)
+			// используем curUser, который должен быть установлен перед броском
+			if (curUser != null && curUser.hasTalent(Talent.SEER_SHOT)
 					&& curUser.heroClass != HeroClass.HUNTRESS
 					&& curUser.buff(Talent.SeerShotCooldown.class) == null){
 				if (Actor.findChar(cell) == null) {
@@ -282,40 +275,39 @@ abstract public class MissileWeapon extends Weapon {
 
 			if (!spawnedForEffect) super.onThrow( cell );
 		} else {
-			if (!curUser.shoot( enemy, this )) {
+			if (curUser != null && !curUser.shoot( enemy, this )) {
 				rangedMiss( cell );
 			} else {
-				
 				rangedHit( enemy, cell );
-
 			}
 		}
 	}
 
 	@Override
 	public int proc(Char attacker, Char defender, int damage) {
-		if (attacker instanceof Hero && Random.Int(3) < curUser.pointsInTalent(Talent.SHARED_ENCHANTMENT)){
-			SpiritBow bow = curUser.belongings.getItem(SpiritBow.class);
-			if (bow != null && bow.enchantment != null && curUser.buff(MagicImmune.class) == null) {
+		Hero heroAttacker = (attacker instanceof Hero) ? (Hero) attacker : null;
+		if (heroAttacker != null && Random.Int(3) < heroAttacker.pointsInTalent(Talent.SHARED_ENCHANTMENT)){
+			SpiritBow bow = heroAttacker.belongings.getItem(SpiritBow.class);
+			if (bow != null && bow.enchantment != null && heroAttacker.buff(MagicImmune.class) == null) {
 				damage = bow.enchantment.proc(this, attacker, defender, damage);
 			}
 		}
 
 		if ((cursed || hasCurseEnchant()) && !cursedKnown){
-			GLog.n(Messages.get(this, "curse_discover"));
+			if (heroAttacker == Multiplayer.localHero()) {
+				GLog.n(Messages.get(this, "curse_discover"));
+			}
 		}
 		cursedKnown = true;
 		if (parent != null) parent.cursedKnown = true;
 
-		//instant ID with the right talent
-		if (attacker instanceof Hero && curUser.pointsInTalent(Talent.SURVIVALISTS_INTUITION) == 2){
+		if (heroAttacker != null && heroAttacker.pointsInTalent(Talent.SURVIVALISTS_INTUITION) == 2){
 			usesLeftToID = Math.min(usesLeftToID, 0);
-			availableUsesToID =  Math.max(usesLeftToID, 0);
+			availableUsesToID = Math.max(usesLeftToID, 0);
 		}
 
 		int result = super.proc(attacker, defender, damage);
 
-		//handle ID progress over parent/child
 		if (parent != null && parent.usesLeftToID > usesLeftToID){
 			float diff = parent.usesLeftToID - usesLeftToID;
 			parent.usesLeftToID -= diff;
@@ -329,8 +321,8 @@ abstract public class MissileWeapon extends Weapon {
 			}
 		}
 
-		if (!isIdentified() && ShardOfOblivion.passiveIDDisabled()){
-			Buff.prolong(curUser, ShardOfOblivion.ThrownUseTracker.class, 50f, this);
+		if (!isIdentified() && ShardOfOblivion.passiveIDDisabled() && heroAttacker != null){
+			Buff.prolong(heroAttacker, ShardOfOblivion.ThrownUseTracker.class, 50f, this);
 		}
 
 		return result;
@@ -339,9 +331,7 @@ abstract public class MissileWeapon extends Weapon {
 	@Override
 	public Item virtual() {
 		Item item = super.virtual();
-
 		((MissileWeapon)item).setID = setID;
-
 		return item;
 	}
 
@@ -349,14 +339,10 @@ abstract public class MissileWeapon extends Weapon {
 		return 3;
 	}
 
-	//mainly used to track warnings relating to throwing the last upgraded one, not super accurate
 	public boolean extraThrownLeft = false;
 
 	@Override
 	public Item random() {
-		//+0: 75% (3/4)
-		//+1: 20% (4/20)
-		//+2: 5%  (1/20)
 		int n = 0;
 		if (Random.Int(4) == 0) {
 			n++;
@@ -366,12 +352,7 @@ abstract public class MissileWeapon extends Weapon {
 		}
 		level(n);
 
-		//we use a separate RNG here so that variance due to things like parchment scrap
-		//does not affect levelgen
 		Random.pushGenerator(Random.Long());
-
-			//30% chance to be cursed
-			//10% chance to be enchanted
 			float effectRoll = Random.Float();
 			if (effectRoll < 0.3f * ParchmentScrap.curseChanceMultiplier()) {
 				enchant(Enchantment.randomCurse());
@@ -379,14 +360,12 @@ abstract public class MissileWeapon extends Weapon {
 			} else if (effectRoll >= 1f - (0.1f * ParchmentScrap.enchantChanceMultiplier())){
 				enchant();
 			}
-
 		Random.popGenerator();
 
 		return this;
 	}
 
 	public String status() {
-		//show quantity even when it is 1
 		return Integer.toString( quantity );
 	}
 	
@@ -402,9 +381,8 @@ abstract public class MissileWeapon extends Weapon {
 	protected void rangedHit( Char enemy, int cell ){
 		decrementDurability();
 		if (durability > 0 && !spawnedForEffect){
-			//attempt to stick the missile weapon to the enemy, just drop it if we can't.
 			if (sticky && enemy != null && enemy.isActive() && enemy.alignment != Char.Alignment.ALLY){
-				PinCushion p = Buff.affect(enemy, PinCushion.class);
+				PinCushion p = Buff.affect(enemy, PinCushion.class, this);
 				if (p.target == enemy){
 					p.stick(this);
 					return;
@@ -430,48 +408,40 @@ abstract public class MissileWeapon extends Weapon {
 
 	public void damage( float amount ){
 		durability -= amount;
-		durability = Math.max(durability, 1); //cannot break from doing this
+		durability = Math.max(durability, 1);
 	}
 
 	public final float durabilityPerUse(){
-		return durabilityPerUse(level());
+		return durabilityPerUse(level(), curUser);
 	}
 
-	//classes that add steps onto durabilityPerUse can turn rounding off, to do their own rounding after more logic
-	protected boolean useRoundingInDurabilityCalc = true;
-
-	public float durabilityPerUse( int level ){
+	public float durabilityPerUse(int level, Hero hero){
 		float usages = baseUses * (float)(Math.pow(1.5f, level));
 
-		//+50%/75% durability
-		if (curUser != null && curUser.hasTalent(Talent.DURABLE_PROJECTILES)){
-			usages *= 1.25f + (0.25f*curUser.pointsInTalent(Talent.DURABLE_PROJECTILES));
+		if (hero != null && hero.hasTalent(Talent.DURABLE_PROJECTILES)){
+			usages *= 1.25f + (0.25f*hero.pointsInTalent(Talent.DURABLE_PROJECTILES));
 		}
 		if (holster) {
 			usages *= MagicalHolster.HOLSTER_DURABILITY_FACTOR;
 		}
 
-		//+50% durability on speed aug, -33% durability on damage aug
 		usages /= augment.delayFactor(1f);
 
-		if (curUser != null) usages *= RingOfSharpshooting.durabilityMultiplier( curUser );
+		if (hero != null) usages *= RingOfSharpshooting.durabilityMultiplier(hero);
 
-		//at 100 uses, items just last forever.
 		if (usages >= 100f) return 0;
 
 		if (useRoundingInDurabilityCalc){
 			usages = Math.round(usages);
-			//add a tiny amount to account for rounding error for calculations like 1/3
 			return (MAX_DURABILITY/usages) + 0.001f;
 		} else {
-			//rounding can be disabled for classes that override durability per use
 			return MAX_DURABILITY/usages;
 		}
 	}
-	
+
+	protected boolean useRoundingInDurabilityCalc = true;
+
 	protected void decrementDurability(){
-		//if this weapon was thrown from a source stack, degrade that stack.
-		//unless a weapon is about to break, then break the one being thrown
 		if (parent != null){
 			if (parent.durability <= parent.durabilityPerUse()){
 				durability = 0;
@@ -502,13 +472,20 @@ abstract public class MissileWeapon extends Weapon {
 		int damage = augment.damageFactor(super.damageRoll( owner ));
 		
 		if (owner instanceof Hero) {
-			int exStr = ((Hero)owner).STR() - STRReq();
+			Hero hero = (Hero) owner;
+			int exStr = hero.STR() - STRReq();
 			if (exStr > 0) {
 				damage += Hero.heroDamageIntRange( 0, exStr );
 			}
 			if (owner.buff(Momentum.class) != null && owner.buff(Momentum.class).freerunning()) {
-				damage = Math.round(damage * (1f + 0.15f * ((Hero) owner).pointsInTalent(Talent.PROJECTILE_MOMENTUM)));
+				damage = Math.round(damage * (1f + 0.15f * hero.pointsInTalent(Talent.PROJECTILE_MOMENTUM)));
 			}
+			// Используем новые методы min/max с owner
+			int baseMin = min(owner);
+			int baseMax = max(owner);
+			// но damage уже посчитан через super.damageRoll, который использует min()/max() без owner.
+			// Поэтому мы должны пересчитать урон, чтобы учесть кольцо. Можно сделать так:
+			damage = augment.damageFactor(Random.NormalIntRange(baseMin, baseMax));
 		}
 		
 		return damage;
@@ -533,7 +510,6 @@ abstract public class MissileWeapon extends Weapon {
 				durability += MAX_DURABILITY;
 			}
 
-			//hashcode check is for pre-3.2 saves, 0 check is for darts
 			if (quantity > defaultQuantity() && setID != 0 && setID != getClass().getSimpleName().hashCode()){
 				quantity = defaultQuantity();
 				durability = MAX_DURABILITY;
@@ -548,24 +524,18 @@ abstract public class MissileWeapon extends Weapon {
 			masteryPotionBonus = masteryPotionBonus || ((MissileWeapon) other).masteryPotionBonus;
 			enchantHardened = enchantHardened || ((MissileWeapon) other).enchantHardened;
 
-			//if other has a curse/enchant status that's a higher priority, copy it. in the following order:
-			//curse infused
 			if (!curseInfusionBonus && ((MissileWeapon) other).curseInfusionBonus && ((MissileWeapon) other).hasCurseEnchant()){
 				enchantment = ((MissileWeapon) other).enchantment;
 				curseInfusionBonus = true;
 				cursed = cursed || other.cursed;
-			//enchanted
 			} else if (!curseInfusionBonus && !hasGoodEnchant() && ((MissileWeapon) other).hasGoodEnchant()){
 				enchantment = ((MissileWeapon) other).enchantment;
 				cursed = other.cursed;
-			//nothing
 			} else if (!curseInfusionBonus && hasCurseEnchant() && !((MissileWeapon) other).hasCurseEnchant()){
 				enchantment = ((MissileWeapon) other).enchantment;
 				cursed = other.cursed;
 			}
-			//cursed (no copy as other cannot have a higher priority status)
 
-			//special case for explosive, as it tracks a variable
 			if (((MissileWeapon) other).enchantment instanceof Explosive
 				&& enchantment instanceof Explosive){
 				((Explosive) enchantment).merge((Explosive) ((MissileWeapon) other).enchantment);
@@ -580,15 +550,12 @@ abstract public class MissileWeapon extends Weapon {
 		Item split = super.split(amount);
 		bundleRestoring = false;
 
-		//unless the thrown weapon will break, split off a max durability item and
-		//have it reduce the durability of the main stack. Cleaner to the player this way
 		if (split != null){
 			MissileWeapon m = (MissileWeapon)split;
 			m.durability = MAX_DURABILITY;
 			m.parent = this;
 			extraThrownLeft = m.extraThrownLeft = true;
 
-			//explosive durability is tracked only in the parent
 			if (m.enchantment instanceof Explosive){
 				((Explosive) m.enchantment).clear();
 			}
@@ -619,7 +586,6 @@ abstract public class MissileWeapon extends Weapon {
 	
 	@Override
 	public String info() {
-
 		String info = super.info();
 
 		if (levelKnown) {
@@ -668,16 +634,19 @@ abstract public class MissileWeapon extends Weapon {
 		}
 
 		if (levelKnown) {
+			float usesLeft = durability / durabilityPerUse();
+			float totalUses = MAX_DURABILITY / durabilityPerUse();
 			if (durabilityPerUse() > 0) {
 				info += "\n\n" + Messages.get(this, "uses_left",
-						(int) Math.ceil(durability / durabilityPerUse()),
-						(int) Math.ceil(MAX_DURABILITY / durabilityPerUse()));
+						(int) Math.ceil(usesLeft),
+						(int) Math.ceil(totalUses));
 			} else {
 				info += "\n\n" + Messages.get(this, "unlimited_uses");
 			}
 		}  else {
-			if (durabilityPerUse(0) > 0) {
-				info += "\n\n" + Messages.get(this, "unknown_uses", (int) Math.ceil(MAX_DURABILITY / durabilityPerUse(0)));
+			float totalUses = MAX_DURABILITY / durabilityPerUse(0, null);
+			if (durabilityPerUse(0, null) > 0) {
+				info += "\n\n" + Messages.get(this, "unknown_uses", (int) Math.ceil(totalUses));
 			} else {
 				info += "\n\n" + Messages.get(this, "unlimited_uses");
 			}
@@ -709,7 +678,6 @@ abstract public class MissileWeapon extends Weapon {
 	}
 
 	private static final String SET_ID = "set_id";
-
 	private static final String SPAWNED = "spawned";
 	private static final String DURABILITY = "durability";
 	private static final String EXTRA_LEFT = "extra_left";
@@ -733,16 +701,9 @@ abstract public class MissileWeapon extends Weapon {
 
 		if (bundle.contains(SET_ID)){
 			setID = bundle.getLong(SET_ID);
-		//pre v3.2.0 logic
 		} else {
-			//if we have a higher than 0 level, assume that this was a solitary thrown wep upgrade
-			//turn it into a set of full quantity
 			if (level() > 0){
-				//set ID will be a random long
 				quantity = defaultQuantity();
-
-			//otherwise treat all currently spawned thrown weapons of the same class as if they are part of the same set
-			//darts already do this though and need no conversion
 			} else if (!(this instanceof Dart)){
 				levelKnown = cursedKnown = true;
 				setID = getClass().getSimpleName().hashCode();
@@ -755,35 +716,27 @@ abstract public class MissileWeapon extends Weapon {
 	}
 
 	public static class PlaceHolder extends MissileWeapon {
-
 		{
 			image = ItemSpriteSheet.MISSILE_HOLDER;
 		}
-
 		@Override
 		public boolean isSimilar(Item item) {
-			//yes, even though it uses a dart outline
 			return item instanceof MissileWeapon && !(item instanceof Dart);
 		}
-
 		@Override
 		public String status() {
 			return null;
 		}
-
 		@Override
 		public String info() {
 			return "";
 		}
 	}
 
-	//also used by liquid metal crafting to track when a set is consumed
 	public static class UpgradedSetTracker extends Buff {
-
 		{
 			revivePersists = true;
 		}
-
 		public HashMap<Long, Integer> levelThresholds = new HashMap<>();
 
 		public static boolean pickupValid(Hero h, MissileWeapon w){

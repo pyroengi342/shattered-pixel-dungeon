@@ -66,7 +66,7 @@ public class Web extends Blob {
 
 	//affects characters as they step on it. See Level.OccupyCell and Level.PressCell
 	public static void affectChar( Char ch ){
-		Buff.prolong( ch, Roots.class, Roots.DURATION , this);
+		Buff.prolong( ch, Roots.class, Roots.DURATION , null);
 	}
 	
 	@Override

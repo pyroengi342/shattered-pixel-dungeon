@@ -97,7 +97,7 @@ public class ReclaimTrap extends TargetedSpell {
 			}
 
 			//spell is not consumed, so doesn't count as a full use
-			Invisibility.dispel();
+			Invisibility.dispel(hero);
 			curUser.spendAndNext( timeToCast() );
 
 		} else {

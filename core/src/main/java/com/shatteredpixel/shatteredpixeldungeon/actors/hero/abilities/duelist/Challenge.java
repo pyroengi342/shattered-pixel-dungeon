@@ -182,7 +182,7 @@ public class Challenge extends ArmorAbility {
 
 		armor.charge -= chargeUse( hero );
 		armor.updateQuickslot();
-		Invisibility.dispel();
+		Invisibility.dispel(hero);
 		hero.sprite.zap(target);
 
 		hero.next();

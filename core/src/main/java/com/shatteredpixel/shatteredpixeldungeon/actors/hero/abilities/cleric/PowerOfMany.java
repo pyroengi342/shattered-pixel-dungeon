@@ -177,7 +177,7 @@ public class PowerOfMany extends ArmorAbility {
 			hero.sprite.zap(target);
 			Sample.INSTANCE.play(Assets.Sounds.CHARGEUP);
 
-			Invisibility.dispel();
+			Invisibility.dispel(hero);
 			hero.spendAndNext(Actor.TICK);
 
 		}
