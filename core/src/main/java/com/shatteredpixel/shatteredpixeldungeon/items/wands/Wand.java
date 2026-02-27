@@ -478,7 +478,7 @@ public abstract class Wand extends Item {
             availableUsesToID -= uses;
             usesLeftToID -= uses;
             if (usesLeftToID <= 0 || curUser.pointsInTalent(Talent.SCHOLARS_INTUITION) == 2) {
-                if (ShardOfOblivion.passiveIDDisabled()) {
+                if (ShardOfOblivion.passiveIDDisabled(curUser)) {
                     if (usesLeftToID > -1) {
                         GLog.p(Messages.get(ShardOfOblivion.class, "identify_ready"), name());
                     }
@@ -489,7 +489,7 @@ public abstract class Wand extends Item {
                     Badges.validateItemLevelAquired(this);
                 }
             }
-            if (ShardOfOblivion.passiveIDDisabled()) {
+            if (ShardOfOblivion.passiveIDDisabled(curUser)) {
                 Buff.prolong(curUser, ShardOfOblivion.WandUseTracker.class, 50f, this);
             }
         }
@@ -654,7 +654,7 @@ public abstract class Wand extends Item {
                     wand.fx(shot, new Callback() {
                         public void call() {
                             wand.onZap(shot);
-                            if (Random.Float() < WondrousResin.extraCurseEffectChance()) {
+                            if (Random.Float() < WondrousResin.extraCurseEffectChance(hero)) {
                                 WondrousResin.forcePositive = true;
                                 CursedWand.cursedZap(wand,
                                         hero,

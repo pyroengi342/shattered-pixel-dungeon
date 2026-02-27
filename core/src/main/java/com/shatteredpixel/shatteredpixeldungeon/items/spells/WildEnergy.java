@@ -66,7 +66,7 @@ public class WildEnergy extends TargetedSpell {
 		ArtifactRecharge.chargeArtifacts(hero, 4f);
 
 		Buff.affect(hero, Recharging.class, 8f);
-		Buff.affect(hero, ArtifactRecharge.class).extend( 8 , this)ignoreHornOfPlenty = false;
+		Buff.affect(hero, ArtifactRecharge.class, this).extend( 8).ignoreHornOfPlenty = false;
 
 		onSpellused();
 	}
@@ -96,9 +96,9 @@ public class WildEnergy extends TargetedSpell {
 		}
 
 		@Override
-		public Item brew(ArrayList<Item> ingredients) {
+		public Item brew(ArrayList<Item> ingredients, Hero hero) {
 			Catalog.countUse(MetalShard.class);
-			return super.brew(ingredients);
+			return super.brew(ingredients, hero);
 		}
 	}
 }

@@ -332,7 +332,7 @@ public class Ring extends KindofMisc {
 		//becomes IDed after 1 level
 		levelsToID -= levelPercent;
 		if (levelsToID <= 0){
-			if (ShardOfOblivion.passiveIDDisabled()){
+			if (ShardOfOblivion.passiveIDDisabled(hero)){
 				if (levelsToID > -1){
 					GLog.p(Messages.get(ShardOfOblivion.class, "identify_ready"), name());
 				}

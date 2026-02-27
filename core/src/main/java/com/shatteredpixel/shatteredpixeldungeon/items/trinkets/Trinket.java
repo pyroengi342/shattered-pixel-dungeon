@@ -1,137 +1,114 @@
-/*
- * Pixel Dungeon
- * Copyright (C) 2012-2015 Oleg Dolya
- *
- * Shattered Pixel Dungeon
- * Copyright (C) 2014-2025 Evan Debenham
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>
- */
-
 package com.shatteredpixel.shatteredpixeldungeon.items.trinkets;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.Recipe;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.watabou.utils.Bundle;
 
+import network.Multiplayer;
+
 import java.util.ArrayList;
 
 public abstract class Trinket extends Item {
 
-	{
-		levelKnown = true;
+    {
+        levelKnown = true;
+        unique = true;
+    }
 
-		unique = true;
-	}
+    @Override
+    public boolean isUpgradable() {
+        return false;
+    }
 
-	@Override
-	public boolean isUpgradable() {
-		return false;
-	}
+    protected abstract int upgradeEnergyCost();
 
-	protected abstract int upgradeEnergyCost();
+    // Версия для явного героя
+    public static int trinketLevel(Class<? extends Trinket> trinketType, Hero hero) {
+        if (hero == null || hero.belongings == null) return -1;
+        Trinket trinket = hero.belongings.getItem(trinketType);
+        return trinket != null ? trinket.buffedLvl() : -1;
+    }
 
-	protected static int trinketLevel(Class<? extends Trinket> trinketType ){
-		if (curUser == null || curUser.belongings == null){
-			return -1;
-		}
+    @Override
+    public String info() {
+        String info = super.info();
+        info += "\n\n" + statsDesc();
+        return info;
+    }
 
-		Trinket trinket = curUser.belongings.getItem(trinketType);
+    public abstract String statsDesc();
 
-		if (trinket != null){
-			return trinket.buffedLvl();
-		} else {
-			return -1;
-		}
-	}
+    public int energyVal() {
+        return 5;
+    }
 
-	@Override
-	public String info() {
-		String info = super.info();
-		info += "\n\n" + statsDesc();
-		return info;
-	}
+    @Override
+    public void restoreFromBundle(Bundle bundle) {
+        super.restoreFromBundle(bundle);
+        levelKnown = cursedKnown = true; // for pre-2.5 saves
+    }
 
-	public abstract String statsDesc();
+    public static class PlaceHolder extends Trinket {
 
-	public int energyVal() {
-		return 5;
-	}
+        {
+            image = ItemSpriteSheet.TRINKET_HOLDER;
+        }
 
-	@Override
-	public void restoreFromBundle(Bundle bundle) {
-		super.restoreFromBundle(bundle);
-		levelKnown = cursedKnown = true; //for pre-2.5 saves
-	}
+        @Override
+        protected int upgradeEnergyCost() {
+            return 0;
+        }
 
-	public static class PlaceHolder extends Trinket {
+        @Override
+        public boolean isSimilar(Item item) {
+            return item instanceof Trinket;
+        }
 
-		{
-			image = ItemSpriteSheet.TRINKET_HOLDER;
-		}
+        @Override
+        public String info() {
+            return "";
+        }
 
-		@Override
-		protected int upgradeEnergyCost() {
-			return 0;
-		}
+        @Override
+        public String statsDesc() {
+            return "";
+        }
+    }
 
-		@Override
-		public boolean isSimilar(Item item) {
-			return item instanceof Trinket;
-		}
+    public static class UpgradeTrinket extends Recipe {
 
-		@Override
-		public String info() {
-				return "";
-			}
+        @Override
+        public boolean testIngredients(ArrayList<Item> ingredients) {
+            return ingredients.size() == 1 && ingredients.get(0) instanceof Trinket && ingredients.get(0).level() < 3;
+        }
 
-		@Override
-		public String statsDesc() {
-			return "";
-		}
+        @Override
+        public int cost(ArrayList<Item> ingredients) {
+            return ((Trinket)ingredients.get(0)).upgradeEnergyCost();
+        }
 
-	}
+        @Override
+        public Item brew(ArrayList<Item> ingredients, Hero hero) {
+            Item result = ingredients.get(0).duplicate();
+            ingredients.get(0).quantity(0);
+            result.upgrade();
 
-	public static class UpgradeTrinket extends Recipe {
+            // Обновление каталога только для локального героя
+            Hero local = Multiplayer.localHero();
+            if (local != null) {
+                Catalog.countUse(result.getClass());
+            }
 
-		@Override
-		public boolean testIngredients(ArrayList<Item> ingredients) {
-			return ingredients.size() == 1 && ingredients.get(0) instanceof Trinket && ingredients.get(0).level() < 3;
-		}
+            return result;
+        }
 
-		@Override
-		public int cost(ArrayList<Item> ingredients) {
-			return ((Trinket)ingredients.get(0)).upgradeEnergyCost();
-		}
-
-		@Override
-		public Item brew(ArrayList<Item> ingredients) {
-			Item result = ingredients.get(0).duplicate();
-			ingredients.get(0).quantity(0);
-			result.upgrade();
-
-			Catalog.countUse(result.getClass());
-
-			return result;
-		}
-
-		@Override
-		public Item sampleOutput(ArrayList<Item> ingredients) {
-			return ingredients.get(0).duplicate().upgrade();
-		}
-	}
+        @Override
+        public Item sampleOutput(ArrayList<Item> ingredients) {
+            return ingredients.get(0).duplicate().upgrade();
+        }
+    }
 }

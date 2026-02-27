@@ -1,85 +1,53 @@
-/*
- * Pixel Dungeon
- * Copyright (C) 2012-2015 Oleg Dolya
- *
- * Shattered Pixel Dungeon
- * Copyright (C) 2014-2025 Evan Debenham
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>
- */
-
+// SaltCube.java
 package com.shatteredpixel.shatteredpixeldungeon.items.trinkets;
 
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 
+import network.Multiplayer;
+
 public class SaltCube extends Trinket {
 
-	{
-		image = ItemSpriteSheet.SALT_CUBE;
-	}
+    {
+        image = ItemSpriteSheet.SALT_CUBE;
+    }
 
-	@Override
-	protected int upgradeEnergyCost() {
-		//6 -> 8(14) -> 10(24) -> 12(36)
-		return 6+2*level();
-	}
+    @Override
+    protected int upgradeEnergyCost() {
+        return 6 + 2 * level();
+    }
 
-	@Override
-	public String statsDesc() {
-		if (isIdentified()){
-			return Messages.get(this,
-					"stats_desc",
-					Messages.decimalFormat("#.##", 100*((1f/hungerGainMultiplier(buffedLvl()))-1f)),
-					Messages.decimalFormat("#.##", 100*(1f-healthRegenMultiplier(buffedLvl()))));
-		} else {
-			return Messages.get(this,
-					"typical_stats_desc",
-					Messages.decimalFormat("#.##", 100*((1f/hungerGainMultiplier(0))-1f)),
-					Messages.decimalFormat("#.##", 100*(1f-healthRegenMultiplier(0))));
-		}
-	}
+    @Override
+    public String statsDesc() {
+        Hero viewer = Multiplayer.localHero();
+        int level = isIdentified() ? buffedLvl() : 0;
+        return Messages.get(this,
+                "stats_desc",
+                Messages.decimalFormat("#.##", 100 * ((1f / hungerGainMultiplier(level, viewer)) - 1f)),
+                Messages.decimalFormat("#.##", 100 * (1f - healthRegenMultiplier(level, viewer))));
+    }
 
-	public static float hungerGainMultiplier(){
-		return hungerGainMultiplier(trinketLevel(SaltCube.class));
-	}
+    public static float hungerGainMultiplier(int level, Hero hero) {
+        int lvl = trinketLevel(SaltCube.class, hero);
+        if (lvl == -1) return 1f;
+        return 1f / (1f + 0.25f * (lvl + 1));
+    }
 
-	public static float hungerGainMultiplier( int level ){
-		if (level == -1){
-			return 1;
-		} else {
-			return 1f / (1f + 0.25f*(level+1));
-		}
-	}
-
-	public static float healthRegenMultiplier(){
-		return healthRegenMultiplier(trinketLevel(SaltCube.class));
-	}
-
-	public static float healthRegenMultiplier( int level ){
-		switch (level){
-			case -1: default:
-				return 1;
-			case 0:
-				return 0.84f;
-			case 1:
-				return 0.73f;
-			case 2:
-				return 0.66f;
-			case 3:
-				return 0.6f;
-		}
-	}
+    public static float healthRegenMultiplier(int level, Hero hero) {
+        int lvl = trinketLevel(SaltCube.class, hero);
+        switch (lvl) {
+            case -1: default:
+                return 1f;
+            case 0:
+                return 0.84f;
+            case 1:
+                return 0.73f;
+            case 2:
+                return 0.66f;
+            case 3:
+                return 0.6f;
+        }
+    }
 
 }

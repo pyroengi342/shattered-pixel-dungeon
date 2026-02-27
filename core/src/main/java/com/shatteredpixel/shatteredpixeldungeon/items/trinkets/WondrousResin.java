@@ -1,28 +1,10 @@
-/*
- * Pixel Dungeon
- * Copyright (C) 2012-2015 Oleg Dolya
- *
- * Shattered Pixel Dungeon
- * Copyright (C) 2014-2025 Evan Debenham
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>
- */
-
 package com.shatteredpixel.shatteredpixeldungeon.items.trinkets;
 
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
+
+import network.Multiplayer;
 
 public class WondrousResin extends Trinket {
 
@@ -38,45 +20,45 @@ public class WondrousResin extends Trinket {
 
 	@Override
 	public String statsDesc() {
+		Hero viewer = Multiplayer.localHero();
+		int level = isIdentified() ? buffedLvl() : 0;
 		if (isIdentified()){
 			return Messages.get(this, "stats_desc",
-					Messages.decimalFormat("#.##", 100*positiveCurseEffectChance(buffedLvl())),
-					Messages.decimalFormat("#.##", 100*extraCurseEffectChance(buffedLvl())));
+					Messages.decimalFormat("#.##", 100 * positiveCurseEffectChance(level, viewer)),
+					Messages.decimalFormat("#.##", 100 * extraCurseEffectChance(level, viewer)));
 		} else {
 			return Messages.get(this, "typical_stats_desc",
-					Messages.decimalFormat("#.##", 100*positiveCurseEffectChance(0)),
-					Messages.decimalFormat("#.##", 100*extraCurseEffectChance(0)));
+					Messages.decimalFormat("#.##", 100 * positiveCurseEffectChance(0, viewer)),
+					Messages.decimalFormat("#.##", 100 * extraCurseEffectChance(0, viewer)));
 		}
 	}
 
 	//used when bonus curse effects are being created
 	public static boolean forcePositive = false;
 
-	public static float positiveCurseEffectChance(){
-		if (forcePositive){
-			return 1;
-		}
-		return positiveCurseEffectChance( trinketLevel(WondrousResin.class) );
-	}
+    public static float positiveCurseEffectChance(Hero hero) {
+        return positiveCurseEffectChance(trinketLevel(WondrousResin.class, hero), hero);
+    }
 
-	public static float positiveCurseEffectChance(int level ){
-		if (level >= 0){
-			return 0.25f + 0.25f * level;
-		} else {
-			return 0;
-		}
-	}
+    public static float positiveCurseEffectChance(int level, Hero hero) {
+        // если нужно учитывать ещё что-то связанное с героем
+        if (level >= 0) {
+            return 0.25f + 0.25f * level;
+        } else {
+            return 0;
+        }
+    }
 
-	public static float extraCurseEffectChance(){
-		return extraCurseEffectChance( trinketLevel(WondrousResin.class) );
-	}
+    public static float extraCurseEffectChance(Hero hero) {
+        return extraCurseEffectChance(trinketLevel(WondrousResin.class, hero), hero);
+    }
 
-	public static float extraCurseEffectChance( int level ){
-		if (level >= 0){
-			return 0.125f + 0.125f * level;
-		} else {
-			return 0;
-		}
-	}
+    public static float extraCurseEffectChance(int level, Hero hero) {
+        if (level >= 0) {
+            return 0.125f + 0.125f * level;
+        } else {
+            return 0;
+        }
+    }
 
 }

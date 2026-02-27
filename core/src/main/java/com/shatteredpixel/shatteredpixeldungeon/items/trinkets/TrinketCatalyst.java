@@ -48,6 +48,8 @@ import com.shatteredpixel.shatteredpixeldungeon.windows.WndSadGhost;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
 
+import network.Multiplayer;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -73,7 +75,7 @@ public class TrinketCatalyst extends Item {
 	@Override
 	public boolean doPickUp(Hero hero, int pos) {
 		if (super.doPickUp(hero, pos)){
-			if (!Document.ADVENTURERS_GUIDE.isPageRead(Document.GUIDE_ALCHEMY)){
+			if (hero == Multiplayer.localHero() && !Document.ADVENTURERS_GUIDE.isPageRead(Document.GUIDE_ALCHEMY)){
 				GameScene.flashForDocument(Document.ADVENTURERS_GUIDE, Document.GUIDE_ALCHEMY);
 			}
 			return true;
@@ -120,11 +122,11 @@ public class TrinketCatalyst extends Item {
 		}
 
 		@Override
-		public Item brew(ArrayList<Item> ingredients) {
+		public Item brew(ArrayList<Item> ingredients, Hero hero) {
 			//we silently re-add the catalyst so that we can clear it when a trinket is selected
 			//this way player isn't totally screwed if they quit the game while selecting
 			TrinketCatalyst newCata = (TrinketCatalyst) ingredients.get(0).duplicate();
-			newCata.collect();
+			newCata.collect(hero);
 
 			ingredients.get(0).quantity(0);
 
@@ -216,33 +218,36 @@ public class TrinketCatalyst extends Item {
 							result = Generator.random(Generator.Category.TRINKET);
 						}
 
-						TrinketCatalyst cata = curUser.belongings.getItem(TrinketCatalyst.class);
-
-						if (cata != null) {
-							cata.detach(curUser.belongings.backpack);
-							Catalog.countUse(cata.getClass());
-							result.identify();
-							if (ShatteredPixelDungeon.scene() instanceof AlchemyScene) {
-								((AlchemyScene) ShatteredPixelDungeon.scene()).craftItem(null, result);
-							} else {
-								Sample.INSTANCE.play( Assets.Sounds.PUFF );
-
-								if (result.doPickUp(curUser)){
-									GLog.p( Messages.capitalize(Messages.get(Hero.class, "you_now_have", item.name())) );
-								} else {
-									Dungeon.level.drop(result, curUser.pos);
-								}
-
-								Statistics.itemsCrafted++;
-								Badges.validateItemsCrafted();
-
-								try {
-									Dungeon.saveAll();
-								} catch (IOException e) {
-									ShatteredPixelDungeon.reportException(e);
+						Hero hero = Multiplayer.localHero();
+							if (hero != null) {
+								TrinketCatalyst cata = hero.belongings.getItem(TrinketCatalyst.class);
+								if (cata != null) {
+									cata.detach(hero.belongings.backpack);
+									if (hero == Multiplayer.localHero()) {
+										Catalog.countUse(cata.getClass());
+									}
+									result.identify();
+									if (ShatteredPixelDungeon.scene() instanceof AlchemyScene) {
+										((AlchemyScene) ShatteredPixelDungeon.scene()).craftItem(null, result);
+									} else {
+										Sample.INSTANCE.play(Assets.Sounds.PUFF);
+										if (result.doPickUp(hero)) {
+											GLog.p(Messages.capitalize(Messages.get(Hero.class, "you_now_have", item.name())));
+										} else {
+											Dungeon.level.drop(result, hero.pos);
+										}
+										if (hero == Multiplayer.localHero()) {
+											Statistics.itemsCrafted++;
+											Badges.validateItemsCrafted();
+										}
+										try {
+											Dungeon.saveAll();
+										} catch (IOException e) {
+											ShatteredPixelDungeon.reportException(e);
+										}
+									}
 								}
 							}
-						}
 					}
 				};
 				btnConfirm.setRect(0, height+2, width/2-1, 16);

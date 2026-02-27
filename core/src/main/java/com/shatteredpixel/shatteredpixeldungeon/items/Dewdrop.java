@@ -90,8 +90,8 @@ public class Dewdrop extends Item {
 
 			//When vial is present, this allocates exactly as much of the effect as is needed
 			// to get to 100% HP, and the rest is then given as shielding (without the vial boost)
-			if (quantity > 1 && heal < effect && VialOfBlood.delayBurstHealing()){
-				heal = Math.round(heal/VialOfBlood.totalHealMultiplier());
+			if (quantity > 1 && heal < effect && VialOfBlood.delayBurstHealing(hero)){
+				heal = Math.round(heal/VialOfBlood.totalHealMultiplier(hero));
 			}
 
 			shield = effect - heal;
@@ -104,9 +104,9 @@ public class Dewdrop extends Item {
 
 		if (heal > 0 || shield > 0) {
 
-			if (heal > 0 && quantity > 1 && VialOfBlood.delayBurstHealing()){
+			if (heal > 0 && quantity > 1 && VialOfBlood.delayBurstHealing(hero)){
 				Healing healing = Buff.affect(hero, Healing.class, VialOfBlood.class);
-				healing.setHeal(heal, 0, VialOfBlood.maxHealPerTurn());
+				healing.setHeal(heal, 0, VialOfBlood.maxHealPerTurn(hero));
 				healing.applyVialEffect();
 			} else {
 				hero.HP += heal;

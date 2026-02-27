@@ -313,7 +313,7 @@ abstract public class MissileWeapon extends Weapon {
 			parent.usesLeftToID -= diff;
 			parent.availableUsesToID -= diff;
 			if (usesLeftToID <= 0) {
-				if (ShardOfOblivion.passiveIDDisabled()){
+				if (ShardOfOblivion.passiveIDDisabled(curUser)){
 					parent.setIDReady();
 				} else {
 					parent.identify();
@@ -321,7 +321,7 @@ abstract public class MissileWeapon extends Weapon {
 			}
 		}
 
-		if (!isIdentified() && ShardOfOblivion.passiveIDDisabled() && heroAttacker != null){
+		if (!isIdentified() && ShardOfOblivion.passiveIDDisabled(curUser) && heroAttacker != null){
 			Buff.prolong(heroAttacker, ShardOfOblivion.ThrownUseTracker.class, 50f, this);
 		}
 

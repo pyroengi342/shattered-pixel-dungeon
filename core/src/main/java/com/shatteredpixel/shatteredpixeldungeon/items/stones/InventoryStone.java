@@ -72,7 +72,7 @@ public abstract class InventoryStone extends Runestone {
 		curUser.sprite.operate(curUser.pos);
 
 		Sample.INSTANCE.play( Assets.Sounds.READ );
-		Invisibility.dispel(hero);
+		Invisibility.dispel(curUser);
 	}
 
 	private String inventoryTitle(){
@@ -106,17 +106,8 @@ public abstract class InventoryStone extends Runestone {
 
 		@Override
 		public void onSelect( Item item ) {
-			
-			//FIXME this safety check shouldn't be necessary
-			//it would be better to eliminate the curItem static variable.
-			if (!(curItem instanceof InventoryStone)){
-				return;
-			}
-			
 			if (item != null) {
-
-				((InventoryStone)curItem).onItemSelected( item );
-				
+				InventoryStone.this.onItemSelected(item);
 			}
 		}
 	};

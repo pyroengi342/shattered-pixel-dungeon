@@ -1,29 +1,9 @@
-/*
- * Pixel Dungeon
- * Copyright (C) 2012-2015 Oleg Dolya
- *
- * Shattered Pixel Dungeon
- * Copyright (C) 2014-2025 Evan Debenham
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>
- */
-
 package com.shatteredpixel.shatteredpixeldungeon.items.stones;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Identification;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -47,6 +27,8 @@ import com.shatteredpixel.shatteredpixeldungeon.windows.IconTitle;
 import com.watabou.noosa.Image;
 import com.watabou.utils.Reflection;
 
+import network.Multiplayer;
+
 import java.util.ArrayList;
 
 public class StoneOfIntuition extends InventoryStone {
@@ -69,16 +51,15 @@ public class StoneOfIntuition extends InventoryStone {
 	
 	@Override
 	protected void onItemSelected(Item item) {
-
 		GameScene.show( new WndGuess(item));
-		
 	}
 
 	@Override
 	public String desc() {
 		String text = super.desc();
-		if (curUser != null){
-			if (curUser.buff(IntuitionUseTracker.class) == null){
+		Hero local = Multiplayer.localHero();
+		if (local != null){
+			if (local.buff(IntuitionUseTracker.class) == null){
 				text += "\n\n" + Messages.get(this, "break_info");
 			} else {
 				text += "\n\n" + Messages.get(this, "break_warn");
@@ -89,12 +70,12 @@ public class StoneOfIntuition extends InventoryStone {
 
 	public static class IntuitionUseTracker extends Buff {{ revivePersists = true; }};
 	
-	private static Class curGuess = null;
-
 	public class WndGuess extends Window {
 		
 		private static final int WIDTH = 120;
 		private static final int BTN_SIZE = 20;
+
+		private Class<?extends Item> guessedClass = null; // текущий выбор в этом окне
 		
 		public WndGuess(final Item item){
 			
@@ -115,7 +96,7 @@ public class StoneOfIntuition extends InventoryStone {
 				protected void onClick() {
 					super.onClick();
 					useAnimation();
-					if (item.getClass() == curGuess){
+					if (guessedClass != null && item.getClass() == guessedClass){
 						if (item instanceof Ring){
 							((Ring) item).setKnown();
 							Item.updateQuickslot();
@@ -128,16 +109,21 @@ public class StoneOfIntuition extends InventoryStone {
 						GLog.w( Messages.get(WndGuess.class, "incorrect") );
 					}
 					if (!anonymous) {
-						Catalog.countUse(StoneOfIntuition.class);
+						// локальные достижения и таланты
+						if (curUser == Multiplayer.localHero()) {
+							Catalog.countUse(StoneOfIntuition.class);
+						}
 						if (curUser.buff(IntuitionUseTracker.class) == null) {
-							Buff.affect(curUser, IntuitionUseTracker.class);
+							Buff.affect(curUser, IntuitionUseTracker.class, curUser);
 						} else {
 							curItem.detach(curUser.belongings.backpack);
 							curUser.buff(IntuitionUseTracker.class).detach();
 						}
-						Talent.onRunestoneUsed(curUser, curUser.pos, StoneOfIntuition.class);
+						if (curUser == Multiplayer.localHero()) {
+							Talent.onRunestoneUsed(curUser, curUser.pos, StoneOfIntuition.class);
+						}
 					}
-					curGuess = null;
+					guessedClass = null;
 					hide();
 				}
 			};
@@ -193,9 +179,9 @@ public class StoneOfIntuition extends InventoryStone {
 				IconButton btn = new IconButton(){
 					@Override
 					protected void onClick() {
-						curGuess = i;
+						guessedClass = i;
 						guess.visible = true;
-						guess.text( Messages.titleCase(Messages.get(curGuess, "name")) );
+						guess.text( Messages.titleCase(Messages.get(guessedClass, "name")) );
 						guess.enable(true);
 						super.onClick();
 					}

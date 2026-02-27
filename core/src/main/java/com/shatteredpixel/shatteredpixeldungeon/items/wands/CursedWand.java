@@ -120,7 +120,7 @@ public class CursedWand {
 
 	public static void cursedZap(final Item origin, final Char user, final Ballistica bolt, final Callback afterZap){
 
-		boolean positiveOnly = user instanceof Hero && Random.Float() < WondrousResin.positiveCurseEffectChance();
+		boolean positiveOnly = user instanceof Hero && Random.Float() < WondrousResin.positiveCurseEffectChance(((Hero) user));
 		CursedEffect effect = randomValidEffect(origin, user, bolt, positiveOnly);
 
 		effect.FX(origin, user, bolt, new Callback() {
