@@ -161,7 +161,7 @@ public class MasterThievesArmband extends Artifact {
 								Item loot = ((Mob) ch).createLoot();
 								if (Challenges.isItemBlocked(loot)){
 									GLog.i(Messages.get(MasterThievesArmband.class, "failed_steal"));
-									Buff.affect(ch, StolenTracker.class).setItemStolen(false);
+									Buff.affect(ch, StolenTracker.class, this).setItemStolen(false);
 								} else {
 									if (loot.doPickUp(curUser)) {
 										//item collection happens instantly
@@ -170,15 +170,15 @@ public class MasterThievesArmband extends Artifact {
 										Dungeon.level.drop(loot, curUser.pos).sprite.drop();
 									}
 									GLog.i(Messages.get(MasterThievesArmband.class, "stole_item", loot.name()));
-									Buff.affect(ch, StolenTracker.class).setItemStolen(true);
+									Buff.affect(ch, StolenTracker.class, this).setItemStolen(true);
 								}
 							} else {
 								GLog.i(Messages.get(MasterThievesArmband.class, "failed_steal"));
-								Buff.affect(ch, StolenTracker.class).setItemStolen(false);
+								Buff.affect(ch, StolenTracker.class, this).setItemStolen(false);
 							}
 
-							Buff.prolong(ch, Blindness.class, debuffDuration);
-							Buff.prolong(ch, Cripple.class, debuffDuration);
+							Buff.prolong(ch, Blindness.class, debuffDuration, this);
+							Buff.prolong(ch, Cripple.class, debuffDuration, this);
 
 							artifactProc(ch, visiblyUpgraded(), 1);
 

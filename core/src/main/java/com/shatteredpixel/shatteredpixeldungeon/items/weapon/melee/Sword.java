@@ -111,7 +111,7 @@ public class Sword extends MeleeWeapon {
 					Sample.INSTANCE.play(Assets.Sounds.HIT_STRONG);
 				}
 
-				Invisibility.dispel();
+				Invisibility.dispel(hero);
 
 				if (!enemy.isAlive()){
 					hero.next();
@@ -119,7 +119,7 @@ public class Sword extends MeleeWeapon {
 					if (hero.buff(CleaveTracker.class) != null) {
 						hero.buff(CleaveTracker.class).detach();
 					} else {
-						Buff.prolong(hero, CleaveTracker.class, 4f); //1 less as attack was instant
+						Buff.prolong(hero, CleaveTracker.class, 4f, this); //1 less as attack was instant
 					}
 				} else {
 					hero.spendAndNext(hero.attackDelay());

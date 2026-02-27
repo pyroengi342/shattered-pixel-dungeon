@@ -118,7 +118,7 @@ public class Sai extends MeleeWeapon {
 					wep.onAbilityKill(hero, enemy);
 				}
 
-				Invisibility.dispel();
+				Invisibility.dispel(hero);
 				hero.spendAndNext(hero.attackDelay());
 				if (recentHits >= 2 && hit){
 					Sample.INSTANCE.play(Assets.Sounds.HIT_STRONG);
@@ -141,12 +141,14 @@ public class Sai extends MeleeWeapon {
 
 		@Override
 		public int icon() {
-			if (curUser.belongings.weapon() instanceof Gloves
-					|| curUser.belongings.weapon() instanceof Sai
-					|| curUser.belongings.weapon() instanceof Gauntlet
-					|| curUser.belongings.secondWep() instanceof Gloves
-					|| curUser.belongings.secondWep() instanceof Sai
-					|| curUser.belongings.secondWep() instanceof Gauntlet) {
+			
+			if (target instanceof Hero &&
+					((Hero) target).belongings.weapon() instanceof Gloves
+					|| ((Hero) target).belongings.weapon() instanceof Sai
+					|| ((Hero) target).belongings.weapon() instanceof Gauntlet
+					|| ((Hero) target).belongings.secondWep() instanceof Gloves
+					|| ((Hero) target).belongings.secondWep() instanceof Sai
+					|| ((Hero) target).belongings.secondWep() instanceof Gauntlet) {
 				return BuffIndicator.DUEL_COMBO;
 			} else {
 				return BuffIndicator.NONE;

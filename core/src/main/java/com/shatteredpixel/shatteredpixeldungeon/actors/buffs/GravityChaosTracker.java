@@ -38,6 +38,8 @@ import com.watabou.utils.Bundle;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
+import network.AudioWrapper;
+
 import java.util.ArrayList;
 
 public class GravityChaosTracker extends Buff {
@@ -101,7 +103,7 @@ public class GravityChaosTracker extends Buff {
 				left--;
 				if (left <= 0){
 					GLog.w(Messages.get(CursedWand.class, "gravity_end"));
-					Sample.INSTANCE.play(Assets.Sounds.DEGRADE);
+					AudioWrapper.playGlobal(Assets.Sounds.DEGRADE);
 					detach();
 				} else {
 					spend(Random.IntRange(1, 3));
@@ -137,7 +139,7 @@ public class GravityChaosTracker extends Buff {
 			left--;
 			if (left <= 0){
 				GLog.w(Messages.get(CursedWand.class, "gravity_end"));
-				Sample.INSTANCE.play(Assets.Sounds.DEGRADE);
+				AudioWrapper.playGlobal(Assets.Sounds.DEGRADE);
 				detach();
 			} else {
 				spend(Random.IntRange(1, 3));

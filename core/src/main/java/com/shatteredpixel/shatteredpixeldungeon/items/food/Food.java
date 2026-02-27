@@ -123,7 +123,7 @@ public class Food extends Item {
 			GLog.n( Messages.get(Hunger.class, "cursedhorn") );
 		}
 
-		Buff.affect(hero, Hunger.class).satisfy(foodVal);
+		Buff.affect(hero, Hunger.class, this).satisfy(foodVal);
 	}
 	
 	@Override

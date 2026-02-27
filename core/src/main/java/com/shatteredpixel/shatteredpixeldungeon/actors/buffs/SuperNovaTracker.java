@@ -41,6 +41,8 @@ import com.watabou.utils.Bundle;
 import com.watabou.utils.Point;
 import com.watabou.utils.PointF;
 
+import network.AudioWrapper;
+
 public class SuperNovaTracker extends Buff {
 
 	public int pos;
@@ -98,9 +100,9 @@ public class SuperNovaTracker extends Buff {
 				}
 			}
 
-			Sample.INSTANCE.play(Assets.Sounds.BLAST);
-			Sample.INSTANCE.playDelayed(Assets.Sounds.BLAST, 0.25f);
-			Sample.INSTANCE.playDelayed(Assets.Sounds.BLAST, 0.5f);
+			AudioWrapper.playGlobal(Assets.Sounds.BLAST);
+			AudioWrapper.playGlobalDelayed(Assets.Sounds.BLAST, 0.25f);
+			AudioWrapper.playGlobalDelayed(Assets.Sounds.BLAST, 0.5f);
 			PixelScene.shake( 5, 2f );
 			for (int i = 0; i < Dungeon.level.length(); i++){
 				if (fieldOfView[i] && !Dungeon.level.solid[i]){

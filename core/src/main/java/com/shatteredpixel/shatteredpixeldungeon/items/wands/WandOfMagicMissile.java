@@ -67,7 +67,7 @@ public class WandOfMagicMissile extends DamageWand {
 			//apply the magic charge buff if we have another wand in inventory of a lower level, or already have the buff
 			for (Wand.Charger wandCharger : curUser.buffs(Wand.Charger.class)){
 				if (wandCharger.wand().buffedLvl() < buffedLvl() || curUser.buff(MagicCharge.class) != null){
-					Buff.prolong(curUser, MagicCharge.class, MagicCharge.DURATION).setup(this);
+					Buff.prolong(curUser, MagicCharge.class, MagicCharge.DURATION).setup(this, this);
 					break;
 				}
 			}

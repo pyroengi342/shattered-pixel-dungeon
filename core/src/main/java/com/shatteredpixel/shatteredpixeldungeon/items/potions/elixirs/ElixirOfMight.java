@@ -52,7 +52,7 @@ public class ElixirOfMight extends Elixir {
 		hero.STR++;
 		hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, "1", FloatingText.STRENGTH);
 		
-		Buff.affect(hero, HTBoost.class).reset();
+		Buff.affect(hero, HTBoost.class, this)reset();
 		HTBoost boost = Buff.affect(hero, HTBoost.class);
 		boost.reset();
 		

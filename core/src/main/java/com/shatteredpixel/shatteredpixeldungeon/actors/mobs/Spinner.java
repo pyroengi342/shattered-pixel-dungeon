@@ -126,7 +126,7 @@ public class Spinner extends Mob {
 			int duration = Random.IntRange(7, 8);
 			//we only use half the ascension modifier here as total poison dmg doesn't scale linearly
 			duration = Math.round(duration * (AscensionChallenge.statModifier(this)/2f + 0.5f));
-			Buff.affect(enemy, Poison.class).set(duration);
+			Buff.affect(enemy, Poison.class, this).set(duration);
 			webCoolDown = 0;
 			state = FLEEING;
 		}

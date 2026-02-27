@@ -47,9 +47,9 @@ public class StoneOfAggression extends Runestone {
 		
 		if (ch != null) {
 			if (Char.hasProp(ch, Char.Property.BOSS) || Char.hasProp(ch, Char.Property.MINIBOSS)) {
-				Buff.prolong(ch, Aggression.class, Aggression.DURATION / 4f);
+				Buff.prolong(ch, Aggression.class, Aggression.DURATION / 4f, this);
 			} else {
-				Buff.prolong(ch, Aggression.class, Aggression.DURATION);
+				Buff.prolong(ch, Aggression.class, Aggression.DURATION, this);
 			}
 		}
 

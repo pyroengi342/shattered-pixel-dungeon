@@ -52,6 +52,8 @@ import com.watabou.utils.Bundle;
 import com.watabou.utils.Callback;
 import com.watabou.utils.PathFinder;
 
+import network.AudioWrapper;
+
 public class Combo extends Buff implements ActionIndicator.Action {
 
 	{
@@ -449,7 +451,7 @@ public class Combo extends Buff implements ActionIndicator.Action {
 					});
 				} else {
 					detach();
-					Sample.INSTANCE.play(Assets.Sounds.HIT_STRONG);
+					AudioWrapper.play(Assets.Sounds.HIT_STRONG, target.pos);
 					ActionIndicator.clearAction(Combo.this);
 					hero.spendAndNext(hero.attackDelay());
 				}

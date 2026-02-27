@@ -288,7 +288,7 @@ public abstract class YogFist extends Mob {
 				GameScene.updateMap( enemy.pos );
 				CellEmitter.get( enemy.pos ).burst( Speck.factory( Speck.STEAM ), 10 );
 			} else {
-				Buff.affect( enemy, Burning.class ).reignite( enemy );
+				Buff.affect( enemy, Burning.class , this)reignite( enemy );
 			}
 
 			for (int i : PathFinder.NEIGHBOURS9){
@@ -463,7 +463,7 @@ public abstract class YogFist extends Mob {
 			damage = super.attackProc( enemy, damage );
 
 			if (Random.Int( 2 ) == 0) {
-				Buff.affect( enemy, Ooze.class ).set( Ooze.DURATION );
+				Buff.affect( enemy, Ooze.class , this).set( Ooze.DURATION );
 				enemy.sprite.burst( 0xFF000000, 5 );
 			}
 
@@ -495,7 +495,7 @@ public abstract class YogFist extends Mob {
 			if (!isInvulnerable(src.getClass()) && !(src instanceof Viscosity.DeferedDamage)){
 				dmg = Math.round( dmg * resist( src.getClass() ));
 				if (dmg >= 0) {
-					Buff.affect(this, Viscosity.DeferedDamage.class).extend(dmg);
+					Buff.affect(this, Viscosity.DeferedDamage.class, this)extend(dmg);
 					sprite.showStatus(CharSprite.WARNING, Messages.get(Viscosity.class, "deferred", dmg));
 				}
 			} else{
@@ -538,7 +538,7 @@ public abstract class YogFist extends Mob {
 			if (hit( this, enemy, true )) {
 
 				enemy.damage( Random.NormalIntRange(10, 20), new LightBeam() );
-				Buff.prolong( enemy, Blindness.class, Blindness.DURATION/2f );
+				Buff.prolong( enemy, Blindness.class, Blindness.DURATION/2f , this);
 
 				if (!enemy.isAlive() && enemy instanceof Hero) {
 					Badges.validateDeathFromEnemyMagic();

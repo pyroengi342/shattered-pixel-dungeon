@@ -118,3 +118,4 @@ public class MessageDispatcher {
     private void handleGameState(Bundle bundle) {
         // синхронизация состояния игры
     }
+}

@@ -253,7 +253,7 @@ public class Armor extends EquipableItem {
 				GLog.n( Messages.get(Armor.class, "equip_cursed") );
 			}
 			
-			((HeroSprite)hero.sprite).updateArmor();
+			((HeroSprite)hero.sprite).updateArmor(hero);
 			activate(hero);
 			Talent.onItemEquipped(hero, this);
 			hero.spend( timeToEquip( hero ) );
@@ -300,7 +300,7 @@ public class Armor extends EquipableItem {
 
 	@Override
 	public void activate(Char ch) {
-		if (seal != null) Buff.affect(ch, BrokenSeal.WarriorShield.class).setArmor(this);
+		if (seal != null) Buff.affect(ch, BrokenSeal.WarriorShield.class, this).setArmor(this);
 	}
 
 	public void affixSeal(BrokenSeal seal){
@@ -315,7 +315,7 @@ public class Armor extends EquipableItem {
 			inscribe(seal.getGlyph());
 		}
 		if (isEquipped(curUser)){
-			Buff.affect(curUser, BrokenSeal.WarriorShield.class).setArmor(this);
+			Buff.affect(curUser, BrokenSeal.WarriorShield.class, this).setArmor(this);
 		}
 	}
 
@@ -353,7 +353,7 @@ public class Armor extends EquipableItem {
 		if (super.doUnequip( hero, collect, single )) {
 
 			hero.belongings.armor = null;
-			((HeroSprite)hero.sprite).updateArmor();
+			((HeroSprite)hero.sprite).updateArmor(hero);
 
 			BrokenSeal.WarriorShield sealBuff = hero.buff(BrokenSeal.WarriorShield.class);
 			if (sealBuff != null) sealBuff.setArmor(null);

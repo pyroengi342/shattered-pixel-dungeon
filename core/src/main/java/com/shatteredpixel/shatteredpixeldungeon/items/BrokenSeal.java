@@ -315,7 +315,7 @@ public class BrokenSeal extends Item {
 
 		@Override
 		public synchronized boolean act() {
-			if (cooldown > 0 && Regeneration.regenOn(curUser)){
+			if (cooldown > 0 && Regeneration.regenOn()){
 				cooldown--;
 			}
 

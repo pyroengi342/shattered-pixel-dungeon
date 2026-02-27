@@ -46,11 +46,11 @@ public class GrippingTrap extends Trap {
 
 		if (c != null && !c.flying) {
 			if (c instanceof Mob) {
-				Buff.prolong(c, Trap.HazardAssistTracker.class, HazardAssistTracker.DURATION);
+				Buff.prolong(c, Trap.HazardAssistTracker.class, HazardAssistTracker.DURATION, this);
 			}
 			int damage = Math.max( 0,  (2 + scalingDepth()/2) - c.drRoll()/2 );
-			Buff.affect( c, Bleeding.class ).set( damage );
-			Buff.prolong( c, Cripple.class, Cripple.DURATION);
+			Buff.affect( c, Bleeding.class , this).set( damage );
+			Buff.prolong( c, Cripple.class, Cripple.DURATION, this);
 			Wound.hit( c );
 		} else {
 			Wound.hit( pos );

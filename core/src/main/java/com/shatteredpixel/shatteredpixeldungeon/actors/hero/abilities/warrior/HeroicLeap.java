@@ -109,7 +109,7 @@ public class HeroicLeap extends ArmorAbility {
 								int strength = 1+hero.pointsInTalent(Talent.IMPACT_WAVE);
 								WandOfBlastWave.throwChar(mob, trajectory, strength, true, true, HeroicLeap.this);
 								if (Random.Int(4) < hero.pointsInTalent(Talent.IMPACT_WAVE)){
-									Buff.prolong(mob, Vulnerable.class, 5f);
+									Buff.prolong(mob, Vulnerable.class, 5f, this);
 								}
 							}
 						}

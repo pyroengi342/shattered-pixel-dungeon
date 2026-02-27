@@ -39,6 +39,7 @@ import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
 
+import network.AudioWrapper;
 import network.Multiplayer;
 
 public class WaterOfAwareness extends WellWater {
@@ -46,7 +47,7 @@ public class WaterOfAwareness extends WellWater {
 	@Override
 	protected boolean affectHero( Hero hero ) {
 		
-		Sample.INSTANCE.play( Assets.Sounds.DRINK );
+		AudioWrapper.play( Assets.Sounds.DRINK, hero.pos );
 		emitter.parent.add( new Identification( hero.sprite.center() ) );
 		
 		hero.belongings.observe();
@@ -81,7 +82,7 @@ public class WaterOfAwareness extends WellWater {
 		} else {
 			ScrollOfIdentify.IDItem(item);
 			
-			Sample.INSTANCE.play( Assets.Sounds.DRINK );
+			AudioWrapper.play( Assets.Sounds.DRINK, pos);
 			emitter.parent.add( new Identification( DungeonTilemap.tileCenterToWorld( pos ) ) );
 			
 			return item;

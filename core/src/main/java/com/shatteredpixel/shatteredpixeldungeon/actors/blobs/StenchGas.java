@@ -59,7 +59,7 @@ public class StenchGas extends Blob {
 						if (ch instanceof Hero && ch.buff(Paralysis.class) == null && fetidRatSpawned){
 							Statistics.questScores[0] -= 100;
 						}
-						Buff.prolong(ch, Paralysis.class, Paralysis.DURATION / 5);
+						Buff.prolong(ch, Paralysis.class, Paralysis.DURATION / 5, this);
 					}
 				}
 			}

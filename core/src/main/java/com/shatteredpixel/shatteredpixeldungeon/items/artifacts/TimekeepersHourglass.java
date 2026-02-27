@@ -308,7 +308,7 @@ public class TimekeepersHourglass extends Artifact {
 				spend(5*usedCharge);
 
 				//shouldn't punish the player for going into stasis frequently
-				Hunger hunger = Buff.affect(target, Hunger.class);
+				Hunger hunger = Buff.affect(target, Hunger.class, this);
 				if (hunger != null && !hunger.isStarving()) {
 					hunger.satisfy(5 * usedCharge);
 				}

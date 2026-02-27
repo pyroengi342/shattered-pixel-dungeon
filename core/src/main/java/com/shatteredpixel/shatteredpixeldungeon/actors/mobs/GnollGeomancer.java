@@ -293,7 +293,7 @@ public class GnollGeomancer extends Mob {
 			BossHealthBar.bleed(newBracket <= 0);
 
 			carveRockAndDash();
-			Buff.affect(this, RockArmor.class).setShield(25);
+			Buff.affect(this, RockArmor.class, this).setShield(25);
 		}
 	}
 
@@ -611,8 +611,7 @@ public class GnollGeomancer extends Mob {
 							aim = GnollGeomancer.prepRockThrowAttack(enemy, GnollGeomancer.this);
 						}
 
-                        for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
-                            player.hero.interrupt();}
+                        Multiplayer.interruptAll();
 
 						abilityCooldown = Random.NormalIntRange(3, 5);
 						spend(GameMath.gate(TICK, (int)Math.ceil(enemy.cooldown()), 3*TICK));
@@ -620,8 +619,7 @@ public class GnollGeomancer extends Mob {
 					} else if (GnollGeomancer.prepRockFallAttack(enemy, GnollGeomancer.this, 6-2*curbracket, true)) {
 						lastAbilityWasRockfall = true;
 
-                        for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
-                            player.hero.interrupt();}
+                        Multiplayer.interruptAll();
 
 						spend(GameMath.gate(TICK, (int)Math.ceil(enemy.cooldown()), 3*TICK));
 						abilityCooldown = Random.NormalIntRange(3, 5);
@@ -719,7 +717,7 @@ public class GnollGeomancer extends Mob {
 							}
 
 							if (ch.isAlive()){
-								Buff.prolong( ch, Paralysis.class, ch instanceof GnollGuard ? 10 : 3 );
+								Buff.prolong( ch, Paralysis.class, ch instanceof GnollGuard ? 10 : 3 , this);
 							} else if (!ch.isAlive() && ch instanceof Hero) {
 								Badges.validateDeathFromEnemyMagic();
 								Dungeon.fail( source.getClass() );
@@ -824,7 +822,7 @@ public class GnollGeomancer extends Mob {
 				Statistics.questScores[2] -= 100;
 			}
 			if (ch.isAlive()) {
-				Buff.prolong(ch, Paralysis.class, ch instanceof GnollGuard ? 10 : 3);
+				Buff.prolong(ch, Paralysis.class, ch instanceof GnollGuard ? 10 : 3, this);
 			} else if (ch instanceof Hero){
 				Dungeon.fail( target );
 				GLog.n( Messages.get( GnollGeomancer.class, "rockfall_kill") );

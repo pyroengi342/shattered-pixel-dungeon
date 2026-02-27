@@ -21,6 +21,7 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.buffs;
 
+import com.badlogic.gdx.Audio;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
@@ -43,6 +44,7 @@ import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.GameMath;
 import com.watabou.utils.Random;
+import network.AudioWrapper;
 
 public class Berserk extends ShieldBuff implements ActionIndicator.Action {
 
@@ -188,7 +190,7 @@ public class Berserk extends ShieldBuff implements ActionIndicator.Action {
 	private void startBerserking(){
 		state = State.BERSERK;
 		SpellSprite.show(target, SpellSprite.BERSERK);
-		Sample.INSTANCE.play( Assets.Sounds.CHALLENGE );
+		AudioWrapper.playGlobal( Assets.Sounds.CHALLENGE );
 		GameScene.flash(0xFF0000);
 
 		if (target.HP > 0) {

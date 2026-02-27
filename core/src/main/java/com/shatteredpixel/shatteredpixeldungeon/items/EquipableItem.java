@@ -141,7 +141,7 @@ public abstract class EquipableItem extends Item {
 		//temporarily keep this item so it can be collected
 		boolean wasKept = keptThoughLostInvent;
 		keptThoughLostInvent = true;
-		if (!collect || !collect( hero.belongings.backpack )) {
+		if (!collect || !collect( hero )) {
 			onDetach();
 			hero.quickslot.clearItem(this);
 			updateQuickslot();

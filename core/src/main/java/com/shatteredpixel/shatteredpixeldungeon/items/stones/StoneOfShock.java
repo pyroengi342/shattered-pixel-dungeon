@@ -58,7 +58,7 @@ public class StoneOfShock extends Runestone {
 				Char n = Actor.findChar(i);
 				if (n != null) {
 					arcs.add(new Lightning.Arc(cell, n.sprite.center()));
-					Buff.prolong(n, Paralysis.class, 1f);
+					Buff.prolong(n, Paralysis.class, 1f, this);
 					hits++;
 				}
 			}

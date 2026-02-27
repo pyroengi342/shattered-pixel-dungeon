@@ -52,7 +52,7 @@ public class ShockingTrap extends Trap {
 				GameScene.add(Blob.seed(pos + i, 10, Electricity.class));
 			}
 			if (Actor.findChar(pos+i) instanceof Mob){
-				Buff.prolong(Actor.findChar(pos+i), Trap.HazardAssistTracker.class, HazardAssistTracker.DURATION);
+				Buff.prolong(Actor.findChar(pos+i), Trap.HazardAssistTracker.class, HazardAssistTracker.DURATION, this);
 			}
 		}
 	}

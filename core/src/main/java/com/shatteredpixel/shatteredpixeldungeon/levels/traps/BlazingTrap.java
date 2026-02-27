@@ -55,7 +55,7 @@ public class BlazingTrap extends Trap {
 				}
 				CellEmitter.get(i).burst(FlameParticle.FACTORY, 5);
 				if (Actor.findChar(i) instanceof Mob){
-					Buff.prolong(Actor.findChar(i), Trap.HazardAssistTracker.class, HazardAssistTracker.DURATION);
+					Buff.prolong(Actor.findChar(i), Trap.HazardAssistTracker.class, HazardAssistTracker.DURATION, this);
 				}
 			}
 		}

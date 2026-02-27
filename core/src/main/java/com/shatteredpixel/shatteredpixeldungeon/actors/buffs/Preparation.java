@@ -48,6 +48,7 @@ import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.PathFinder;
 
+import network.AudioWrapper;
 import network.Multiplayer;
 
 import java.util.Arrays;
@@ -328,7 +329,7 @@ public class Preparation extends Buff implements ActionIndicator.Action {
 				((Hero) target).sprite.place( ((Hero) target).pos );
 				((Hero) target).sprite.turnTo( ((Hero) target).pos, cell);
 				CellEmitter.get( ((Hero) target).pos ).burst( Speck.factory( Speck.WOOL ), 6 );
-				Sample.INSTANCE.play( Assets.Sounds.PUFF );
+				AudioWrapper.play( Assets.Sounds.PUFF, target.pos );
 
 				((Hero) target).curAction = new HeroAction.Attack( enemy );
 				((Hero) target).next();

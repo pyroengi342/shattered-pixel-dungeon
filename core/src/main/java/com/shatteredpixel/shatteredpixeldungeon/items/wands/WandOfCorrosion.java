@@ -101,7 +101,7 @@ public class WandOfCorrosion extends Wand {
 
 			float powerMulti = Math.max(1f, procChance);
 			
-			Buff.affect( defender, Ooze.class ).set( Ooze.DURATION * powerMulti );
+			Buff.affect( defender, Ooze.class , this).set( Ooze.DURATION * powerMulti );
 			CellEmitter.center(defender.pos).burst( CorrosionParticle.SPLASH, 5 );
 			
 		}

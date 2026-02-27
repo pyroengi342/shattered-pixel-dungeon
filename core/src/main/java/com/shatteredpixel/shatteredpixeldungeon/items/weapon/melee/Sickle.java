@@ -34,6 +34,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.ui.AttackIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
+import com.watabou.utils.Bundle;
 import com.watabou.utils.Callback;
 
 public class Sickle extends MeleeWeapon {
@@ -106,7 +107,9 @@ public class Sickle extends MeleeWeapon {
 				wep.beforeAbilityUsed(hero, enemy);
 				AttackIndicator.target(enemy);
 
-				Buff.affect(enemy, HarvestBleedTracker.class, hero);
+				HarvestBleedTracker tracker = Buff.affect(enemy, HarvestBleedTracker.class, hero);
+				tracker.setHero(hero);
+
 				if (hero.attack(enemy, bleedMulti, bleedBoost, Char.INFINITE_ACCURACY)){
 					Sample.INSTANCE.play(Assets.Sounds.HIT_STRONG);
 				}
@@ -122,6 +125,24 @@ public class Sickle extends MeleeWeapon {
 
 	}
 
-	public static class HarvestBleedTracker extends FlavourBuff{};
+	public static class HarvestBleedTracker extends FlavourBuff {
+		private Hero hero;
+		public void setHero(Hero hero) { this.hero = hero; }
+		public Hero getHero() { return hero; }
+
+		private static final String HERO = "hero";
+
+		@Override
+		public void storeInBundle(Bundle bundle) {
+			super.storeInBundle(bundle);
+			bundle.put(HERO, hero);
+		}
+
+		@Override
+		public void restoreFromBundle(Bundle bundle) {
+			super.restoreFromBundle(bundle);
+			hero = (Hero) bundle.get(HERO);
+		}
+	}
 
 }

@@ -157,7 +157,7 @@ public class Artifact extends KindofMisc {
 				&& curUser.heroClass != HeroClass.CLERIC
 				&& curUser.hasTalent(Talent.SEARING_LIGHT)
 				&& curUser.buff(Talent.SearingLightCooldown.class) == null){
-			Buff.affect(target, GuidingLight.Illuminated.class);
+			Buff.affect(target, GuidingLight.Illuminated.class, this);
 			Buff.affect(curUser, Talent.SearingLightCooldown.class, 20f);
 		}
 
@@ -166,7 +166,7 @@ public class Artifact extends KindofMisc {
 				&& curUser.hasTalent(Talent.SUNRAY)){
 			// 15/25% chance
 			if (Random.Int(20) < 1 + 2*curUser.pointsInTalent(Talent.SUNRAY)){
-				Buff.prolong(target, Blindness.class, 4f);
+				Buff.prolong(target, Blindness.class, 4f, this);
 			}
 		}
 	}

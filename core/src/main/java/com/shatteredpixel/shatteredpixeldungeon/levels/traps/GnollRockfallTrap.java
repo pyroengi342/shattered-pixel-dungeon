@@ -86,7 +86,7 @@ public class GnollRockfallTrap extends RockfallTrap {
 
 			if (ch != null && ch.isAlive() && !(ch instanceof GnollGeomancer)){
 				if (ch instanceof Mob){
-					Buff.prolong(ch, Trap.HazardAssistTracker.class, HazardAssistTracker.DURATION);
+					Buff.prolong(ch, Trap.HazardAssistTracker.class, HazardAssistTracker.DURATION, this);
 				}
 
 				//deals notably less damage than a regular rockfall trap, but ignores armor
@@ -94,7 +94,7 @@ public class GnollRockfallTrap extends RockfallTrap {
 				ch.damage( Math.max(damage, 0) , this);
 
 				//guards take full paralysis, otherwise just a little
-				Buff.prolong(ch, Paralysis.class, ch instanceof GnollGuard ? 10 : 3);
+				Buff.prolong(ch, Paralysis.class, ch instanceof GnollGuard ? 10 : 3, this);
 
 				if (!ch.isAlive() && ch instanceof Hero){
 					Dungeon.fail( this );

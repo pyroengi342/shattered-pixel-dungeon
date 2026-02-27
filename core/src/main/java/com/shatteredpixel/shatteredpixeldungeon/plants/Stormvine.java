@@ -46,7 +46,7 @@ public class Stormvine extends Plant {
 				Buff.affect(ch, Levitation.class, Levitation.DURATION/2f);
 			} else {
 				if (ch instanceof Mob){
-					Buff.prolong(ch, Trap.HazardAssistTracker.class, Trap.HazardAssistTracker.DURATION);
+					Buff.prolong(ch, Trap.HazardAssistTracker.class, Trap.HazardAssistTracker.DURATION, this);
 				}
 				Buff.affect(ch, Vertigo.class, Vertigo.DURATION);
 			}

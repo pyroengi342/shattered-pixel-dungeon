@@ -45,13 +45,13 @@ public class Starflower extends Plant {
 	public void activate( Char ch ) {
 
 		if (ch != null) {
-			Buff.prolong(ch, Bless.class, Bless.DURATION);
+			Buff.prolong(ch, Bless.class, Bless.DURATION, this);
 			Hero local = Multiplayer.localHero();
 			if (local != null && local.fieldOfView != null && local.fieldOfView[pos]) {
 				new Flare(6, 32).color(0xFFFF00, true).show(ch.sprite, 2f);
 			}
 			if (ch instanceof Hero && ((Hero) ch).subClass == HeroSubClass.WARDEN){
-				Buff.prolong(ch, Recharging.class, Recharging.DURATION);
+				Buff.prolong(ch, Recharging.class, Recharging.DURATION, this);
 				SpellSprite.show( ch, SpellSprite.CHARGE );
 			}
 		}

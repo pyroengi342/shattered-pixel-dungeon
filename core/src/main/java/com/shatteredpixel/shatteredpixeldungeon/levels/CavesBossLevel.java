@@ -866,7 +866,7 @@ public class CavesBossLevel extends Level {
 						if (ch != null && !(ch instanceof DM300) && !ch.flying) {
 							if (ch instanceof Mob){
 								//incredibly specific but I'll 100% get a bug report in a year if I don't add this
-								Buff.prolong(ch, Trap.HazardAssistTracker.class, Trap.HazardAssistTracker.DURATION);
+								Buff.prolong(ch, Trap.HazardAssistTracker.class, Trap.HazardAssistTracker.DURATION, this);
 							}
 
 							Sample.INSTANCE.play( Assets.Sounds.LIGHTNING );

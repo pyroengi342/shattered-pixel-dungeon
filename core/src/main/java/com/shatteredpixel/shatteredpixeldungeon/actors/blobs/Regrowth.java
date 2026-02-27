@@ -63,7 +63,7 @@ public class Regrowth extends Blob {
 						if (ch != null
 								&& !ch.isImmune(this.getClass())
 								&& off[cell] > 1) {
-							Buff.prolong( ch, Roots.class, TICK );
+							Buff.prolong( ch, Roots.class, TICK , this);
 						}
 					}
 				}

@@ -225,7 +225,7 @@ public class RingOfForce extends Ring {
 				GLog.w(Messages.get(MeleeWeapon.class, "ability_need_equip"));
 
 			} else {
-				Buff.affect(hero, BrawlersStance.class).reset();
+				Buff.affect(hero, BrawlersStance.class, this)reset();
 				AttackIndicator.updateState();
 				hero.sprite.operate(hero.pos);
 			}

@@ -91,7 +91,7 @@ public class GrimTrap extends Trap {
 
 				if (target != null) {
 					if (target instanceof Mob){
-						Buff.prolong(target, Trap.HazardAssistTracker.class, HazardAssistTracker.DURATION);
+						Buff.prolong(target, Trap.HazardAssistTracker.class, HazardAssistTracker.DURATION, this);
 					}
 					final Char finalTarget = target;
 					//instant kill, use a mix of current HP and max HP, just like psi blast (for resistances)

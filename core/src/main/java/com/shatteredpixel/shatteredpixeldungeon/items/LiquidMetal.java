@@ -214,7 +214,7 @@ public class LiquidMetal extends Item {
 			}
 
 			m.quantity(0);
-			Buff.affect(curUser, MissileWeapon.UpgradedSetTracker.class).levelThresholds.put(m.setID, Integer.MAX_VALUE);
+			Buff.affect(curUser, MissileWeapon.UpgradedSetTracker.class, this)levelThresholds.put(m.setID, Integer.MAX_VALUE);
 
 			return result;
 		}

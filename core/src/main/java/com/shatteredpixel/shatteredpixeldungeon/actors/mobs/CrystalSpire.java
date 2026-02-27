@@ -130,7 +130,7 @@ public class CrystalSpire extends Mob {
 					//guardians are hit harder by the attack
 					if (ch instanceof CrystalGuardian) {
 						dmg += 12; //18-27 damage
-						Buff.prolong(ch, Cripple.class, 30f);
+						Buff.prolong(ch, Cripple.class, 30f, this);
 					} else if (ch instanceof Hero){
 						Statistics.questScores[2] -= 100;
 					}
@@ -312,13 +312,14 @@ public class CrystalSpire extends Mob {
 	@Override
 	public boolean interact(Char c) {
 		if (c instanceof Hero){
-			final Pickaxe p = Dungeon.hero.belongings.getItem(Pickaxe.class);
+			Hero hero = (Hero) c;
+			final Pickaxe p = hero.belongings.getItem(Pickaxe.class);
 
 			if (p == null){
 				return true;
 			}
 
-			Dungeon.hero.sprite.attack(pos, new Callback() {
+			hero.sprite.attack(pos, new Callback() {
 				@Override
 				public void call() {
 					//does its own special damage calculation that's only influenced by pickaxe level and augment
@@ -327,7 +328,7 @@ public class CrystalSpire extends Mob {
 
 					damage(dmg, p);
 					abilityCooldown -= dmg/10f;
-					sprite.bloodBurstA(Dungeon.hero.sprite.center(), dmg);
+					sprite.bloodBurstA(hero.sprite.center(), dmg);
 					sprite.flash();
 
 					BossHealthBar.bleed(HP <= HT/3);
@@ -418,7 +419,7 @@ public class CrystalSpire extends Mob {
 								if (ch instanceof CrystalGuardian){
 									if (((CrystalGuardian) ch).state == ((CrystalGuardian) ch).SLEEPING) {
 
-										((CrystalGuardian) ch).aggro(Dungeon.hero);
+										((CrystalGuardian) ch).aggro(hero);
 										((CrystalGuardian) ch).beckon(pos);
 
 										//delays sleeping guardians that happen to be near to the crystal
@@ -429,7 +430,7 @@ public class CrystalSpire extends Mob {
 									} else if (((CrystalGuardian) ch).state != ((CrystalGuardian) ch).HUNTING && ((CrystalGuardian) ch).target != pos){
 										((CrystalGuardian) ch).beckon(pos);
 										if (((CrystalGuardian) ch).state != HUNTING) {
-											((CrystalGuardian) ch).aggro(Dungeon.hero);
+											((CrystalGuardian) ch).aggro(hero);
 										}
 
 										//speeds up already woken guardians that aren't very close
@@ -442,8 +443,8 @@ public class CrystalSpire extends Mob {
 						}
 					}
 
-					Invisibility.dispel(Dungeon.hero);
-					Dungeon.hero.spendAndNext(p.delayFactor(CrystalSpire.this));
+					Invisibility.dispel(hero);
+					hero.spendAndNext(p.delayFactor(CrystalSpire.this));
 				}
 			});
 			return false;

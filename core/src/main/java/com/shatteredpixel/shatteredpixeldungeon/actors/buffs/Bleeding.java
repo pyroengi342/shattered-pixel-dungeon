@@ -45,28 +45,8 @@ public class Bleeding extends Buff {
 	
 	protected float level;
 
-	//used in specific cases where the source of the bleed is important for death logic
-	private Class source;
-
 	public float level(){
 		return level;
-	}
-	
-	private static final String LEVEL	= "level";
-	private static final String SOURCE	= "source";
-	
-	@Override
-	public void storeInBundle( Bundle bundle ) {
-		super.storeInBundle( bundle );
-		bundle.put( LEVEL, level );
-		bundle.put( SOURCE, source );
-	}
-	
-	@Override
-	public void restoreFromBundle( Bundle bundle ) {
-		super.restoreFromBundle( bundle );
-		level = bundle.getFloat( LEVEL );
-		source = bundle.getClass( SOURCE );
 	}
 	
 	public void set( float level ) {
@@ -76,7 +56,7 @@ public class Bleeding extends Buff {
 	public void set( float level, Class source ){
 		if (this.level < level) {
 			this.level = Math.max(this.level, level);
-			this.source = source;
+			setSource(source);
 		}
 	}
 
@@ -93,47 +73,34 @@ public class Bleeding extends Buff {
 	public String iconTextDisplay() {
 		return Integer.toString(Math.round(level));
 	}
-	
+
 	@Override
 	public boolean act() {
 		if (target.isAlive()) {
-			
 			level = Random.NormalFloat(level / 2f, level);
 			int dmg = Math.round(level);
-			
 			if (dmg > 0) {
-				
-				target.damage( dmg, this );
+				target.damage(dmg, this);
 				if (target.sprite.visible) {
-					Splash.at( target.sprite.center(), -PointF.PI / 2, PointF.PI / 6,
-							target.sprite.blood(), Math.min( 10 * dmg / target.HT, 10 ) );
-				}
-				
-				if (target instanceof Hero && !target.isAlive()) {
-					if (source == Chasm.class){
-						Badges.validateDeathFromFalling();
-					} else if (source == Sacrificial.class){
-						Badges.validateDeathFromFriendlyMagic();
-					}
-					Dungeon.fail( this );
-					GLog.n( Messages.get(this, "ondeath") );
+					Splash.at(target.sprite.center(), -PointF.PI / 2, PointF.PI / 6,
+							target.sprite.blood(), Math.min(10 * dmg / target.HT, 10));
 				}
 
-				if (source == Sickle.HarvestBleedTracker.class && !target.isAlive()){
-					MeleeWeapon.onAbilityKill(Dungeon.hero, target);
+				// Проверяем, является ли источник трекером серпа
+				Object src = getSource();
+				if (src instanceof Sickle.HarvestBleedTracker && !target.isAlive()) {
+					Hero h = ((Sickle.HarvestBleedTracker) src).getHero();
+					if (h != null)
+						MeleeWeapon.onAbilityKill(h, target);
 				}
-				
-				spend( TICK );
+
+				spend(TICK);
 			} else {
 				detach();
 			}
-			
 		} else {
-			
 			detach();
-			
 		}
-		
 		return true;
 	}
 

@@ -156,7 +156,7 @@ public abstract class Shaman extends Mob {
 		
 		@Override
 		protected void debuff( Char enemy ) {
-			Buff.prolong( enemy, Weakness.class, Weakness.DURATION );
+			Buff.prolong( enemy, Weakness.class, Weakness.DURATION , this);
 		}
 	}
 	
@@ -167,7 +167,7 @@ public abstract class Shaman extends Mob {
 		
 		@Override
 		protected void debuff( Char enemy ) {
-			Buff.prolong( enemy, Vulnerable.class, Vulnerable.DURATION );
+			Buff.prolong( enemy, Vulnerable.class, Vulnerable.DURATION , this);
 		}
 	}
 	
@@ -178,7 +178,7 @@ public abstract class Shaman extends Mob {
 		
 		@Override
 		protected void debuff( Char enemy ) {
-			Buff.prolong( enemy, Hex.class, Hex.DURATION );
+			Buff.prolong( enemy, Hex.class, Hex.DURATION , this);
 		}
 	}
 	

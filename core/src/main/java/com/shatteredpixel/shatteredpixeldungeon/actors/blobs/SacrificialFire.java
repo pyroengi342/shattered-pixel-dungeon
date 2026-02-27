@@ -49,6 +49,7 @@ import com.watabou.utils.Bundle;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
+import network.AudioWrapper;
 import network.Multiplayer;
 
 public class SacrificialFire extends Blob {
@@ -188,7 +189,7 @@ public class SacrificialFire extends Blob {
 					volume -= exp;
 					bonusSpawns++;
 					CellEmitter.get(firePos).burst( SacrificialParticle.FACTORY, 20 );
-					Sample.INSTANCE.play(Assets.Sounds.BURNING );
+					AudioWrapper.play(Assets.Sounds.BURNING, firePos );
 					GLog.w( Messages.get(SacrificialFire.class, "worthy"));
 				} else {
 					clear(firePos);
@@ -197,9 +198,9 @@ public class SacrificialFire extends Blob {
 					for (int i : PathFinder.NEIGHBOURS9){
 						CellEmitter.get(firePos+i).burst( SacrificialParticle.FACTORY, 20 );
 					}
-					Sample.INSTANCE.play(Assets.Sounds.BURNING );
-					Sample.INSTANCE.play(Assets.Sounds.BURNING );
-					Sample.INSTANCE.play(Assets.Sounds.BURNING );
+					AudioWrapper.play(Assets.Sounds.BURNING, firePos );
+					// Sample.INSTANCE.play(Assets.Sounds.BURNING );
+					// Sample.INSTANCE.play(Assets.Sounds.BURNING );
 					GLog.w( Messages.get(SacrificialFire.class, "reward"));
 					if (prize != null) {
 						Dungeon.level.drop(prize, firePos).sprite.drop();

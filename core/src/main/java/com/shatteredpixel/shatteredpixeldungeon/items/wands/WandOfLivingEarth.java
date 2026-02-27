@@ -238,7 +238,7 @@ public class WandOfLivingEarth extends DamageWand {
 			guardian.setInfo(curUser, buffedLvl(), armor);
 		} else {
 			attacker.sprite.centerEmitter().burst(MagicMissile.EarthParticle.ATTRACT, 8 + buffedLvl() / 2);
-			Buff.affect(attacker, RockArmor.class).addArmor( buffedLvl(), armor);
+			Buff.affect(attacker, RockArmor.class, this)addArmor( buffedLvl(), armor);
 		}
 	}
 	

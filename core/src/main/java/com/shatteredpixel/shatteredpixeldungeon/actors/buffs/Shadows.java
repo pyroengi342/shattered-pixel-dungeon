@@ -31,6 +31,8 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
 
+import network.AudioWrapper;
+
 public class Shadows extends Invisibility {
 	
 	protected float left;
@@ -66,7 +68,7 @@ public class Shadows extends Invisibility {
 		}
 		if (super.attachTo( target )) {
 			if (Dungeon.level != null) {
-				Sample.INSTANCE.play( Assets.Sounds.MELD );
+				AudioWrapper.play( Assets.Sounds.MELD, target.pos );
                 if (target instanceof Hero)
                 {
                     Dungeon.observe( (Hero) target);

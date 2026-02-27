@@ -75,7 +75,7 @@ public class FlockTrap extends Trap {
 				}
 				Dungeon.level.occupyCell(sheep);
 			} else if (Actor.findChar(i) instanceof Mob){
-				Buff.prolong(Actor.findChar(i), Trap.HazardAssistTracker.class, HazardAssistTracker.DURATION);
+				Buff.prolong(Actor.findChar(i), Trap.HazardAssistTracker.class, HazardAssistTracker.DURATION, this);
 			}
 		}
 		Sample.INSTANCE.play(Assets.Sounds.PUFF);

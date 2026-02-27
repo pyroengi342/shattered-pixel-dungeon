@@ -485,9 +485,7 @@ public class PrisonBossLevel extends Level {
 
 			case FIGHT_PAUSE:
 				
-				for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
-					player.hero.interrupt();
-				}
+				Multiplayer.interruptAll();
 				
 				clearEntities( pauseSafeArea );
 				
@@ -511,9 +509,7 @@ public class PrisonBossLevel extends Level {
 				
 				unseal();
 				
-				for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
-					player.hero.interrupt();
-				}
+				Multiplayer.interruptAll();
 				Dungeon.hero.pos = tenguCell.left+4 + (tenguCell.top+2)*width();
 				Dungeon.hero.sprite.interruptMotion();
 				Dungeon.hero.sprite.place(Dungeon.hero.pos);

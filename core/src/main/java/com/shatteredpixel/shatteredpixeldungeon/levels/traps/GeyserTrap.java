@@ -78,7 +78,7 @@ public class GeyserTrap extends Trap {
 			if (ch != null){
 
 				if (source == this && ch instanceof Mob){
-					Buff.prolong(ch, Trap.HazardAssistTracker.class, HazardAssistTracker.DURATION);
+					Buff.prolong(ch, Trap.HazardAssistTracker.class, HazardAssistTracker.DURATION, this);
 				}
 
 				//does the equivalent of a bomb's damage against fiery enemies.
@@ -108,7 +108,7 @@ public class GeyserTrap extends Trap {
 		Char ch = Actor.findChar(pos);
 		if (ch != null){
 			if (source == this && ch instanceof Mob){
-				Buff.prolong(ch, Trap.HazardAssistTracker.class, HazardAssistTracker.DURATION);
+				Buff.prolong(ch, Trap.HazardAssistTracker.class, HazardAssistTracker.DURATION, this);
 			}
 			int targetpos = -1;
 			if (centerKnockBackDirection != -1){

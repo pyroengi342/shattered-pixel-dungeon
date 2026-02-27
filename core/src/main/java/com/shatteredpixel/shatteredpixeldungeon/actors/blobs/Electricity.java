@@ -72,7 +72,7 @@ public class Electricity extends Blob {
 					Char ch = Actor.findChar( cell );
 					if (ch != null && !ch.isImmune(this.getClass())) {
 						if (ch.buff(Paralysis.class) == null){
-							Buff.prolong( ch, Paralysis.class, cur[cell]);
+							Buff.prolong( ch, Paralysis.class, cur[cell], this);
 						}
 						if (cur[cell] % 2 == 1) {
 							ch.damage(Math.round(Random.Float(2 + Dungeon.scalingDepth() / 5f)), this);

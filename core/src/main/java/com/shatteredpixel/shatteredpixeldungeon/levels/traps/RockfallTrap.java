@@ -101,14 +101,14 @@ public class RockfallTrap extends Trap {
 
 			if (ch != null && ch.isAlive()){
 				if (ch instanceof Mob) {
-					Buff.prolong(ch, Trap.HazardAssistTracker.class, HazardAssistTracker.DURATION);
+					Buff.prolong(ch, Trap.HazardAssistTracker.class, HazardAssistTracker.DURATION, this);
 				}
 				int damage = Random.NormalIntRange(5+scalingDepth(), 10+scalingDepth()*2);
 				damage -= ch.drRoll();
 				ch.damage( Math.max(damage, 0) , this);
 
 				if (ch.isActive()) {
-					Buff.prolong(ch, Paralysis.class, Paralysis.DURATION);
+					Buff.prolong(ch, Paralysis.class, Paralysis.DURATION, this);
 				} else if (!ch.isAlive() && ch instanceof Hero){
 					Dungeon.fail( this );
 					GLog.n( Messages.get(this, "ondeath") );

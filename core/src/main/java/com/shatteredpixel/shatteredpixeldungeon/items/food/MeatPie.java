@@ -40,7 +40,7 @@ public class MeatPie extends Food {
 	@Override
 	protected void satisfy(Hero hero) {
 		super.satisfy( hero );
-		Buff.affect(hero, WellFed.class).reset();
+		Buff.affect(hero, WellFed.class, this)reset();
 	}
 	
 	@Override

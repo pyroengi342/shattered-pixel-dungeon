@@ -409,9 +409,7 @@ public class DM300 extends Mob {
 	}
 
 	public void ventGas( Char target ){
-        for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
-            player.hero.interrupt();
-        }
+		Multiplayer.interruptAll();
 
 		Ballistica trajectory = new Ballistica(pos, target.pos, Ballistica.STOP_TARGET);
 
@@ -447,8 +445,7 @@ public class DM300 extends Mob {
 	}
 
 	public void dropRocks( Char target ) {
-        for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
-            player.hero.interrupt();}
+		Multiplayer.interruptAll();
 
 		final int rockCenter;
 

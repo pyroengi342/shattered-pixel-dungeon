@@ -578,7 +578,7 @@ public class NetworkManager {
             if (clientCtx != newClientCtx) {
                 Multiplayer.PlayerInfo existingPlayer = Multiplayer.Players.get(clientCtx.channel().hashCode());
                 if (existingPlayer != null) {
-                    BundleMessage existingMessage = new BundleMessage("PLAYER_JOIN", existingPlayer.id);
+                    BundleMessage existingMessage = new BundleMessage("PLAYER_JOIN", existingPlayer.connectionID);
                     Bundle existingBundle = new Bundle();
                     existingBundle.put("name", existingPlayer.name);
                     existingMessage.bundleData = existingBundle.toString();

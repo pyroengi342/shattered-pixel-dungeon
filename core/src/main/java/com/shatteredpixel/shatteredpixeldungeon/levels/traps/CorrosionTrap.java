@@ -48,7 +48,7 @@ public class CorrosionTrap extends Trap {
 
 		for( int i : PathFinder.NEIGHBOURS9) {
 			if (Actor.findChar(pos+i) instanceof Mob){
-				Buff.prolong(Actor.findChar(pos+i), Trap.HazardAssistTracker.class, HazardAssistTracker.DURATION);
+				Buff.prolong(Actor.findChar(pos+i), Trap.HazardAssistTracker.class, HazardAssistTracker.DURATION, this);
 			}
 		}
 

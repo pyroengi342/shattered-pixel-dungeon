@@ -238,7 +238,7 @@ public abstract class Wand extends Item {
 				&& curUser.hasTalent(Talent.SUNRAY)){
 			// 15/25% chance
 			if (Random.Int(20) < 1 + 2*curUser.pointsInTalent(Talent.SUNRAY)){
-				Buff.prolong(target, Blindness.class, 4f);
+				Buff.prolong(target, Blindness.class, 4f, this);
 			}
 		}
 	}
@@ -472,7 +472,7 @@ public abstract class Wand extends Item {
 				}
 			}
 			if (ShardOfOblivion.passiveIDDisabled()){
-				Buff.prolong(curUser, ShardOfOblivion.WandUseTracker.class, 50f);
+				Buff.prolong(curUser, ShardOfOblivion.WandUseTracker.class, 50f, this);
 			}
 		}
 
@@ -480,7 +480,7 @@ public abstract class Wand extends Item {
 		if (charger != null && charger.target == curUser && !curUser.belongings.contains(this)){
 			if (curUser.hasTalent(Talent.EXCESS_CHARGE) && curCharges >= maxCharges){
 				int shieldToGive = Math.round(buffedLvl()*0.67f*curUser.pointsInTalent(Talent.EXCESS_CHARGE));
-				Buff.affect(curUser, Barrier.class).setShield(shieldToGive);
+				Buff.affect(curUser, Barrier.class, this).setShield(shieldToGive);
 				curUser.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(shieldToGive), FloatingText.SHIELDING);
 			}
 		}
@@ -507,18 +507,18 @@ public abstract class Wand extends Item {
 				&& charger != null && charger.target == curUser
 				&& !curUser.belongings.contains(this)){
 
-			Buff.prolong(curUser, Talent.EmpoweredStrikeTracker.class, 10f);
+			Buff.prolong(curUser, Talent.EmpoweredStrikeTracker.class, 10f, this);
 		}
 
 		if (curUser.hasTalent(Talent.LINGERING_MAGIC)
 				&& charger != null && charger.target == curUser){
 
-			Buff.prolong(curUser, Talent.LingeringMagicTracker.class, 5f);
+			Buff.prolong(curUser, Talent.LingeringMagicTracker.class, 5f, this);
 		}
 
 		if (curUser.heroClass != HeroClass.CLERIC
 				&& curUser.hasTalent(Talent.DIVINE_SENSE)){
-			Buff.prolong(curUser, DivineSense.DivineSenseTracker.class, curUser.cooldown()+1);
+			Buff.prolong(curUser, DivineSense.DivineSenseTracker.class, curUser.cooldown()+1, this);
 		}
 
 		// 10/20/30%
@@ -536,7 +536,7 @@ public abstract class Wand extends Item {
 			if (removed) new Flare( 6, 32 ).color(0xFF4CD2, true).show( curUser.sprite, 2f );
 		}
 
-		Invisibility.dispel();
+		Invisibility.dispel(cur);
 		updateQuickslot();
 
 		curUser.spendAndNext( TIME_TO_ZAP );
@@ -693,7 +693,7 @@ public abstract class Wand extends Item {
 
 						float shield = curUser.HT * (0.04f*curWand.curCharges);
 						if (curUser.pointsInTalent(Talent.SHIELD_BATTERY) == 2) shield *= 1.5f;
-						Buff.affect(curUser, Barrier.class).setShield(Math.round(shield));
+						Buff.affect(curUser, Barrier.class, this).setShield(Math.round(shield));
 						curUser.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(Math.round(shield)), FloatingText.SHIELDING);
 						curWand.curCharges = 0;
 						curUser.sprite.operate(curUser.pos);
@@ -729,7 +729,7 @@ public abstract class Wand extends Item {
 						if (curUser.heroClass == HeroClass.MAGE && !curUser.belongings.contains(curWand)){
 							//grants 3/5 shielding
 							int shieldToGive = 1 + 2 * curUser.pointsInTalent(Talent.BACKUP_BARRIER);
-							Buff.affect(curUser, Barrier.class).setShield(shieldToGive);
+							Buff.affect(curUser, Barrier.class, this).setShield(shieldToGive);
 							curUser.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(shieldToGive), FloatingText.SHIELDING);
 
 						//metamorphed. Triggers if wand is highest level hero has
@@ -743,7 +743,7 @@ public abstract class Wand extends Item {
 							if (highest){
 								//grants 3/5 shielding
 								int shieldToGive = 1 + 2 * curUser.pointsInTalent(Talent.BACKUP_BARRIER);
-								Buff.affect(curUser, Barrier.class).setShield(shieldToGive);
+								Buff.affect(curUser, Barrier.class, this).setShield(shieldToGive);
 								curUser.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(shieldToGive), FloatingText.SHIELDING);
 							}
 						}

@@ -50,12 +50,12 @@ public class FlashingTrap extends Trap {
 		
 		if (c != null) {
 			int damage = Math.max( 0,  (4 + scalingDepth()/2) - c.drRoll()/2 );
-			Buff.affect( c, Bleeding.class ).set( damage );
-			Buff.prolong( c, Blindness.class, Blindness.DURATION );
-			Buff.prolong( c, Cripple.class, Cripple.DURATION*2f );
+			Buff.affect( c, Bleeding.class , this).set( damage );
+			Buff.prolong( c, Blindness.class, Blindness.DURATION , this);
+			Buff.prolong( c, Cripple.class, Cripple.DURATION*2f , this);
 			
 			if (c instanceof Mob) {
-				Buff.prolong(c, Trap.HazardAssistTracker.class, HazardAssistTracker.DURATION);
+				Buff.prolong(c, Trap.HazardAssistTracker.class, HazardAssistTracker.DURATION, this);
 				if (((Mob)c).state == ((Mob)c).HUNTING) ((Mob)c).state = ((Mob)c).WANDERING;
 				((Mob)c).beckon( Dungeon.level.randomDestination( c ) );
 			}

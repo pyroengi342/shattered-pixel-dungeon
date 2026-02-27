@@ -44,7 +44,7 @@ public class NaturesPower extends ArmorAbility {
 	@Override
 	protected void activate(ClassArmor armor, Hero hero, Integer target) {
 
-		Buff.prolong(hero, naturesPowerTracker.class, naturesPowerTracker.DURATION);
+		Buff.prolong(hero, naturesPowerTracker.class, naturesPowerTracker.DURATION, this);
 		hero.buff(naturesPowerTracker.class).extensionsLeft = 2;
 		hero.sprite.operate(hero.pos);
 		Sample.INSTANCE.play(Assets.Sounds.CHARGEUP);

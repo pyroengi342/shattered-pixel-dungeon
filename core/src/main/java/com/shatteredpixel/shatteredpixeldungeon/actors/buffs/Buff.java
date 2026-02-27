@@ -187,32 +187,22 @@ public class Buff extends Actor {
 	@Override
 	public void storeInBundle(Bundle bundle) {
 		super.storeInBundle(bundle);
-        if (source instanceof Bundlable) {
-            bundle.put(SOURCE, (Bundlable) source);
-        } else if (source instanceof Integer) {
-            bundle.put(SOURCE, (int) source);
-        } else if (source instanceof String) {
-            bundle.put(SOURCE, (String) source);
-        }
-		if (mnemonicExtended) bundle.put(MNEMONIC_EXTENDED, mnemonicExtended);
+		if (source instanceof Class) {
+			bundle.put(SOURCE, (Class) source);
+		} else if (source instanceof Bundlable) {
+			bundle.put(SOURCE, (Bundlable) source);
+		} else if (source instanceof Integer) {
+			bundle.put(SOURCE, (int) source);
+		} else if (source instanceof String) {
+			bundle.put(SOURCE, (String) source);
+		}
 	}
 
 	@Override
 	public void restoreFromBundle(Bundle bundle) {
 		super.restoreFromBundle(bundle);
-        if (bundle.contains(SOURCE)) {
-            // Проверяем тип сохраненного объекта
-            Object stored = bundle.get(SOURCE);
-            if (stored instanceof Integer) {
-                source = stored; // Это ID персонажа
-            } else if (stored instanceof String) {
-                source = stored; // Это строка (например, имя ловушки)
-            } else if (stored instanceof Bundlable) {
-                source = stored; // Это Bundlable объект
-            }
-        }
-		if (bundle.contains(MNEMONIC_EXTENDED)) {
-			mnemonicExtended = bundle.getBoolean(MNEMONIC_EXTENDED);
+		if (bundle.contains(SOURCE)) {
+			source = bundle.get(SOURCE); // Bundle сам вернёт объект соответствующего типа (Class, Integer, String, Bundlable)
 		}
 	}
 

@@ -2205,6 +2205,14 @@ public class Hero extends Char {
 		Actor.fixTime();
 		super.die( cause );
 		reallyDie( cause );
+        //     if (src == Chasm.class) {
+        //         Badges.validateDeathFromFalling();
+        //     } else if (src == Sacrificial.class) {
+        //         Badges.validateDeathFromFriendlyMagic();
+        //     }
+        //     Dungeon.fail(this);
+        //     GLog.n(Messages.get(this, "ondeath"));
+        // }
 	}
 	
 	public void reallyDie(Object cause) {

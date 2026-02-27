@@ -54,6 +54,8 @@ import com.watabou.utils.Bundle;
 import com.watabou.utils.Callback;
 import com.watabou.utils.Reflection;
 
+import network.Multiplayer;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -151,14 +153,14 @@ public class Item implements Bundlable {
 	}
 
 	public void doThrow( Hero hero ) {
-		GameScene.selectCell(thrower);
+		GameScene.selectCell(new ThrowSelector(hero, this));
 	}
 	
 	public void execute( Hero hero, String action ) {
 
 		GameScene.cancel();
-		curUser = hero;
-		curItem = this;
+		this.curUser = hero;
+		this.curItem = this;
 		
 		if (action.equals( AC_DROP )) {
 			
@@ -226,31 +228,33 @@ public class Item implements Bundlable {
 		if (!container.canHold(this)){
 			return false;
 		}
-		
+		Hero owner = (container.owner instanceof Hero) ? (Hero) container.owner : null;
+
+
 		if (stackable) {
-			for (Item item:items) {
-				if (isSimilar( item )) {
-					item.merge( this );
-					item.updateQuickslot();
-					if (curUser != null && curUser.isAlive()) {
-						Badges.validateItemLevelAquired( this );
-						Talent.onItemCollected(curUser, item);
+			for (Item item : items) {
+				if (isSimilar(item)) {
+					// ... слияние ...
+					if (owner != null && owner.isAlive()) {
+						Badges.validateItemLevelAquired(this);
+						Talent.onItemCollected(owner, item);
 						if (isIdentified()) {
 							Catalog.setSeen(getClass());
 							Statistics.itemTypesDiscovered.add(getClass());
 						}
 					}
-					if (TippedDart.lostDarts > 0){
+					// ... обработка TippedDart ...
+					if (TippedDart.lostDarts > 0) {
 						Dart d = new Dart();
 						d.quantity(TippedDart.lostDarts);
 						TippedDart.lostDarts = 0;
-						if (!d.collect()){
-							//have to handle this in an actor as we can't manipulate the heap during pickup
+						if (owner != null && !d.collect(owner)) {
+							final Hero finalOwner = owner; // для использования в анонимном классе
 							Actor.add(new Actor() {
 								{ actPriority = VFX_PRIO; }
 								@Override
 								protected boolean act() {
-									Dungeon.level.drop(d, curUser.pos).sprite.drop();
+									Dungeon.level.drop(d, finalOwner.pos).sprite.drop();
 									Actor.remove(this);
 									return true;
 								}
@@ -262,32 +266,31 @@ public class Item implements Bundlable {
 			}
 		}
 
-		if (curUser != null && curUser.isAlive()) {
-			Badges.validateItemLevelAquired( this );
-			Talent.onItemCollected( curUser, this );
-			if (isIdentified()){
+		if (owner != null && owner.isAlive()) {
+			Badges.validateItemLevelAquired(this);
+			Talent.onItemCollected(owner, this);
+			if (isIdentified()) {
 				Catalog.setSeen(getClass());
 				Statistics.itemTypesDiscovered.add(getClass());
 			}
 		}
 
-		items.add( this );
-		curUser.quickslot.replacePlaceholder(this);
-		Collections.sort( items, itemComparator );
+		items.add(this);
+		if (owner != null) {
+			owner.quickslot.replacePlaceholder(this);
+		}
+		Collections.sort(items, itemComparator);
 		updateQuickslot();
 		return true;
-
 	}
 	
-	public final boolean collect() {
-		return collect( curUser.belongings.backpack );
-	}
+	// public final boolean collect() {
+	// 	return collect( curUser.belongings.backpack, curUser );
+	// }
 
     public final boolean collect(Hero hero) {
         return collect( hero.belongings.backpack );
     }
-
-
 
 	//returns a new item if the split was sucessful and there are now 2 items, otherwise null
 	public Item split( int amount ){
@@ -322,24 +325,16 @@ public class Item implements Bundlable {
 		return dupe;
 	}
 	
-	public final Item detach( Bag container ) {
-		
-		if (quantity <= 0) {
-			
-			return null;
-			
-		} else
+		public final Item detach( Bag container ) {
+		Hero owner = (container.owner instanceof Hero) ? (Hero) container.owner : null;
+
+		if (quantity <= 0) return null;
+		else
 		if (quantity == 1) {
-
-			if (stackable){
-				curUser.quickslot.convertToPlaceholder(this);
-			}
-
+			if (stackable && container.owner != null && container.owner instanceof Hero)
+				owner.quickslot.convertToPlaceholder(this);
 			return detachAll( container );
-			
 		} else {
-			
-			
 			Item detached = split(1);
 			updateQuickslot();
 			if (detached != null) detached.onDetach( );
@@ -349,8 +344,11 @@ public class Item implements Bundlable {
 	}
 	
 	public final Item detachAll( Bag container ) {
-		curUser.quickslot.clearItem( this );
-
+		Hero owner = (container.owner instanceof Hero) ? (Hero) container.owner : null;
+		if (owner != null) {
+			owner.quickslot.clearItem(this);
+		}
+		
 		for (Item item : container.items) {
 			if (item == this) {
 				container.items.remove(this);
@@ -461,11 +459,11 @@ public class Item implements Bundlable {
 	}
 
     public final Item identify(){
-        return identify(true );
+        return identify(true);
     }
     public Item identify( boolean byHero ) {
 
-        if (byHero && curUser != null && curUser.isAlive()){
+        if (byHero && curUser != null && curUser.isAlive() && curUser == Multiplayer.localHero()){
             Catalog.setSeen(getClass());
             Statistics.itemTypesDiscovered.add(getClass());
         }
@@ -477,22 +475,22 @@ public class Item implements Bundlable {
         return this;
     }
 
-	public final Item identify(Hero hero){
-		return identify(true, hero);
-	}
-	public Item identify( boolean byHero, Hero hero) {
+	// public final Item identify(Hero hero){
+	// 	return identify(true, hero);
+	// }
+	// public Item identify( boolean byHero, Hero hero) {
 
-		if (byHero && hero != null && hero.isAlive()){
-			Catalog.setSeen(getClass());
-			Statistics.itemTypesDiscovered.add(getClass());
-		}
+	// 	if (byHero && hero != null && hero.isAlive() && hero == Multiplayer.localHero()){
+	// 		Catalog.setSeen(getClass());
+	// 		Statistics.itemTypesDiscovered.add(getClass());
+	// 	}
 
-		levelKnown = true;
-		cursedKnown = true;
-		Item.updateQuickslot();
+	// 	levelKnown = true;
+	// 	cursedKnown = true;
+	// 	Item.updateQuickslot();
 		
-		return this;
-	}
+	// 	return this;
+	// }
 	
 	public void onHeroGainExp( float levelPercent, Hero hero ){
 		//do nothing by default
@@ -535,21 +533,17 @@ public class Item implements Bundlable {
 	public Emitter emitter() { return null; }
 	
 	public String info() {
-
 		if (curUser != null) {
 			Notes.CustomRecord note = Notes.findCustomRecord(customNoteID);
 			if (note != null) {
-				//we swap underscore(0x5F) with low macron(0x2CD) here to avoid highlighting in the item window
 				return Messages.get(this, "custom_note", note.title().replace('_', 'ˍ')) + "\n\n" + desc();
 			} else {
 				note = Notes.findCustomRecord(getClass());
 				if (note != null) {
-					//we swap underscore(0x5F) with low macron(0x2CD) here to avoid highlighting in the item window
 					return Messages.get(this, "custom_note_type", note.title().replace('_', 'ˍ')) + "\n\n" + desc();
 				}
 			}
 		}
-
 		return desc();
 	}
 	
@@ -579,7 +573,6 @@ public class Item implements Bundlable {
 	public Item virtual(){
 		Item item = Reflection.newInstance(getClass());
 		if (item == null) return null;
-		
 		item.quantity = 0;
 		item.level = level;
 		return item;
@@ -613,9 +606,9 @@ public class Item implements Bundlable {
 		bundle.put( LEVEL_KNOWN, levelKnown );
 		bundle.put( CURSED, cursed );
 		bundle.put( CURSED_KNOWN, cursedKnown );
-		if (curUser.quickslot.contains(this)) {
-			bundle.put( QUICKSLOT, curUser.quickslot.getSlot(this) );
-		}
+		// if (curUser.quickslot.contains(this)) {
+		// 	bundle.put( QUICKSLOT, curUser.quickslot.getSlot(this) );
+		// }
 		bundle.put( KEPT_LOST, keptThoughLostInvent );
 		if (customNoteID != -1)     bundle.put(CUSTOM_NOTE_ID, customNoteID);
 	}
@@ -636,11 +629,11 @@ public class Item implements Bundlable {
 		cursed	= bundle.getBoolean( CURSED );
 
 		//only want to populate slots when restoring belongings
-		if (Belongings.bundleRestoring) {
-			if (bundle.contains(QUICKSLOT)) {
-				curUser.quickslot.setSlot(bundle.getInt(QUICKSLOT), this);
-			}
-		}
+		// if (Belongings.bundleRestoring) {
+		// 	if (bundle.contains(QUICKSLOT)) {
+		// 		curUser.quickslot.setSlot(bundle.getInt(QUICKSLOT), this);
+		// 	}
+		// }
 
 		keptThoughLostInvent = bundle.getBoolean( KEPT_LOST );
 		if (bundle.contains(CUSTOM_NOTE_ID))    customNoteID = bundle.getInt(CUSTOM_NOTE_ID);
@@ -658,8 +651,8 @@ public class Item implements Bundlable {
 		Sample.INSTANCE.play(Assets.Sounds.MISS, 0.6f, 0.6f, 1.5f);
 	}
 	
+
 	public void cast( final Hero user, final int dst ) {
-		
 		final int cell = throwPos( user, dst );
 		user.sprite.zap( cell );
 		user.busy();
@@ -679,16 +672,15 @@ public class Item implements Bundlable {
 							new Callback() {
 						@Override
 						public void call() {
-							curUser = user;
-							Item i = Item.this.detach(user.belongings.backpack);
+							Item i = Item.this.detach(user.belongings.backpack); // передаём user
 							if (i != null) i.onThrow(cell);
-							if (curUser.hasTalent(Talent.IMPROVISED_PROJECTILES)
+							if (user.hasTalent(Talent.IMPROVISED_PROJECTILES)
 									&& !(Item.this instanceof MissileWeapon)
-									&& curUser.buff(Talent.ImprovisedProjectileCooldown.class) == null){
-								if (enemy != null && enemy.alignment != curUser.alignment){
+									&& user.buff(Talent.ImprovisedProjectileCooldown.class) == null){
+								if (enemy != null && enemy.alignment != user.alignment){
 									Sample.INSTANCE.play(Assets.Sounds.HIT);
-									Buff.affect(enemy, Blindness.class, 1f + curUser.pointsInTalent(Talent.IMPROVISED_PROJECTILES));
-									Buff.affect(curUser, Talent.ImprovisedProjectileCooldown.class, 50f);
+									Buff.affect(enemy, Blindness.class, 1f + user.pointsInTalent(Talent.IMPROVISED_PROJECTILES));
+									Buff.affect(user, Talent.ImprovisedProjectileCooldown.class, 50f);
 								}
 							}
 							if (user.buff(Talent.LethalMomentumTracker.class) != null){
@@ -707,7 +699,6 @@ public class Item implements Bundlable {
 							new Callback() {
 						@Override
 						public void call() {
-							curUser = user;
 							Item i = Item.this.detach(user.belongings.backpack);
 							user.spend(delay);
 							if (i != null) i.onThrow(cell);
@@ -725,23 +716,27 @@ public class Item implements Bundlable {
 		return TIME_TO_PICK_UP;
 	}
 	
-	protected static Hero curUser = null;
-	protected static Item curItem = null;
+	protected Hero curUser = null;
+	protected Item curItem = null;
 	public void setCurrent( Hero hero ){
 		curUser = hero;
 		curItem = this;
 	}
 
-	protected static CellSelector.Listener thrower = new CellSelector.Listener() {
+	// Вспомогательный класс для выбора цели броска
+	private class ThrowSelector extends CellSelector.Listener {
+		private Hero hero;
+		private Item item;
+		ThrowSelector(Hero hero, Item item) { this.hero = hero; this.item = item; }
 		@Override
 		public void onSelect( Integer target ) {
 			if (target != null) {
-				curItem.cast( curUser, target );
+				item.cast( hero, target );
 			}
 		}
 		@Override
 		public String prompt() {
 			return Messages.get(Item.class, "prompt");
 		}
-	};
+	}
 }

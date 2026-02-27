@@ -55,7 +55,7 @@ public class ChillingTrap extends Trap{
 			if (!Dungeon.level.solid[pos + i]) {
 				GameScene.add(Blob.seed(pos + i, 10, Freezing.class));
 				if (Actor.findChar(pos+i) instanceof Mob){
-					Buff.prolong(Actor.findChar(pos+i), Trap.HazardAssistTracker.class, HazardAssistTracker.DURATION);
+					Buff.prolong(Actor.findChar(pos+i), Trap.HazardAssistTracker.class, HazardAssistTracker.DURATION, this);
 				}
 			}
 		}

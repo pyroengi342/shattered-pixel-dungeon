@@ -44,14 +44,14 @@ public class Sorrowmoss extends Plant {
 	@Override
 	public void activate( Char ch ) {
 		if (ch instanceof Hero && ((Hero) ch).subClass == HeroSubClass.WARDEN){
-			Buff.affect(ch, ToxicImbue.class).set(ToxicImbue.DURATION*0.3f);
+			Buff.affect(ch, ToxicImbue.class, this).set(ToxicImbue.DURATION*0.3f);
 		}
 		
 		if (ch != null) {
 			if (ch instanceof Mob){
-				Buff.prolong(ch, Trap.HazardAssistTracker.class, Trap.HazardAssistTracker.DURATION);
+				Buff.prolong(ch, Trap.HazardAssistTracker.class, Trap.HazardAssistTracker.DURATION, this);
 			}
-			Buff.affect( ch, Poison.class ).set( 5 + Math.round(2*Dungeon.scalingDepth() / 3f) );
+			Buff.affect( ch, Poison.class , this).set( 5 + Math.round(2*Dungeon.scalingDepth() / 3f) );
 		}
 		
 				Hero local = Multiplayer.localHero();

@@ -247,7 +247,7 @@ public class WandOfCorruption extends Wand {
 
 			float powerMulti = Math.max(1f, procChance);
 
-			Buff.prolong( defender, Amok.class, Math.round((4+level*2) * powerMulti));
+			Buff.prolong( defender, Amok.class, Math.round((4+level*2) * powerMulti), this);
 		}
 	}
 

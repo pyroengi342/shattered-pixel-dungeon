@@ -91,7 +91,7 @@ public class WornDartTrap extends Trap {
 
 				if (target != null) {
 					if (target instanceof Mob){
-						Buff.prolong(target, Trap.HazardAssistTracker.class, HazardAssistTracker.DURATION);
+						Buff.prolong(target, Trap.HazardAssistTracker.class, HazardAssistTracker.DURATION, this);
 					}
 					final Char finalTarget = target;
 

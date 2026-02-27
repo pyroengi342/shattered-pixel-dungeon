@@ -45,6 +45,8 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
 
+import network.AudioWrapper;
+
 public class WaterOfHealth extends WellWater {
 	
 	@Override
@@ -52,7 +54,7 @@ public class WaterOfHealth extends WellWater {
 		
 		if (!hero.isAlive()) return false;
 		
-		Sample.INSTANCE.play( Assets.Sounds.DRINK );
+		AudioWrapper.play( Assets.Sounds.DRINK, hero.pos);
 
 		PotionOfHealing.cure( hero );
 		hero.belongings.uncurseEquipped();
@@ -82,18 +84,18 @@ public class WaterOfHealth extends WellWater {
 		if (item instanceof Waterskin && !((Waterskin)item).isFull()) {
 			((Waterskin)item).fill();
 			CellEmitter.get( pos ).start( Speck.factory( Speck.HEALING ), 0.4f, 4 );
-			Sample.INSTANCE.play( Assets.Sounds.DRINK );
+			AudioWrapper.play( Assets.Sounds.DRINK, pos );
 			return item;
 		} else if ( item instanceof Ankh && !(((Ankh) item).isBlessed())){
 			((Ankh) item).bless();
 			CellEmitter.get( pos ).start(Speck.factory(Speck.LIGHT), 0.2f, 3);
-			Sample.INSTANCE.play( Assets.Sounds.DRINK );
+			AudioWrapper.play( Assets.Sounds.DRINK, pos );
 			return item;
 		} else if (ScrollOfRemoveCurse.uncursable(item)) {
 			if (ScrollOfRemoveCurse.uncurse( null, item )){
 				CellEmitter.get( pos ).start( ShadowParticle.UP, 0.05f, 10 );
 			}
-			Sample.INSTANCE.play( Assets.Sounds.DRINK );
+			AudioWrapper.play( Assets.Sounds.DRINK, pos );
 			return item;
 		}
 		return null;

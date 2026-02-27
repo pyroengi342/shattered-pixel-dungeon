@@ -557,11 +557,11 @@ public enum Talent {
 
 		if (talent == UNENCUMBERED_SPIRIT && hero.pointsInTalent(talent) == 3){
 			Item toGive = new ClothArmor().identify();
-			if (!toGive.collect()){
+			if (!toGive.collect(hero)){
 				Dungeon.level.drop(toGive, hero.pos).sprite.drop();
 			}
 			toGive = new Gloves().identify();
-			if (!toGive.collect()){
+			if (!toGive.collect(hero)){
 				Dungeon.level.drop(toGive, hero.pos).sprite.drop();
 			}
 		}
@@ -776,7 +776,7 @@ public enum Talent {
 			} else {
 				// 10/15%
 				if (Random.Int(20) < 1 + hero.pointsInTalent(RECALL_INSCRIPTION)){
-					Reflection.newInstance(cls).collect();
+					Reflection.newInstance(cls).collect(hero);
 					GLog.p(Messages.get(Talent.class, RECALL_INSCRIPTION.name() + ".refunded"));
 				}
 			}
@@ -795,7 +795,7 @@ public enum Talent {
 				}
 				// 10/15%
 				if (Random.Int(20) < 1 + hero.pointsInTalent(RECALL_INSCRIPTION)){
-					Reflection.newInstance(cls).collect();
+					Reflection.newInstance(cls).collect(hero);
 					GLog.p(Messages.get(Talent.class, RECALL_INSCRIPTION.name() + ".refunded"));
 				}
 			}

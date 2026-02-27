@@ -186,7 +186,7 @@ public class Ghoul extends Mob {
 			for (Buff buff : buffs()) {
 				if (buff instanceof SacrificialFire.Marked){
 					//don't remove and postpone so marked stays on
-					Buff.prolong(this, SacrificialFire.Marked.class, timesDowned*5);
+					Buff.prolong(this, SacrificialFire.Marked.class, timesDowned*5, this);
 				} else if (buff.revivePersists) {
 					//don't remove
 				} else {

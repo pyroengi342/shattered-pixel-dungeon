@@ -49,7 +49,7 @@ public class BurningTrap extends Trap {
 				GameScene.add( Blob.seed( pos+i, 2, Fire.class ) );
 				CellEmitter.get( pos+i ).burst( FlameParticle.FACTORY, 5 );
 				if (Actor.findChar(pos+i) instanceof Mob){
-					Buff.prolong(Actor.findChar(pos+i), Trap.HazardAssistTracker.class, HazardAssistTracker.DURATION);
+					Buff.prolong(Actor.findChar(pos+i), Trap.HazardAssistTracker.class, HazardAssistTracker.DURATION, this);
 				}
 			}
 		}

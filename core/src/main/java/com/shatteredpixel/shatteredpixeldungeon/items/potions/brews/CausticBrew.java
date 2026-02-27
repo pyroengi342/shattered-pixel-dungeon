@@ -61,7 +61,7 @@ public class CausticBrew extends Brew {
 				Char ch = Actor.findChar(i);
 				
 				if (ch != null){
-					Buff.affect(ch, Ooze.class).set( Ooze.DURATION );
+					Buff.affect(ch, Ooze.class, this).set( Ooze.DURATION );
 				}
 			}
 		}

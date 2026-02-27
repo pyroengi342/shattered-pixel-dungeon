@@ -65,7 +65,7 @@ public class Fadeleaf extends Plant {
 			
 		} else if (ch instanceof Mob && !ch.properties().contains(Char.Property.IMMOVABLE)) {
 
-			Buff.prolong(ch, Trap.HazardAssistTracker.class, Trap.HazardAssistTracker.DURATION);
+			Buff.prolong(ch, Trap.HazardAssistTracker.class, Trap.HazardAssistTracker.DURATION, this);
 			ScrollOfTeleportation.teleportChar(ch, Fadeleaf.class);
 
 		}

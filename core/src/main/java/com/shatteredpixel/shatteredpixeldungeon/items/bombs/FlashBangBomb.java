@@ -73,7 +73,7 @@ public class FlashBangBomb extends Bomb {
 			//25% bonus damage and 10 turns of stun
 			int damage = Math.round(Random.NormalIntRange(4 + Dungeon.scalingDepth(), 12 + 3*Dungeon.scalingDepth()) / 4f);
 			ch.damage(damage, new Electricity());
-			if (ch.isAlive()) Buff.prolong(ch, Paralysis.class, Paralysis.DURATION);
+			if (ch.isAlive()) Buff.prolong(ch, Paralysis.class, Paralysis.DURATION, this);
 			arcs.add(new Lightning.Arc(DungeonTilemap.tileCenterToWorld(cell), ch.sprite.center()));
 
 			if (ch instanceof Hero){

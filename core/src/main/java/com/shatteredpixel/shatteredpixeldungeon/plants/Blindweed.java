@@ -49,10 +49,10 @@ public class Blindweed extends Plant {
 			if (ch instanceof Hero && ((Hero) ch).subClass == HeroSubClass.WARDEN){
 				Buff.affect(ch, Invisibility.class, Invisibility.DURATION/2f);
 			} else {
-				Buff.prolong(ch, Blindness.class, Blindness.DURATION);
-				Buff.prolong(ch, Cripple.class, Cripple.DURATION);
+				Buff.prolong(ch, Blindness.class, Blindness.DURATION, this);
+				Buff.prolong(ch, Cripple.class, Cripple.DURATION, this);
 				if (ch instanceof Mob) {
-					Buff.prolong(ch, Trap.HazardAssistTracker.class, Trap.HazardAssistTracker.DURATION);
+					Buff.prolong(ch, Trap.HazardAssistTracker.class, Trap.HazardAssistTracker.DURATION, this);
 					if (((Mob) ch).state == ((Mob) ch).HUNTING) ((Mob) ch).state = ((Mob) ch).WANDERING;
 					((Mob) ch).beckon(Dungeon.level.randomDestination( ch ));
 				}

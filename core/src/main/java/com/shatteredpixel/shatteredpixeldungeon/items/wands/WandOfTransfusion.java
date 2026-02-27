@@ -96,7 +96,7 @@ public class WandOfTransfusion extends DamageWand {
 				int shielding = (ch.HP + healing) - ch.HT;
 				if (shielding > 0){
 					healing -= shielding;
-					Buff.affect(ch, Barrier.class).setShield(shielding);
+					Buff.affect(ch, Barrier.class, this).setShield(shielding);
 				} else {
 					shielding = 0;
 				}
@@ -122,7 +122,7 @@ public class WandOfTransfusion extends DamageWand {
 			} else if (ch.alignment == Char.Alignment.ENEMY || ch instanceof Mimic) {
 
 				//grant a self-shield, and...
-				Buff.affect(curUser, Barrier.class).setShield((5 + buffedLvl()));
+				Buff.affect(curUser, Barrier.class, this).setShield((5 + buffedLvl()));
 				curUser.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(5+buffedLvl()), FloatingText.SHIELDING);
 				
 				//charms living enemies
@@ -163,7 +163,7 @@ public class WandOfTransfusion extends DamageWand {
 			//grants a free use of the staff and shields self
 			freeCharge = true;
 			int shieldToGive = Math.round((2*(5 + buffedLvl()))*procChanceMultiplier(attacker));
-			Buff.affect(attacker, Barrier.class).setShield(shieldToGive);
+			Buff.affect(attacker, Barrier.class, this).setShield(shieldToGive);
 			attacker.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(shieldToGive), FloatingText.SHIELDING);
 			GLog.p( Messages.get(this, "charged") );
 			attacker.sprite.emitter().burst(BloodParticle.BURST, 20);

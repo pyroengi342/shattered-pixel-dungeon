@@ -40,7 +40,7 @@ public class Sacrificial extends Weapon.Enchantment {
 			float missingPercent = attacker.HP/(float)attacker.HT;
 			float bleedAmt = (float)(Math.pow(missingPercent, 2) * attacker.HT)/8f;
 			if (Random.Float() < bleedAmt) {
-				Buff.affect(attacker, Bleeding.class).set(Math.max(1, bleedAmt), getClass());
+				Buff.affect(attacker, Bleeding.class, this).set(Math.max(1, bleedAmt), getClass());
 			}
 		}
 

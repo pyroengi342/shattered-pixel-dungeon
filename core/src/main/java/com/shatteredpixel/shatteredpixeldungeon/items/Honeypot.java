@@ -70,7 +70,7 @@ public class Honeypot extends Item {
 			
 			hero.sprite.zap( hero.pos );
 			
-			detach( hero.belongings.backpack );
+			detach( hero, hero.belongings.backpack );
 			Catalog.countUse(getClass());
 
 			Item item = shatter( hero, hero.pos );

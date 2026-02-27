@@ -292,13 +292,13 @@ public class ElementalBlast extends ArmorAbility {
 								//*** Wand of Fireblast ***
 								} else if (finalWandCls == WandOfFireblast.class){
 									if (mob.isAlive() && mob.alignment != Char.Alignment.ALLY) {
-										Buff.affect( mob, Burning.class ).reignite( mob );
+										Buff.affect( mob, Burning.class , this).reignite( mob , this);
 									}
 
 								//*** Wand of Corrosion ***
 								} else if (finalWandCls == WandOfCorrosion.class){
 									if (mob.isAlive() && mob.alignment != Char.Alignment.ALLY) {
-										Buff.affect( mob, Corrosion.class ).set(4, Math.round(6*effectMulti));
+										Buff.affect( mob, Corrosion.class , this).set(4, Math.round(6*effectMulti));
 										charsHit++;
 									}
 
@@ -325,7 +325,7 @@ public class ElementalBlast extends ArmorAbility {
 								//*** Wand of Prismatic Light ***
 								} else if (finalWandCls == WandOfPrismaticLight.class){
 									if (mob.isAlive() && mob.alignment != Char.Alignment.ALLY) {
-										Buff.prolong(mob, Blindness.class, effectMulti*Blindness.DURATION/2);
+										Buff.prolong(mob, Blindness.class, effectMulti*Blindness.DURATION/2, this);
 										charsHit++;
 									}
 
@@ -374,14 +374,14 @@ public class ElementalBlast extends ArmorAbility {
 								//*** Wand of Corruption ***
 								} else if (finalWandCls == WandOfCorruption.class){
 									if (mob.isAlive() && mob.alignment != Char.Alignment.ALLY) {
-										Buff.prolong(mob, Amok.class, effectMulti*5f);
+										Buff.prolong(mob, Amok.class, effectMulti*5f, this);
 										charsHit++;
 									}
 
 								//*** Wand of Regrowth ***
 								} else if (finalWandCls == WandOfRegrowth.class){
 									if (mob.alignment != Char.Alignment.ALLY) {
-										Buff.prolong( mob, Roots.class, effectMulti*Roots.DURATION );
+										Buff.prolong( mob, Roots.class, effectMulti*Roots.DURATION , this);
 										charsHit++;
 									}
 								}
@@ -414,9 +414,9 @@ public class ElementalBlast extends ArmorAbility {
 						//*** Wand of Prismatic Light ***
 						} else if (finalWandCls == WandOfPrismaticLight.class){
 							if (Dungeon.isChallenged(Challenges.DARKNESS)){
-								Buff.prolong(hero, Light.class, effectMulti * 10f);
+								Buff.prolong(hero, Light.class, effectMulti * 10f, this);
 							} else {
-								Buff.prolong(hero, Light.class, effectMulti * 50f);
+								Buff.prolong(hero, Light.class, effectMulti * 50f, this);
 							}
 
 						}

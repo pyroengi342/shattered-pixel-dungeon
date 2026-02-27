@@ -855,6 +855,7 @@ public class Dungeon {
 		
 		Notes.restoreFromBundle( bundle );
 		
+		// TODO hero get for all players
 		hero = null;
 		hero = (Hero)bundle.get( HERO );
 		

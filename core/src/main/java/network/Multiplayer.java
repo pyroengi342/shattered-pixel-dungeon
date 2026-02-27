@@ -25,15 +25,15 @@ public class Multiplayer {
     // int maxPlayersCount = MPSettings.maxPlayers();
     private static final PlayerContainer playerContainer = new PlayerContainer();
     public static class PlayerInfo {
-        public int id;
+        public int connectionID;
         public String name;
 
         //public int heroClass;
         public Hero hero;  // Ссылка на героя в игре
         public boolean isLocal; // Является ли локальным игроком
         public PlayerInfo() {}
-        public PlayerInfo(int id, String name) {
-            this.id = id;
+        public PlayerInfo(int connectionID, String name) {
+            this.connectionID = connectionID;
             this.name = name;
             this.isLocal = false;
         }
@@ -42,15 +42,15 @@ public class Multiplayer {
         private final Map<Integer, PlayerInfo> players = new LinkedHashMap<>();
 
         public void add(PlayerInfo player) {
-            players.put(player.id, player);
+            players.put(player.connectionID, player);
         }
 
-        public PlayerInfo get(int id) {
-            return players.get(id);
+        public PlayerInfo get(int connectionID) {
+            return players.get(connectionID);
         }
 
-        public void remove(int id) {
-            players.remove(id);
+        public void remove(int connectionID) {
+            players.remove(connectionID);
         }
 
         public List<PlayerInfo> getAll() {
@@ -65,8 +65,8 @@ public class Multiplayer {
             return players.size();
         }
 
-        public Hero getHero(int id) {
-            PlayerInfo player = players.get(id);
+        public Hero getHero(int connectionID) {
+            PlayerInfo player = players.get(connectionID);
             return player != null ? player.hero : null;
         }
         public void setHeroClass(int playerId, HeroClass heroClassName) {
@@ -81,12 +81,12 @@ public class Multiplayer {
             playerContainer.add(player);
         }
 
-        public static PlayerInfo get(int id) {
-            return playerContainer.get(id);
+        public static PlayerInfo get(int connectionID) {
+            return playerContainer.get(connectionID);
         }
 
-        public static void remove(int id) {
-            playerContainer.remove(id);
+        public static void remove(int connectionID) {
+            playerContainer.remove(connectionID);
         }
 
         public static List<PlayerInfo> getAll() {
@@ -100,8 +100,8 @@ public class Multiplayer {
             return playerContainer.size();
         }
 
-        public static Hero getHero(int id) {
-            PlayerInfo player = playerContainer.get(id);
+        public static Hero getHero(int connectionID) {
+            PlayerInfo player = playerContainer.get(connectionID);
             return player != null ? player.hero : null;
         }
         public static void setHeroClass(int playerId, HeroClass heroClassName) {
@@ -112,6 +112,9 @@ public class Multiplayer {
         }
     }
 
+    /**
+     * Returns the player you control via connection connectionID.
+     */
     public static Hero localHero() {
         return Players.get(getLocalPlayerId()).hero;
     }
@@ -249,6 +252,12 @@ public class Multiplayer {
             }
         }
         return false;
+    }
+
+    public static void interruptAll(){
+        for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+            player.hero.interrupt();
+        }
     }
 }
 

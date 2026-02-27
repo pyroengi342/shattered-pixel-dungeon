@@ -131,7 +131,6 @@ public class WndEnergizeItem extends WndInfoItem {
 	}
 
 	public static void energizeAll(Item item ) {
-
 		if (item.isEquipped( Dungeon.hero ) && !((EquipableItem)item).doUnequip( Dungeon.hero, false )) {
 			return;
 		}

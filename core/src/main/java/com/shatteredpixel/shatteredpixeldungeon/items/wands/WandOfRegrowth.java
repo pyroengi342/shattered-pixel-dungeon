@@ -118,7 +118,7 @@ public class WandOfRegrowth extends Wand {
 						Statistics.qualifiedForBossChallengeBadge = false;
 					}
 					wandProc(ch, chargesPerCast());
-					Buff.prolong( ch, Roots.class, 4f * chrgUsed );
+					Buff.prolong( ch, Roots.class, 4f * chrgUsed , this);
 				}
 			}
 		}
@@ -236,7 +236,7 @@ public class WandOfRegrowth extends Wand {
 			// lvl 2 - 25%
 			int healing = Math.round(damage * (level + 2f) / (level + 6f) / 2f);
 			healing = Math.round(healing * procChanceMultiplier(attacker));
-			Buff.affect(attacker, Sungrass.Health.class).boost(healing);
+			Buff.affect(attacker, Sungrass.Health.class, this)boost(healing);
 		}
 
 	}

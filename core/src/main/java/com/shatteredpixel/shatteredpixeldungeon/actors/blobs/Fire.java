@@ -100,7 +100,7 @@ public class Fire extends Blob {
 	public static void burn( int pos ) {
 		Char ch = Actor.findChar( pos );
 		if (ch != null && !ch.isImmune(Fire.class)) {
-			Buff.affect( ch, Burning.class ).reignite( ch );
+			Buff.affect( ch, Burning.class ).reignite( ch , this);
 		}
 		
 		Heap heap = Dungeon.level.heaps.get( pos );

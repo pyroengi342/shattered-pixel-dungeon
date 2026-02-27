@@ -60,7 +60,7 @@ public class ScrollOfPrismaticImage extends ExoticScroll {
 		}
 		
 		if (!found) {
-			Buff.affect(curUser, PrismaticGuard.class).set( PrismaticGuard.maxHP( curUser ) );
+			Buff.affect(curUser, PrismaticGuard.class, this).set( PrismaticGuard.maxHP( curUser ) );
 		}
 
 		identify();

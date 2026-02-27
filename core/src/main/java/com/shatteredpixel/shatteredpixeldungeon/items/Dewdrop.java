@@ -116,7 +116,7 @@ public class Dewdrop extends Item {
 			}
 
 			if (shield > 0) {
-				Buff.affect(hero, Barrier.class).incShield(shield);
+				Buff.affect(hero, Barrier.class, this)incShield(shield);
 				hero.sprite.showStatusWithIcon( CharSprite.POSITIVE, Integer.toString(shield), FloatingText.SHIELDING );
 			}
 

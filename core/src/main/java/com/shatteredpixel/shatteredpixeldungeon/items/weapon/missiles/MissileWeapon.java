@@ -147,7 +147,7 @@ abstract public class MissileWeapon extends Weapon {
 			durability = MAX_DURABILITY;
 			extraThrownLeft = false;
 			quantity = defaultQuantity();
-			Buff.affect(curUser, UpgradedSetTracker.class).levelThresholds.put(setID, trueLevel()+1);
+			Buff.affect(curUser, UpgradedSetTracker.class, this)levelThresholds.put(setID, trueLevel()+1);
 		}
 		//thrown weapons don't get curse weakened
 		boolean wasCursed = cursed;
@@ -164,7 +164,7 @@ abstract public class MissileWeapon extends Weapon {
 			durability = MAX_DURABILITY;
 			extraThrownLeft = false;
 			quantity = defaultQuantity();
-			Buff.affect(curUser, UpgradedSetTracker.class).levelThresholds.put(setID, trueLevel()+1);
+			Buff.affect(curUser, UpgradedSetTracker.class, this)levelThresholds.put(setID, trueLevel()+1);
 		}
 		return super.upgrade();
 	}
@@ -330,7 +330,7 @@ abstract public class MissileWeapon extends Weapon {
 		}
 
 		if (!isIdentified() && ShardOfOblivion.passiveIDDisabled()){
-			Buff.prolong(curUser, ShardOfOblivion.ThrownUseTracker.class, 50f);
+			Buff.prolong(curUser, ShardOfOblivion.ThrownUseTracker.class, 50f, this);
 		}
 
 		return result;

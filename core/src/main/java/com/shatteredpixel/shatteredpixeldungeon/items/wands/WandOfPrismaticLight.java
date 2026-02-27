@@ -71,9 +71,9 @@ public class WandOfPrismaticLight extends DamageWand {
 		
 		if (Dungeon.level.viewDistance < 6 ){
 			if (Dungeon.isChallenged(Challenges.DARKNESS)){
-				Buff.prolong( curUser, Light.class, 2f + buffedLvl());
+				Buff.prolong( curUser, Light.class, 2f + buffedLvl(), this);
 			} else {
-				Buff.prolong( curUser, Light.class, 10f+buffedLvl()*5);
+				Buff.prolong( curUser, Light.class, 10f+buffedLvl()*5, this);
 			}
 		}
 		
@@ -89,7 +89,7 @@ public class WandOfPrismaticLight extends DamageWand {
 
 		//three in (5+lvl) chance of failing
 		if (Random.Int(5+buffedLvl()) >= 3) {
-			Buff.prolong(ch, Blindness.class, 2f + (buffedLvl() * 0.333f));
+			Buff.prolong(ch, Blindness.class, 2f + (buffedLvl() * 0.333f), this);
 			ch.sprite.emitter().burst(Speck.factory(Speck.LIGHT), 6 );
 		}
 
@@ -162,7 +162,7 @@ public class WandOfPrismaticLight extends DamageWand {
 	@Override
 	public void onHit(MagesStaff staff, Char attacker, Char defender, int damage) {
 		//cripples enemy
-		Buff.prolong( defender, Cripple.class, Math.round((1+staff.buffedLvl())*procChanceMultiplier(attacker)));
+		Buff.prolong( defender, Cripple.class, Math.round((1+staff.buffedLvl())*procChanceMultiplier(attacker)), this);
 	}
 
 	@Override

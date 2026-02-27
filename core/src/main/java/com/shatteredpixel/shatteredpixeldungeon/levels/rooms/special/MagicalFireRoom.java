@@ -217,7 +217,7 @@ public class MagicalFireRoom extends SpecialRoom {
 						//ignite adjacent chars
 						Char ch = Actor.findChar(cell);
 						if (ch != null && !ch.isImmune(getClass())) {
-							Buff.affect(ch, Burning.class).reignite(ch, 4f);
+							Buff.affect(ch, Burning.class, this)reignite(ch, 4f);
 						}
 
 						//burn adjacent heaps, but only on outside and non-water cells

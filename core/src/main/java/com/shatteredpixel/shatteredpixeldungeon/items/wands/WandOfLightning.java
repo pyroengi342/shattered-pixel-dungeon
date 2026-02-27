@@ -114,7 +114,7 @@ public class WandOfLightning extends DamageWand {
 
 			float powerMulti = Math.min(1f, procChance);
 
-			FlavourBuff.prolong(attacker, LightningCharge.class, powerMulti*LightningCharge.DURATION);
+			FlavourBuff.prolong(attacker, LightningCharge.class, powerMulti*LightningCharge.DURATION, this);
 			attacker.sprite.centerEmitter().burst( SparkParticle.FACTORY, 10 );
 			attacker.sprite.flash();
 			Sample.INSTANCE.play( Assets.Sounds.LIGHTNING );

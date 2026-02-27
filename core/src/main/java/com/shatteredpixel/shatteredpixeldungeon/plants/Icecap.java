@@ -52,7 +52,7 @@ public class Icecap extends Plant {
 			if (!Dungeon.level.solid[pos+i]) {
 				Freezing.affect( pos+i );
 				if (Actor.findChar(pos+i) instanceof Mob){
-					Buff.prolong(Actor.findChar(pos+i), Trap.HazardAssistTracker.class, Trap.HazardAssistTracker.DURATION);
+					Buff.prolong(Actor.findChar(pos+i), Trap.HazardAssistTracker.class, Trap.HazardAssistTracker.DURATION, this);
 				}
 			}
 		}

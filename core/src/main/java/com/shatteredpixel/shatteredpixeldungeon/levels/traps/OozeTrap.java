@@ -45,9 +45,9 @@ public class OozeTrap extends Trap {
 				Splash.at( pos + i, 0x000000, 5);
 				Char ch = Actor.findChar( pos + i );
 				if (ch != null && !ch.flying){
-					Buff.affect(ch, Ooze.class).set( Ooze.DURATION );
+					Buff.affect(ch, Ooze.class, this).set( Ooze.DURATION );
 					if (ch instanceof Mob){
-						Buff.prolong(ch, Trap.HazardAssistTracker.class, HazardAssistTracker.DURATION);
+						Buff.prolong(ch, Trap.HazardAssistTracker.class, HazardAssistTracker.DURATION, this);
 					}
 				}
 			}

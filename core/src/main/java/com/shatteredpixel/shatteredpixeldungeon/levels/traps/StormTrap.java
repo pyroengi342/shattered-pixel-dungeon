@@ -53,7 +53,7 @@ public class StormTrap extends Trap {
 			if (PathFinder.distance[i] < Integer.MAX_VALUE) {
 				GameScene.add(Blob.seed(i, 20, Electricity.class));
 				if (Actor.findChar(i) instanceof Mob){
-					Buff.prolong(Actor.findChar(i), Trap.HazardAssistTracker.class, HazardAssistTracker.DURATION);
+					Buff.prolong(Actor.findChar(i), Trap.HazardAssistTracker.class, HazardAssistTracker.DURATION, this);
 				}
 			}
 		}
