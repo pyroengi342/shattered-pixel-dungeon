@@ -67,9 +67,10 @@ public class ChasmExitRoom extends ChasmRoom {
 			} else {
 				valid = false;
 				for (int i : PathFinder.NEIGHBOURS4){
-					if (level.map[exit+i] != Terrain.CHASM){
-						valid = true;
-					}
+                    if (level.map[exit + i] != Terrain.CHASM) {
+                        valid = true;
+                        break;
+                    }
 				}
 				valid = valid && level.findMob(exit) == null;
 			}

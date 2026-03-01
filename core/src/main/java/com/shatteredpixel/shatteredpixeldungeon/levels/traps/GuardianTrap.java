@@ -23,6 +23,7 @@ package com.shatteredpixel.shatteredpixeldungeon.levels.traps;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Statue;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
@@ -34,6 +35,8 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.StatueSprite;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
+
+import network.Multiplayer;
 
 public class GuardianTrap extends Trap {
 
@@ -49,7 +52,7 @@ public class GuardianTrap extends Trap {
 			mob.beckon( pos );
 		}
 
-				Hero local = Multiplayer.localHero();
+		Hero local = Multiplayer.localHero();
 		if (local != null && local.fieldOfView != null && local.fieldOfView[pos]) {
 			GLog.w( Messages.get(this, "alarm") );
 			CellEmitter.center(pos).start( Speck.factory(Speck.SCREAM), 0.3f, 3 );

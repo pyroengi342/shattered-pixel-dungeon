@@ -43,9 +43,9 @@ import com.watabou.utils.PathFinder;
 import com.watabou.utils.Point;
 import com.watabou.utils.Random;
 
-import network.Multiplayer;
-
 import java.util.ArrayList;
+
+import network.Multiplayer;
 
 public class RockfallTrap extends Trap {
 

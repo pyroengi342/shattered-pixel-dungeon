@@ -28,8 +28,8 @@ import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.effects.BadgeBanner;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Languages;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
-import com.shatteredpixel.shatteredpixeldungeon.ui.TitleBackground;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
+import com.shatteredpixel.shatteredpixeldungeon.ui.TitleBackground;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Tooltip;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.shatteredpixel.shatteredpixeldungeon.utils.Holiday;
@@ -282,7 +282,7 @@ public class PixelScene extends Scene {
 	}
 
 	//this system only preserves windows with a public zero-arg constructor
-	private static ArrayList<Class<?extends Window>> savedWindows = new ArrayList<>();
+	private static final ArrayList<Class<?extends Window>> savedWindows = new ArrayList<>();
 	private static Class<?extends PixelScene> savedClass = null;
 	
 	public synchronized void saveWindows(){
@@ -422,9 +422,9 @@ public class PixelScene extends Scene {
 	
 	protected static class Fader extends ColorBlock {
 		
-		private static float FADE_TIME = 1f;
+		private static final float FADE_TIME = 1f;
 		
-		private boolean light;
+		private final boolean light;
 		
 		private float time;
 

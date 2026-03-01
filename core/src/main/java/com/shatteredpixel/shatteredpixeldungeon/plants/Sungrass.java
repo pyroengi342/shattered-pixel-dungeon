@@ -21,7 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.plants;
 
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Healing;
@@ -31,7 +30,6 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShaftParticle;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
-import com.shatteredpixel.shatteredpixeldungeon.plants.Sungrass.Health;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
@@ -64,7 +62,7 @@ public class Sungrass extends Plant {
 	
 	public static class Seed extends Plant.Seed {
 		{
-			image = ItemSpriteSheet.SEED_SUNGRASS;
+			setImage(ItemSpriteSheet.SEED_SUNGRASS);
 
 			plantClass = Sungrass.class;
 

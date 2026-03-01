@@ -8,14 +8,14 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Random;
 
-import network.Multiplayer;
-
 import java.util.ArrayList;
+
+import network.Multiplayer;
 
 public class TrapMechanism extends Trinket {
 
 	{
-		image = ItemSpriteSheet.TRAP_MECHANISM;
+		setImage(ItemSpriteSheet.TRAP_MECHANISM);
 	}
 
 	@Override
@@ -28,32 +28,40 @@ public class TrapMechanism extends Trinket {
 		Hero viewer = Multiplayer.localHero();
 		int level = isIdentified() ? buffedLvl() : 0;
 		return Messages.get(this, "stats_desc",
-				(int)(100 * overrideNormalLevelChance(level, viewer)),
-				(int)(100 * revealHiddenTrapChance(level, viewer)));
+				(int)(100 * overrideNormalLevelChance( )),
+				(int)(100 * revealHiddenTrapChance( )));
 	}
 
 	// Версии с героем для использования в логике
-	public static float overrideNormalLevelChance(int level, Hero hero) {
-		if (hero == null) return 0f;
-		int lvl = trinketLevel(TrapMechanism.class, hero);
+	public static float overrideNormalLevelChance() {
+		int lvl = -1;
+		for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+			lvl = trinketLevel(TrapMechanism.class, player.hero);
+			if (lvl != -1) break;
+		}
 		if (lvl == -1) return 0f;
 		return 0.25f + 0.25f * lvl;
 	}
 
-	public static float revealHiddenTrapChance(int level, Hero hero) {
-		if (hero == null) return 0f;
-		int lvl = trinketLevel(TrapMechanism.class, hero);
+	public static float revealHiddenTrapChance() {
+		int lvl = -1;
+		for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+			lvl = trinketLevel(TrapMechanism.class, player.hero);
+			if (lvl != -1) break;
+		}
 		if (lvl == -1) return 0f;
 		return 0.1f + 0.1f * lvl;
 	}
 
 	// Метод для получения ощущения уровня (используется при генерации)
-	public static Level.Feeling getNextFeeling(Hero hero) {
-		if (hero == null) return Level.Feeling.NONE;
-		TrapMechanism mech = hero.belongings.getItem(TrapMechanism.class);
-		if (mech == null) {
-			return Level.Feeling.NONE;
+	public static Level.Feeling getNextFeeling() {
+		TrapMechanism mech = null;
+		for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+			mech = player.hero.belongings.getItem(TrapMechanism.class);
+			if (mech != null) break;
 		}
+
+		if (mech == null) return Level.Feeling.NONE;
 		if (mech.levelFeels.isEmpty()){
 			Random.pushGenerator(Dungeon.seed+1);
 				mech.levelFeels.add(true);
@@ -73,7 +81,7 @@ public class TrapMechanism extends Trinket {
 	}
 
 	// true для traps, false для chasm
-	private ArrayList<Boolean> levelFeels = new ArrayList<>();
+	private final ArrayList<Boolean> levelFeels = new ArrayList<>();
 	private int shuffles = 0;
 
 	private static final String FEELS = "feels";

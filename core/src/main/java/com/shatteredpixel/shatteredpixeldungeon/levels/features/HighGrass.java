@@ -92,7 +92,7 @@ public class HighGrass {
 				if (ch instanceof Hero && ((Hero) ch).hasTalent(Talent.NATURES_BOUNTY)){
 					int berriesAvailable = 2 + 2*((Hero) ch).pointsInTalent(Talent.NATURES_BOUNTY);
 
-					Talent.NatureBerriesDropped dropped = Buff.affect(ch, Talent.NatureBerriesDropped.class);
+					Talent.NatureBerriesDropped dropped = Buff.affect(ch, Talent.NatureBerriesDropped.class, null);
 					berriesAvailable -= dropped.count();
 
 					if (berriesAvailable > 0) {
@@ -132,10 +132,10 @@ public class HighGrass {
 				float lootChance = 1/(25f - naturalismLevel*4f);
 
 				// absolute max drop rate is ~1/6.5 with footwear of nature, ~1/18 without
-				lootChance *= PetrifiedSeed.grassLootMultiplier();
+				lootChance *= PetrifiedSeed.grassLootMultiplier(((Hero) ch));
 
 				if (Random.Float() < lootChance) {
-					if (Random.Float() < PetrifiedSeed.stoneInsteadOfSeedChance()) {
+					if (Random.Float() < PetrifiedSeed.stoneInsteadOfSeedChance(((Hero) ch))) {
 						level.drop(Generator.randomUsingDefaults(Generator.Category.STONE), pos).sprite.drop();
 					} else {
 						level.drop(Generator.random(Generator.Category.SEED), pos).sprite.drop();

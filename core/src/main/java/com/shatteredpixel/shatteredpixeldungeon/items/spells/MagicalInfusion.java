@@ -1,24 +1,3 @@
-/*
- * Pixel Dungeon
- * Copyright (C) 2012-2015 Oleg Dolya
- *
- * Shattered Pixel Dungeon
- * Copyright (C) 2014-2025 Evan Debenham
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>
- */
-
 package com.shatteredpixel.shatteredpixeldungeon.items.spells;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
@@ -26,6 +5,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Degrade;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
@@ -41,13 +21,13 @@ import com.shatteredpixel.shatteredpixeldungeon.windows.WndUpgrade;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Random;
 
+import network.Multiplayer;
+
 public class MagicalInfusion extends InventorySpell {
-	
+
 	{
-		image = ItemSpriteSheet.MAGIC_INFUSE;
-
+		setImage(ItemSpriteSheet.MAGIC_INFUSE);
 		unique = true;
-
 		talentFactor = 2;
 	}
 
@@ -57,35 +37,34 @@ public class MagicalInfusion extends InventorySpell {
 	}
 
 	@Override
-	protected void onItemSelected( Item item ) {
-
-		GameScene.show(new WndUpgrade(this, item, false));
-
+	protected void onItemSelected(Item item, Hero hero) {
+		GameScene.show(new WndUpgrade(this, item, hero, false));
 	}
 
-	public void reShowSelector(){
-		curItem = this;
-		GameScene.selectItem(itemSelector);
+	public void reShowSelector(Hero hero) {
+		GameScene.selectItem(new InventorySpellSelector(this, hero));
 	}
 
-	public void useAnimation(){
-		curUser.spend(1f);
-		curUser.busy();
-		(curUser.sprite).operate(curUser.pos);
+	public void useAnimation(Hero hero) {
+		hero.spend(1f);
+		hero.busy();
+		hero.sprite.operate(hero.pos);
 
 		Sample.INSTANCE.play(Assets.Sounds.READ);
-		Invisibility.dispel();
+		Invisibility.dispel(hero);
 
-		Catalog.countUse(curItem.getClass());
-		if (Random.Float() < ((Spell) curItem).talentChance) {
-			Talent.onScrollUsed(curUser, curUser.pos, ((Spell) curItem).talentFactor, getClass());
+		if (hero == Multiplayer.localHero()) {
+			Catalog.countUse(getClass());
+			if (Random.Float() < talentChance) {
+				Talent.onScrollUsed(hero, hero.pos, talentFactor, getClass());
+			}
 		}
 	}
 
-	public Item upgradeItem( Item item ){
-		ScrollOfUpgrade.upgrade(curUser);
+	public Item upgradeItem(Item item, Hero hero) {
+		ScrollOfUpgrade.upgrade(hero);
 
-		Degrade.detach( curUser, Degrade.class );
+		Degrade.detach(hero, Degrade.class);
 
 		if (item instanceof Weapon && ((Weapon) item).enchantment != null) {
 			item = ((Weapon) item).upgrade(true);
@@ -99,16 +78,16 @@ public class MagicalInfusion extends InventorySpell {
 			if (wasCurseInfused) ((Wand) item).curseInfusionBonus = true;
 		}
 
-		GLog.p( Messages.get(this, "infuse") );
-		Badges.validateItemLevelAquired(item);
-
-		Catalog.countUse(item.getClass());
-
-		Statistics.upgradesUsed++;
+		if (hero == Multiplayer.localHero()) {
+			Catalog.countUse(item.getClass());
+			Statistics.upgradesUsed++;
+			GLog.p(Messages.get(this, "infuse"));
+			Badges.validateItemLevelAquired(item);
+		}
 
 		return item;
 	}
-	
+
 	@Override
 	public int value() {
 		return 60 * quantity;
@@ -118,18 +97,14 @@ public class MagicalInfusion extends InventorySpell {
 	public int energyVal() {
 		return 12 * quantity;
 	}
-	
+
 	public static class Recipe extends com.shatteredpixel.shatteredpixeldungeon.items.Recipe.SimpleRecipe {
-		
 		{
-			inputs =  new Class[]{ScrollOfUpgrade.class};
+			inputs = new Class[]{ScrollOfUpgrade.class};
 			inQuantity = new int[]{1};
-			
 			cost = 12;
-			
 			output = MagicalInfusion.class;
 			outQuantity = 1;
 		}
-		
 	}
 }

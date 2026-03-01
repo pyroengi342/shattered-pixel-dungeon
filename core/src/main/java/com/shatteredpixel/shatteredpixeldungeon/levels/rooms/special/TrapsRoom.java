@@ -157,7 +157,7 @@ public class TrapsRoom extends SpecialRoom {
 	}
 
 	@SuppressWarnings("unchecked")
-	private static Class<?extends Trap>[][] levelTraps = new Class[][]{
+	private static final Class<?extends Trap>[][] levelTraps = new Class[][]{
 			//sewers
 			{GrippingTrap.class, TeleportationTrap.class, FlockTrap.class},
 			//prison

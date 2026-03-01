@@ -125,8 +125,7 @@ public enum Holiday {
 		int lunarNewYearDayOfYear;
 		switch (year){
 			//yes, I really did hardcode this all the way from 2020 to 2100
-			default:   lunarNewYearDayOfYear = 31+5; break;     //defaults to February 5th
-			case 2020: lunarNewYearDayOfYear = 25; break;       //January 25th
+            case 2020: lunarNewYearDayOfYear = 25; break;       //January 25th
 			case 2021: lunarNewYearDayOfYear = 31+12; break;    //February 12th
 			case 2022: lunarNewYearDayOfYear = 31+1; break;     //February 1st
 			case 2023: lunarNewYearDayOfYear = 22; break;       //January 22nd
@@ -207,7 +206,10 @@ public enum Holiday {
 			case 2098: lunarNewYearDayOfYear = 31+1; break;     //February 1st
 			case 2099: lunarNewYearDayOfYear = 21; break;       //January 21st
 			case 2100: lunarNewYearDayOfYear = 31+9; break;     //February 9th
-		}
+            default:
+                lunarNewYearDayOfYear = 31+5;
+                break;     //defaults to February 5th
+        }
 
 		//celebrate for 7 days total, with Lunar New Year on the 5th day
 		return dayOfYear >= lunarNewYearDayOfYear-4 && dayOfYear <= lunarNewYearDayOfYear+2;

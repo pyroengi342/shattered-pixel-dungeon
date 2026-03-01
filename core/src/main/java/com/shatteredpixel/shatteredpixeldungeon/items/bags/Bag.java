@@ -18,7 +18,7 @@ public class Bag extends Item implements Iterable<Item> {
     public static final String AC_OPEN = "OPEN";
 
     {
-        image = 11;
+        setImage(11);
         defaultAction = AC_OPEN;
         unique = true;
     }

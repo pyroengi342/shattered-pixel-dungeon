@@ -33,7 +33,7 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 public class PotionOfMindVision extends Potion {
 
 	{
-		icon = ItemSpriteSheet.Icons.POTION_MINDVIS;
+		setIcon(ItemSpriteSheet.Icons.POTION_MINDVIS);
 	}
 
 	@Override

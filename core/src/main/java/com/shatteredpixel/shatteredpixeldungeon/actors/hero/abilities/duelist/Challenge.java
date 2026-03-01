@@ -39,6 +39,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.NPC;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
+import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClassArmor;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -90,7 +91,7 @@ public class Challenge extends ArmorAbility {
 		}
 
 		Char targetCh = Actor.findChar(target);
-		if (targetCh == null || !hero[target]){
+		if (targetCh == null || !hero.fieldOfView[target]){
 			GLog.w(Messages.get(this, "no_target"));
 			return;
 		}
@@ -181,7 +182,7 @@ public class Challenge extends ArmorAbility {
 		Sample.INSTANCE.play(Assets.Sounds.DESCEND);
 
 		armor.charge -= chargeUse( hero );
-		armor.updateQuickslot();
+		Item.updateQuickslot();
 		Invisibility.dispel(hero);
 		hero.sprite.zap(target);
 
@@ -197,9 +198,9 @@ public class Challenge extends ArmorAbility {
 		return new Talent[]{Talent.CLOSE_THE_GAP, Talent.INVIGORATING_VICTORY, Talent.ELIMINATION_MATCH, Talent.HEROIC_ENERGY};
 	}
 
-	public static class EliminationMatchTracker extends FlavourBuff{};
+	public static class EliminationMatchTracker extends FlavourBuff{}
 
-	public static class DuelParticipant extends Buff {
+    public static class DuelParticipant extends Buff {
 
 		public static float DURATION = 10f;
 
@@ -272,11 +273,11 @@ public class Challenge extends ArmorAbility {
                         //heals for 30%/50%/65%/75% of taken damage plus 5/10/15/20 bonus, based on talent points
                         hpToHeal = (int)Math.round(hpToHeal * (1f - Math.pow(0.707f, ((Hero) target).pointsInTalent(Talent.INVIGORATING_VICTORY))));
                         hpToHeal += 5 * ((Hero) target).pointsInTalent(Talent.INVIGORATING_VICTORY);
-                        hpToHeal = Math.min(hpToHeal, ((Hero) target).HT - ((Hero) target).HP);
+                        hpToHeal = Math.min(hpToHeal, target.HT - ((Hero) target).HP);
                         if (hpToHeal > 0){
-                            ((Hero) target).HP += hpToHeal;
-                            ((Hero) target).sprite.emitter().start( Speck.factory( Speck.HEALING ), 0.33f, 6 );
-                            ((Hero) target).sprite.showStatusWithIcon( CharSprite.POSITIVE, Integer.toString(hpToHeal), FloatingText.HEALING );
+                            target.HP += hpToHeal;
+                            target.sprite.emitter().start( Speck.factory( Speck.HEALING ), 0.33f, 6 );
+                            target.sprite.showStatusWithIcon( CharSprite.POSITIVE, Integer.toString(hpToHeal), FloatingText.HEALING );
                         }
                     }
                 }

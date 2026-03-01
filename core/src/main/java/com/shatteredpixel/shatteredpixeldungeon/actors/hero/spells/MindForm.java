@@ -84,7 +84,7 @@ public class MindForm extends ClericSpell {
 	//TODO selecting
 	public static class targetSelector extends CellSelector.Listener {
 		private Bundlable effect;
-        private Hero hero; // добавляем поле для хранения героя
+        private final Hero hero; // добавляем поле для хранения героя
         // Конструктор для инициализации героя
         public targetSelector(Hero hero) {
             this.hero = hero;
@@ -143,7 +143,7 @@ public class MindForm extends ClericSpell {
 					wand.fx(shot, new Callback() {
 						public void call() {
 							wand.onZap(shot);
-							if (Random.Float() < WondrousResin.extraCurseEffectChance()){
+							if (Random.Float() < WondrousResin.extraCurseEffectChance(hero)){
 								WondrousResin.forcePositive = true;
 								CursedWand.cursedZap(wand,
                                         hero,

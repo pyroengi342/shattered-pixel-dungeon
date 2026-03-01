@@ -18,20 +18,20 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.ActionIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
-import com.watabou.utils.BArray;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.BitmapText;
 import com.watabou.noosa.Image;
 import com.watabou.noosa.Visual;
+import com.watabou.utils.BArray;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.PathFinder;
-
-import network.AudioWrapper;
-import network.Multiplayer;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
+import network.AudioWrapper;
+import network.Multiplayer;
 
 public class Preparation extends Buff implements ActionIndicator.Action {
 	
@@ -259,7 +259,7 @@ public class Preparation extends Buff implements ActionIndicator.Action {
 		GameScene.selectCell(attack);
 	}
 	
-	private CellSelector.Listener attack = new CellSelector.Listener() {
+	private final CellSelector.Listener attack = new CellSelector.Listener() {
 		
 		@Override
 		public void onSelect(Integer cell) {

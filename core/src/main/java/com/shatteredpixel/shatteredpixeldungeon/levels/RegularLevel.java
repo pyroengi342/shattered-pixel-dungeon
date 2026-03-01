@@ -33,6 +33,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.SacrificialFire;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.EbonyMimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.GoldenMimic;
@@ -94,6 +95,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+
+import network.Multiplayer;
 
 public abstract class RegularLevel extends Level {
 	
@@ -322,21 +325,13 @@ public abstract class RegularLevel extends Level {
 	public int randomRespawnCell( Char ch ) {
 		int count = 0;
 		int cell = -1;
-
 		while (true) {
-
-			if (++count > 30) {
-				return -1;
-			}
-
-			Room room = randomRoom( StandardRoom.class );
-			if (room == null || room == roomEntrance) {
-				continue;
-			}
-
+			if (++count > 30) return -1;
+			Room room = randomRoom(StandardRoom.class);
+			if (room == null || room == roomEntrance) continue;
 			cell = pointToCell(room.random(1));
-			if (!heroFOV[cell]
-					&& Actor.findChar( cell ) == null
+			if (!Multiplayer.isVisibleToAnyHero(cell)           // <-- замена heroFOV
+					&& Actor.findChar(cell) == null
 					&& passable[cell]
 					&& !solid[cell]
 					&& (!Char.hasProp(ch, Char.Property.LARGE) || openSpace[cell])
@@ -344,7 +339,6 @@ public abstract class RegularLevel extends Level {
 					&& cell != exit()) {
 				return cell;
 			}
-
 		}
 	}
 	
@@ -509,7 +503,6 @@ public abstract class RegularLevel extends Level {
 		Random.pushGenerator( Random.Long() );
             // TODO for each hero we need to check this
             DriedRose rose = findItemInAllHeroes( DriedRose.class );
-			//DriedRose rose = Dungeon.hero.belongings.getItem( DriedRose.class );
 			if (rose != null && rose.isIdentified() && !rose.cursed && Ghost.Quest.completed()){
 				//aim to drop 1 petal every 2 floors
 				int petalsNeeded = (int) Math.ceil((float)((Dungeon.depth / 2) - rose.droppedPetals) / 3);
@@ -534,11 +527,13 @@ public abstract class RegularLevel extends Level {
 		//we increment dropped by 2 for compatibility with old saves, when the talent dropped 4/6 items
 		Random.pushGenerator( Random.Long() );
         // TODO for each hero we need to check this
-			if (hasAnyHeroTalent(Talent.CACHED_RATIONS)){
-				Talent.CachedRationsDropped dropped = Buff.affect(Dungeon.hero, Talent.CachedRationsDropped.class, Talent.CachedRationsDropped.class);
+		for (Multiplayer.PlayerInfo info : Multiplayer.Players.getAll()) {
+			Hero hero = info.hero;
+			if (hero != null && hero.isAlive() && hero.hasTalent(Talent.CACHED_RATIONS)) {
+				Talent.CachedRationsDropped dropped = Buff.affect(hero, Talent.CachedRationsDropped.class, Talent.CachedRationsDropped.class);
 				int targetFloor = (int)(2 + dropped.count());
 				if (dropped.count() > 4) targetFloor++;
-				if (Dungeon.depth >= targetFloor && dropped.count() < 2 + 2*Dungeon.hero.pointsInTalent(Talent.CACHED_RATIONS)){
+				if (Dungeon.depth >= targetFloor && dropped.count() < 2 + 2 * hero.pointsInTalent(Talent.CACHED_RATIONS)) {
 					int cell;
 					int tries = 100;
 					boolean valid;
@@ -558,6 +553,7 @@ public abstract class RegularLevel extends Level {
 						drop(new SupplyRation(), cell).type = Heap.Type.CHEST;
 						dropped.countUp(2);
 					}
+				}
 				}
 			}
 		Random.popGenerator();
@@ -598,13 +594,15 @@ public abstract class RegularLevel extends Level {
 
 				Document regionDoc;
 				switch( region ){
-					default: regionDoc = null; break;
-					case 1: regionDoc = Document.SEWERS_GUARD; break;
+                    case 1: regionDoc = Document.SEWERS_GUARD; break;
 					case 2: regionDoc = Document.PRISON_WARDEN; break;
 					case 3: regionDoc = Document.CAVES_EXPLORER; break;
 					case 4: regionDoc = Document.CITY_WARLOCK; break;
 					case 5: regionDoc = Document.HALLS_KING; break;
-				}
+                    default:
+                        regionDoc = null;
+                        break;
+                }
 
 				if (regionDoc != null && !regionDoc.allPagesFound()) {
 
@@ -697,7 +695,7 @@ public abstract class RegularLevel extends Level {
 
 	}
 
-	private static HashMap<Document, Dungeon.LimitedDrops> limitedDocs = new HashMap<>();
+	private static final HashMap<Document, Dungeon.LimitedDrops> limitedDocs = new HashMap<>();
 	static {
 		limitedDocs.put(Document.SEWERS_GUARD, Dungeon.LimitedDrops.LORE_SEWERS);
 		limitedDocs.put(Document.PRISON_WARDEN, Dungeon.LimitedDrops.LORE_PRISON);

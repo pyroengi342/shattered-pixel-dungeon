@@ -31,7 +31,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 public class Dirk extends MeleeWeapon {
 
 	{
-		image = ItemSpriteSheet.DIRK;
+		setImage(ItemSpriteSheet.DIRK);
 		hitSound = Assets.Sounds.HIT_STAB;
 		hitSoundPitch = 1f;
 
@@ -54,10 +54,10 @@ public class Dirk extends MeleeWeapon {
 				int diff = max() - min();
 				int damage = augment.damageFactor(Hero.heroDamageIntRange(
 						min() + Math.round(diff*0.67f),
-						max()));
+						max(), hero));
 				int exStr = hero.STR() - STRReq();
 				if (exStr > 0) {
-					damage += Hero.heroDamageIntRange(0, exStr);
+					damage += Hero.heroDamageIntRange(0, exStr, hero);
 				}
 				return damage;
 			}

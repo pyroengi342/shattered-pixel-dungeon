@@ -22,7 +22,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.items;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
@@ -44,7 +43,7 @@ import java.util.ArrayList;
 public class ArcaneResin extends Item {
 
 	{
-		image = ItemSpriteSheet.ARCANE_RESIN;
+		setImage(ItemSpriteSheet.ARCANE_RESIN);
 
 		stackable = true;
 

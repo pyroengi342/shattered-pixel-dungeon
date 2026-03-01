@@ -22,7 +22,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
@@ -39,7 +38,7 @@ import com.watabou.utils.Callback;
 public class RunicBlade extends MeleeWeapon {
 
 	{
-		image = ItemSpriteSheet.RUNIC_BLADE;
+		setImage(ItemSpriteSheet.RUNIC_BLADE);
 		hitSound = Assets.Sounds.HIT_SLASH;
 		hitSoundPitch = 1f;
 
@@ -122,6 +121,6 @@ public class RunicBlade extends MeleeWeapon {
 
 		public float boost = 2f;
 
-	};
+	}
 
 }

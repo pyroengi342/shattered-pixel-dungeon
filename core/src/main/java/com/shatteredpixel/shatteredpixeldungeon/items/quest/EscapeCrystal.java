@@ -46,7 +46,7 @@ import java.util.ArrayList;
 public class EscapeCrystal extends Item {
 
 	{
-		image = ItemSpriteSheet.ESCAPE;
+		setImage(ItemSpriteSheet.ESCAPE);
 
 		unique = true;
 

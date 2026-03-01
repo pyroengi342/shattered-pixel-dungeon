@@ -43,11 +43,11 @@ import java.util.LinkedHashMap;
 
 public class KeyDisplay extends Visual {
 	
-	private float[] vertices = new float[16];
+	private final float[] vertices = new float[16];
 	private FloatBuffer quads;
 	private Vertexbuffer buffer;
 	
-	private SmartTexture tx = TextureCache.get(Assets.Interfaces.MENU_BTN);
+	private final SmartTexture tx = TextureCache.get(Assets.Interfaces.MENU_BTN);
 	
 	private boolean dirty = true;
 	private int[] keys;

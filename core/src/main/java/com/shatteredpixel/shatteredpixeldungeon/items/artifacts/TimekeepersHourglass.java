@@ -54,14 +54,14 @@ import com.watabou.noosa.particles.Emitter;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Random;
 
-import network.Multiplayer;
-
 import java.util.ArrayList;
+
+import network.Multiplayer;
 
 public class TimekeepersHourglass extends Artifact {
 
 	{
-		image = ItemSpriteSheet.ARTIFACT_HOURGLASS;
+		setImage(ItemSpriteSheet.ARTIFACT_HOURGLASS);
 
 		levelCap = 5;
 
@@ -138,7 +138,7 @@ public class TimekeepersHourglass extends Artifact {
 								// Используем поле зрения текущего пользователя
 								for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
 									if (curUser.fieldOfView[mob.pos]) {
-										artifactProc(mob, visiblyUpgraded(), 1);
+										artifactProc(hero, mob, visiblyUpgraded(), 1);
 									}
 								}
 								if (Multiplayer.localHero() == curUser) {
@@ -301,7 +301,7 @@ public class TimekeepersHourglass extends Artifact {
 
 			if (super.attachTo(target)) {
 
-				Invisibility.dispel();
+				Invisibility.dispel(target);
 
 				int usedCharge = Math.min(charge, 2);
 				//buffs always act last, so the stasis buff should end a turn early.
@@ -512,7 +512,7 @@ public class TimekeepersHourglass extends Artifact {
 	public static class sandBag extends Item {
 
 		{
-			image = ItemSpriteSheet.SANDBAG;
+			setImage(ItemSpriteSheet.SANDBAG);
 		}
 
 		@Override

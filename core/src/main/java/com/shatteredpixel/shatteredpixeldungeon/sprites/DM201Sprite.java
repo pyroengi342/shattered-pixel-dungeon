@@ -43,7 +43,7 @@ public class DM201Sprite extends MobSprite {
 		int c = 12;
 
 		idle = new Animation( 2, true );
-		idle.frames( frames, c+0, c+1 );
+		idle.frames( frames, c, c+1 );
 
 		run = idle.clone();
 

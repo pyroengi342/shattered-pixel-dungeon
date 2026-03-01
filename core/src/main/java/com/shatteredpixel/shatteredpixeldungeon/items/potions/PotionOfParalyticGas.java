@@ -22,30 +22,26 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.potions;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.ParalyticGas;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
-import com.watabou.noosa.audio.Sample;
+
+import network.AudioWrapper;
 
 public class PotionOfParalyticGas extends Potion {
 
 	{
-		icon = ItemSpriteSheet.Icons.POTION_PARAGAS;
+		setIcon(ItemSpriteSheet.Icons.POTION_PARAGAS);
 	}
 
 	@Override
 	public void shatter( int cell ) {
 
 		splash( cell );
-				Hero local = Multiplayer.localHero();
-		if (local != null && local.fieldOfView != null && local.fieldOfView[cell]) {
-			identify();
-
-			Sample.INSTANCE.play( Assets.Sounds.SHATTER );
-			Sample.INSTANCE.play( Assets.Sounds.GAS );
-		}
+		identify();
+		AudioWrapper.play(Assets.Sounds.SHATTER, cell);
+		AudioWrapper.play( Assets.Sounds.GAS, cell );
 
 		GameScene.add( Blob.seed( cell, 1000, ParalyticGas.class ) );
 	}

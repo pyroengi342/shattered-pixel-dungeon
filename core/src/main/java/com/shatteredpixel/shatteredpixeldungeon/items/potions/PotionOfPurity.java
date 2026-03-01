@@ -32,14 +32,14 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.effects.SpellSprite;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
-import com.watabou.utils.BArray;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
-import com.watabou.noosa.audio.Sample;
+import com.watabou.utils.BArray;
 import com.watabou.utils.PathFinder;
 
-import network.Multiplayer;
-
 import java.util.ArrayList;
+
+import network.AudioWrapper;
+import network.Multiplayer;
 
 public class PotionOfPurity extends Potion {
 	
@@ -48,7 +48,7 @@ public class PotionOfPurity extends Potion {
 	private static ArrayList<Class> affectedBlobs;
 
 	{
-		icon = ItemSpriteSheet.Icons.POTION_PURITY;
+		setIcon(ItemSpriteSheet.Icons.POTION_PURITY);
 		
 		affectedBlobs = new ArrayList<>(new BlobImmunity().immunities());
 	}
@@ -83,13 +83,9 @@ public class PotionOfPurity extends Potion {
 
 
 		splash( cell );
-			Hero local = Multiplayer.localHero();
-			if (local != null && local.fieldOfView != null && local.fieldOfView[cell]) {
-			Sample.INSTANCE.play(Assets.Sounds.SHATTER);
-
-			identify();
-			GLog.i(Messages.get(this, "freshness"));
-		}
+		AudioWrapper.play(Assets.Sounds.SHATTER, cell);
+		identify();
+		GLog.i(Messages.get(this, "freshness"));
 		
 	}
 	

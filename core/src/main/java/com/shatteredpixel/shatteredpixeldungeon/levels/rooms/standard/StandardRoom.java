@@ -121,7 +121,7 @@ public abstract class StandardRoom extends Room {
 	}
 
 	//FIXME this is a very messy way of handing variable standard rooms
-	private static ArrayList<Class<?extends StandardRoom>> rooms = new ArrayList<>();
+	private static final ArrayList<Class<?extends StandardRoom>> rooms = new ArrayList<>();
 	static {
 		rooms.add(SewerPipeRoom.class);
 		rooms.add(RingRoom.class);
@@ -166,7 +166,7 @@ public abstract class StandardRoom extends Room {
 		rooms.add(MinefieldRoom.class);
 	}
 	
-	private static float[][] chances = new float[27][];
+	private static final float[][] chances = new float[27][];
 	static {
 		chances[1] =  new float[]{16,8,8,4,4,   0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,  1,0,1,0,1,0,1,1,0,0};
 		chances[2] =  new float[]{16,8,8,4,4,   0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,  1,1,1,1,1,1,1,1,1,1};

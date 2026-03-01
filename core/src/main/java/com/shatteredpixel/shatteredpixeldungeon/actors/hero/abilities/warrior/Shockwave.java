@@ -54,7 +54,7 @@ public class Shockwave extends ArmorAbility {
 	}
 
 	@Override
-	public String targetingPrompt() {
+	public String targetingPrompt(Hero hero) {
 		return Messages.get(this, "prompt");
 	}
 
@@ -114,7 +114,7 @@ public class Shockwave extends ArmorAbility {
 							Char ch = Actor.findChar(cell);
 							if (ch != null && ch.alignment != hero.alignment){
 								int scalingStr = hero.STR()-10;
-								int damage = Hero.heroDamageIntRange(5 + scalingStr, 10 + 2*scalingStr);
+								int damage = Hero.heroDamageIntRange(5 + scalingStr, 10 + 2*scalingStr, hero);
 								damage = Math.round(damage * (1f + 0.2f*hero.pointsInTalent(Talent.SHOCK_FORCE)));
 								damage -= ch.drRoll();
 
@@ -128,7 +128,7 @@ public class Shockwave extends ArmorAbility {
 									damage = hero.attackProc(ch, damage);
 									ch.damage(damage, hero);
 									if (hero.subClass == HeroSubClass.GLADIATOR && wasEnemy){
-										Buff.affect( hero, Combo.class ).hit( ch , this);
+										Buff.affect( hero, Combo.class, this ).hit( ch);
 									}
 								} else {
 									ch.damage(damage, hero);

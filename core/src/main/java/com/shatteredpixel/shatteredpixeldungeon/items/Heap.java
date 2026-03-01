@@ -52,12 +52,12 @@ import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundlable;
 import com.watabou.utils.Bundle;
 
-import network.Multiplayer;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
+
+import network.Multiplayer;
 
 public class Heap implements Bundlable {
 	
@@ -276,9 +276,7 @@ public class Heap implements Bundlable {
 
 		if (type != Type.HEAP) {
 
-			return;
-
-		} else {
+        } else {
 
 			for (Item item : items.toArray( new Item[0] )) {
 

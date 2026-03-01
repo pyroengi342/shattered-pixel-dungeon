@@ -22,7 +22,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero;
 
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.GamesInProgress;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.LostInventory;
 import com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem;
@@ -49,11 +48,11 @@ import java.util.Iterator;
 
 public class Belongings implements Iterable<Item> {
 
-	private Hero owner;
+	private final Hero owner;
 
 	public static class Backpack extends Bag {
 		{
-			image = ItemSpriteSheet.BACKPACK;
+			setImage(ItemSpriteSheet.BACKPACK);
 		}
 		public int capacity(){
 			int cap = super.capacity();
@@ -337,7 +336,7 @@ public class Belongings implements Iterable<Item> {
 	
 	public void observe() {
 		if (weapon() != null) {
-			if (ShardOfOblivion.passiveIDDisabled() && weapon() instanceof Weapon){
+			if (ShardOfOblivion.passiveIDDisabled(owner) && weapon() instanceof Weapon){
 				((Weapon) weapon()).setIDReady();
 			} else {
 				weapon().identify();
@@ -345,7 +344,7 @@ public class Belongings implements Iterable<Item> {
 			}
 		}
 		if (secondWep() != null){
-			if (ShardOfOblivion.passiveIDDisabled() && secondWep() instanceof Weapon){
+			if (ShardOfOblivion.passiveIDDisabled(owner) && secondWep() instanceof Weapon){
 				((Weapon) secondWep()).setIDReady();
 			} else {
 				secondWep().identify();
@@ -353,7 +352,7 @@ public class Belongings implements Iterable<Item> {
 			}
 		}
 		if (armor() != null) {
-			if (ShardOfOblivion.passiveIDDisabled()){
+			if (ShardOfOblivion.passiveIDDisabled(owner)){
 				armor().setIDReady();
 			} else {
 				armor().identify();
@@ -366,7 +365,7 @@ public class Belongings implements Iterable<Item> {
 			Badges.validateItemLevelAquired(artifact());
 		}
 		if (misc() != null) {
-			if (ShardOfOblivion.passiveIDDisabled() && misc() instanceof Ring){
+			if (ShardOfOblivion.passiveIDDisabled(owner) && misc() instanceof Ring){
 				((Ring) misc()).setIDReady();
 			} else {
 				misc().identify();
@@ -374,14 +373,14 @@ public class Belongings implements Iterable<Item> {
 			}
 		}
 		if (ring() != null) {
-			if (ShardOfOblivion.passiveIDDisabled()){
+			if (ShardOfOblivion.passiveIDDisabled(owner)){
 				ring().setIDReady();
 			} else {
 				ring().identify();
 				Badges.validateItemLevelAquired(ring());
 			}
 		}
-		if (ShardOfOblivion.passiveIDDisabled()){
+		if (ShardOfOblivion.passiveIDDisabled(owner)){
 			GLog.p(Messages.get(ShardOfOblivion.class, "identify_ready_worn"));
 		}
 		for (Item item : backpack) {
@@ -423,10 +422,10 @@ public class Belongings implements Iterable<Item> {
 
 		private int index = 0;
 		
-		private Iterator<Item> backpackIterator = backpack.iterator();
+		private final Iterator<Item> backpackIterator = backpack.iterator();
 		
-		private Item[] equipped = {weapon, armor, artifact, misc, ring, secondWep};
-		private int backpackIndex = equipped.length;
+		private final Item[] equipped = {weapon, armor, artifact, misc, ring, secondWep};
+		private final int backpackIndex = equipped.length;
 		
 		@Override
 		public boolean hasNext() {

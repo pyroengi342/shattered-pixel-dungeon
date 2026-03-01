@@ -21,7 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.effects.particles;
 
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap;
 import com.watabou.noosa.particles.Emitter;
 import com.watabou.noosa.particles.Emitter.Factory;
@@ -72,7 +71,7 @@ public class FlowParticle extends PixelParticle {
 
 	public static class Flow extends Emitter {
 		
-		private int pos;
+		private final int pos;
 		
 		public Flow( int pos ) {
 			super();

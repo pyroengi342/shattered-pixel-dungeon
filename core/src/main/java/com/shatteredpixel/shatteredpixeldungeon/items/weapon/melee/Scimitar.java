@@ -32,7 +32,7 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 public class Scimitar extends MeleeWeapon {
 
 	{
-		image = ItemSpriteSheet.SCIMITAR;
+		setImage(ItemSpriteSheet.SCIMITAR);
 		hitSound = Assets.Sounds.HIT_SLASH;
 		hitSoundPitch = 1.2f;
 

@@ -1,23 +1,20 @@
 package network;
 
+import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
-import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
+import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
-import com.watabou.utils.Bundle;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import static network.NetworkManager.getLocalPlayerId;
-import io.netty.channel.ChannelHandlerContext;
 
 public class Multiplayer {
     public static boolean isMultiplayer = false;
@@ -116,7 +113,9 @@ public class Multiplayer {
      * Returns the player you control via connection connectionID.
      */
     public static Hero localHero() {
-        return Players.get(getLocalPlayerId()).hero;
+        PlayerInfo info = Players.get(getLocalPlayerId());
+        if (info == null) return null;
+        return info.hero;
     }
 
     public static <T extends Item> T findItemInAllHeroes(Class<T> itemClass) {
@@ -148,13 +147,13 @@ public class Multiplayer {
         return result;
     }
 
-    public static boolean hasAnyHeroTalent(Talent talent) {
+    public static Hero hasAnyHeroTalent(Talent talent) {
             for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
                 if (player.hero != null && player.hero.isAlive() && player.hero.hasTalent(talent)) {
-                    return true;
+                    return player.hero;
                 }
             }
-            return false;
+            return null;
     }
 
     public static List<Integer> calculateHeroPositions(Level level, int basePos, int heroCount) {
@@ -258,6 +257,23 @@ public class Multiplayer {
         for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
             player.hero.interrupt();
         }
+    }
+    public static Item findItemById(long id) {
+        // Поиск в инвентарях всех героев
+        for (Multiplayer.PlayerInfo info : Multiplayer.Players.getAll()) {
+            Hero h = info.hero;
+            if (h == null) continue;
+            for (Item item : h.belongings) {
+                if (item.getItemID() == id) return item;
+            }
+        }
+        // Поиск в кучах на уровне
+        for (Heap heap : Dungeon.level.heaps.valueList()) {
+            for (Item item : heap.items) {
+                if (item.getItemID() == id) return item;
+            }
+        }
+        return null;
     }
 }
 

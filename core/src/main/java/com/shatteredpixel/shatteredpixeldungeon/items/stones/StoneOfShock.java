@@ -32,8 +32,8 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.Lightning;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.EnergyParticle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SparkParticle;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
-import com.watabou.utils.BArray;
 import com.watabou.noosa.audio.Sample;
+import com.watabou.utils.BArray;
 import com.watabou.utils.PathFinder;
 
 import java.util.ArrayList;
@@ -41,7 +41,7 @@ import java.util.ArrayList;
 public class StoneOfShock extends Runestone {
 	
 	{
-		image = ItemSpriteSheet.STONE_SHOCK;
+		setImage(ItemSpriteSheet.STONE_SHOCK);
 	}
 	
 	@Override

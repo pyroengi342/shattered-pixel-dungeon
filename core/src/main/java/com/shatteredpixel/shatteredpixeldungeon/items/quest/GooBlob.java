@@ -27,7 +27,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 public class GooBlob extends Item {
 	
 	{
-		image = ItemSpriteSheet.BLOB;
+		setImage(ItemSpriteSheet.BLOB);
 		stackable = true;
 	}
 	

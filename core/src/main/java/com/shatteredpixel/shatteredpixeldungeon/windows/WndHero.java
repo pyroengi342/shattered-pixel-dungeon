@@ -49,19 +49,19 @@ import com.watabou.noosa.Group;
 import com.watabou.noosa.Image;
 import com.watabou.noosa.ui.Component;
 
-import network.Multiplayer;
-
 import java.util.ArrayList;
 import java.util.Locale;
+
+import network.Multiplayer;
 
 public class WndHero extends WndTabbed {
 	
 	private static final int WIDTH		= 120;
 	private static final int HEIGHT		= 120;
 	
-	private StatsTab stats;
-	private TalentsTab talents;
-	private BuffsTab buffs;
+	private final StatsTab stats;
+	private final TalentsTab talents;
+	private final BuffsTab buffs;
 
 	public static int lastIdx = 0;
 
@@ -273,7 +273,7 @@ public class WndHero extends WndTabbed {
 		
 		private float pos;
 		private ScrollPane buffList;
-		private ArrayList<BuffSlot> slots = new ArrayList<>();
+		private final ArrayList<BuffSlot> slots = new ArrayList<>();
 
 		@Override
 		protected void createChildren() {
@@ -317,7 +317,7 @@ public class WndHero extends WndTabbed {
 
 		private class BuffSlot extends Component {
 
-			private Buff buff;
+			private final Buff buff;
 
 			Image icon;
 			RenderedTextBlock txt;

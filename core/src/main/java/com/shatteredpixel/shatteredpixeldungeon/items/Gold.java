@@ -39,7 +39,7 @@ import java.util.ArrayList;
 public class Gold extends Item {
 
 	{
-		image = ItemSpriteSheet.GOLD;
+		setImage(ItemSpriteSheet.GOLD);
 		stackable = true;
 	}
 	

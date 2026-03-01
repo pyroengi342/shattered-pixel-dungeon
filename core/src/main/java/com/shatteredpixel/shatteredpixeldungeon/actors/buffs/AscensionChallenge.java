@@ -71,7 +71,7 @@ import network.Multiplayer;
 
 public class AscensionChallenge extends Buff {
 
-	private static HashMap<Class<?extends Mob>, Float> modifiers = new HashMap<>();
+	private static final HashMap<Class<?extends Mob>, Float> modifiers = new HashMap<>();
 	static {
 		modifiers.put(Rat.class,            10f);
 		modifiers.put(Snake.class,          9f);
@@ -440,5 +440,5 @@ public class AscensionChallenge extends Buff {
 
         return maxChallenge;
     }
-	public static class AscensionBuffBlocker extends Buff{};
+	public static class AscensionBuffBlocker extends Buff{}
 }

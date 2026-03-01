@@ -21,7 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.items.artifacts;
 
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Blindness;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
@@ -147,26 +146,25 @@ public class Artifact extends KindofMisc {
 		cooldown = 0;
 	}
 
-	public static void artifactProc(Char target, int artifLevel, int chargesUsed){
-		if (curUser.subClass == HeroSubClass.PRIEST && target.buff(GuidingLight.Illuminated.class) != null) {
+	public static void artifactProc(Hero owner, Char target, int artifLevel, int chargesUsed){
+		if (owner.subClass == HeroSubClass.PRIEST && target.buff(GuidingLight.Illuminated.class) != null) {
 			target.buff(GuidingLight.Illuminated.class).detach();
-			target.damage(5+curUser.lvl, GuidingLight.INSTANCE);
+			target.damage(5 + owner.lvl, GuidingLight.INSTANCE);
 		}
 
 		if (target.alignment != Char.Alignment.ALLY
-				&& curUser.heroClass != HeroClass.CLERIC
-				&& curUser.hasTalent(Talent.SEARING_LIGHT)
-				&& curUser.buff(Talent.SearingLightCooldown.class) == null){
-			Buff.affect(target, GuidingLight.Illuminated.class, this);
-			Buff.affect(curUser, Talent.SearingLightCooldown.class, 20f);
+				&& owner.heroClass != HeroClass.CLERIC
+				&& owner.hasTalent(Talent.SEARING_LIGHT)
+				&& owner.buff(Talent.SearingLightCooldown.class) == null) {
+			Buff.affect(target, GuidingLight.Illuminated.class, owner);
+			Buff.affect(owner, Talent.SearingLightCooldown.class, 20f);
 		}
 
 		if (target.alignment != Char.Alignment.ALLY
-				&& curUser.heroClass != HeroClass.CLERIC
-				&& curUser.hasTalent(Talent.SUNRAY)){
-			// 15/25% chance
-			if (Random.Int(20) < 1 + 2*curUser.pointsInTalent(Talent.SUNRAY)){
-				Buff.prolong(target, Blindness.class, 4f, this);
+				&& owner.heroClass != HeroClass.CLERIC
+				&& owner.hasTalent(Talent.SUNRAY)) {
+			if (Random.Int(20) < 1 + 2 * owner.pointsInTalent(Talent.SUNRAY)) {
+				Buff.prolong(target, Blindness.class, 4f, owner);
 			}
 		}
 	}

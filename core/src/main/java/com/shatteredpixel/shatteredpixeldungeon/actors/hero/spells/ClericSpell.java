@@ -21,9 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.spells;
 
-import static network.NetworkManager.getLocalPlayerId;
-
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
@@ -38,8 +35,6 @@ import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
 
 import java.util.ArrayList;
-
-import network.Multiplayer;
 
 public abstract class ClericSpell {
 

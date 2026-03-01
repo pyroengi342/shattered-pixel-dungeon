@@ -60,6 +60,8 @@ import com.watabou.utils.ColorMath;
 import com.watabou.utils.PointF;
 import com.watabou.utils.Random;
 
+import network.Multiplayer;
+
 public class SewerLevel extends RegularLevel {
 
 	{
@@ -245,7 +247,7 @@ public class SewerLevel extends RegularLevel {
 	
 	private static class Sink extends Emitter {
 		
-		private int pos;
+		private final int pos;
 		private float rippleDelay = 0;
 		
 		private static final Emitter.Factory factory = new Factory() {
@@ -272,7 +274,7 @@ public class SewerLevel extends RegularLevel {
 		public void update() {
 			Hero local = Multiplayer.localHero();
     		boolean[] fov = (local != null) ? local.fieldOfView : null;
-			if (visible = (fov != null && pos >= 0 && pos < fov.length && fov[pos])) {
+			if (fov != null && pos >= 0 && pos < fov.length && fov[pos]) {
 				
 				super.update();
 				

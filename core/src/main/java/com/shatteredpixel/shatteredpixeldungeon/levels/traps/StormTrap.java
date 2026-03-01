@@ -27,11 +27,15 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Electricity;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
-import com.watabou.utils.BArray;
 import com.watabou.noosa.audio.Sample;
+import com.watabou.utils.BArray;
 import com.watabou.utils.PathFinder;
+
+import network.AudioWrapper;
+import network.Multiplayer;
 
 public class StormTrap extends Trap {
 	
@@ -43,10 +47,8 @@ public class StormTrap extends Trap {
 	@Override
 	public void activate() {
 		
-				Hero local = Multiplayer.localHero();
-		if (local != null && local.fieldOfView != null && local.fieldOfView[pos]) {
-			Sample.INSTANCE.play( Assets.Sounds.LIGHTNING );
-		}
+
+		AudioWrapper.play( Assets.Sounds.LIGHTNING, pos );
 		
 		PathFinder.buildDistanceMap( pos, BArray.not( Dungeon.level.solid, null ), 2 );
 		for (int i = 0; i < PathFinder.distance.length; i++) {

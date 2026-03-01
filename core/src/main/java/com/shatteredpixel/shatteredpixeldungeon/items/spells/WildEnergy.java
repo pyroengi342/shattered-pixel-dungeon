@@ -42,7 +42,7 @@ import java.util.ArrayList;
 public class WildEnergy extends TargetedSpell {
 	
 	{
-		image = ItemSpriteSheet.WILD_ENERGY;
+		setImage(ItemSpriteSheet.WILD_ENERGY);
 
 		usesTargeting = true;
 
@@ -51,8 +51,8 @@ public class WildEnergy extends TargetedSpell {
 	
 	//we rely on cursedWand to do fx instead
 	@Override
-	protected void fx(Ballistica bolt, Callback callback) {
-		CursedWand.cursedZap(this, curUser, bolt, callback);
+	protected void fx(Hero hero, Ballistica bolt, Callback callback) {
+		CursedWand.cursedZap(this, hero, bolt, callback);
 	}
 	
 	@Override
@@ -68,7 +68,7 @@ public class WildEnergy extends TargetedSpell {
 		Buff.affect(hero, Recharging.class, 8f);
 		Buff.affect(hero, ArtifactRecharge.class, this).extend( 8).ignoreHornOfPlenty = false;
 
-		onSpellused();
+		onSpellUsed(curUser);
 	}
 	
 	@Override

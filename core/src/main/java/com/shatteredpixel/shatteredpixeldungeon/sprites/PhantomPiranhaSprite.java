@@ -46,10 +46,10 @@ public class PhantomPiranhaSprite extends MobSprite {
 		int c = 21;
 
 		idle = new MovieClip.Animation( 8, true );
-		idle.frames( frames, c+0, c+1, c+2, c+1 );
+		idle.frames( frames, c, c+1, c+2, c+1 );
 
 		run = new MovieClip.Animation( 20, true );
-		run.frames( frames, c+0, c+1, c+2, c+1 );
+		run.frames( frames, c, c+1, c+2, c+1 );
 
 		attack = new MovieClip.Animation( 20, false );
 		attack.frames( frames, c+3, c+4, c+5, c+6, c+7, c+8, c+9, c+10, c+11 );

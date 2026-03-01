@@ -33,7 +33,7 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 public class Quarterstaff extends MeleeWeapon {
 
 	{
-		image = ItemSpriteSheet.QUARTERSTAFF;
+		setImage(ItemSpriteSheet.QUARTERSTAFF);
 		hitSound = Assets.Sounds.HIT_CRUSH;
 		hitSoundPitch = 1f;
 

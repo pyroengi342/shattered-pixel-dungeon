@@ -1,29 +1,10 @@
-/*
- * Pixel Dungeon
- * Copyright (C) 2012-2015 Oleg Dolya
- *
- * Shattered Pixel Dungeon
- * Copyright (C) 2014-2025 Evan Debenham
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>
- */
-
+// ScrollOfChallenge.java
 package com.shatteredpixel.shatteredpixeldungeon.items.scrolls.exotic;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
@@ -32,45 +13,41 @@ import com.shatteredpixel.shatteredpixeldungeon.mechanics.ShadowCaster;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
-import com.watabou.utils.BArray;
 import com.watabou.noosa.Image;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.noosa.particles.Emitter;
+import com.watabou.utils.BArray;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Point;
 
 import java.util.ArrayList;
 
+import network.Multiplayer;
+
 public class ScrollOfChallenge extends ExoticScroll {
-	
+
 	{
-		icon = ItemSpriteSheet.Icons.SCROLL_CHALLENGE;
+		setIcon(ItemSpriteSheet.Icons.SCROLL_CHALLENGE);
 	}
-	
+
 	@Override
-	public void doRead() {
-
-		detach(curUser.belongings.backpack);
-		for (Mob mob : Dungeon.level.mobs.toArray( new Mob[0] )) {
-			mob.beckon( curUser.pos );
+	public void doRead(Hero hero) {
+		detach(hero.belongings.backpack);
+		for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
+			mob.beckon(hero.pos);
 		}
-
-		Buff.affect(curUser, ChallengeArena.class, this).setup(curUser.pos);
-
-		identify();
-		
-		curUser.sprite.centerEmitter().start( Speck.factory( Speck.SCREAM ), 0.3f, 3 );
-		Sample.INSTANCE.play( Assets.Sounds.CHALLENGE );
-		
-		readAnimation();
+		Buff.affect(hero, ChallengeArena.class, this).setup(hero.pos);
+		identify(true);
+		hero.sprite.centerEmitter().start(Speck.factory(Speck.SCREAM), 0.3f, 3);
+		Sample.INSTANCE.play(Assets.Sounds.CHALLENGE);
+		readAnimation(hero);
 	}
-
 
 	public static class ChallengeArena extends Buff {
 
-		private ArrayList<Integer> arenaPositions = new ArrayList<>();
-		private ArrayList<Emitter> arenaEmitters = new ArrayList<>();
+		private final ArrayList<Integer> arenaPositions = new ArrayList<>();
+		private final ArrayList<Emitter> arenaEmitters = new ArrayList<>();
 
 		private static final float DURATION = 100;
 		int left = 0;
@@ -105,12 +82,10 @@ public class ScrollOfChallenge extends ExoticScroll {
 		}
 
 		public void setup(int pos){
-
 			int dist;
 			if (Dungeon.depth == 5 || Dungeon.depth == 10 || Dungeon.depth == 20){
-				dist = 1; //smaller boss arenas
+				dist = 1;
 			} else {
-
 				boolean[] visibleCells = new boolean[Dungeon.level.length()];
 				Point c = Dungeon.level.cellToPoint(pos);
 				ShadowCaster.castShadow(c.x, c.y, Dungeon.level.width(), visibleCells, Dungeon.level.losBlocking, 8);
@@ -118,7 +93,6 @@ public class ScrollOfChallenge extends ExoticScroll {
 				for (boolean b : visibleCells){
 					if (b) count++;
 				}
-
 				if (count < 30){
 					dist = 1;
 				} else if (count >= 100) {
@@ -128,7 +102,7 @@ public class ScrollOfChallenge extends ExoticScroll {
 				}
 			}
 
-			PathFinder.buildDistanceMap( pos, BArray.or( Dungeon.level.passable, Dungeon.level.avoid, null ), dist );
+			PathFinder.buildDistanceMap(pos, BArray.or(Dungeon.level.passable, Dungeon.level.avoid, null), dist);
 			for (int i = 0; i < PathFinder.distance.length; i++) {
 				if (PathFinder.distance[i] < Integer.MAX_VALUE && !arenaPositions.contains(i)) {
 					arenaPositions.add(i);
@@ -138,34 +112,31 @@ public class ScrollOfChallenge extends ExoticScroll {
 				fx(false);
 				fx(true);
 			}
-
 			left = (int) DURATION;
-
 		}
 
-		public void extend( float duration ) {
+		public void extend(float duration) {
 			left += duration;
 		}
 
 		@Override
 		public boolean act() {
-
 			if (!arenaPositions.contains(target.pos)){
 				detach();
 			}
-
 			left--;
 			BuffIndicator.refreshHero();
 			if (left <= 0){
 				detach();
 			}
-
 			spend(TICK);
 			return true;
 		}
 
 		@Override
 		public void fx(boolean on) {
+			// Показываем эмиттеры только локальному игроку
+			if (target != Multiplayer.localHero()) return;
 			if (on){
 				for (int i : arenaPositions){
 					Emitter e = CellEmitter.get(i);
@@ -186,26 +157,21 @@ public class ScrollOfChallenge extends ExoticScroll {
 		@Override
 		public void storeInBundle(Bundle bundle) {
 			super.storeInBundle(bundle);
-
 			int[] values = new int[arenaPositions.size()];
 			for (int i = 0; i < values.length; i ++)
 				values[i] = arenaPositions.get(i);
 			bundle.put(ARENA_POSITIONS, values);
-
 			bundle.put(LEFT, left);
 		}
 
 		@Override
 		public void restoreFromBundle(Bundle bundle) {
 			super.restoreFromBundle(bundle);
-
-			int[] values = bundle.getIntArray( ARENA_POSITIONS );
+			int[] values = bundle.getIntArray(ARENA_POSITIONS);
 			for (int value : values) {
 				arenaPositions.add(value);
 			}
-
 			left = bundle.getInt(LEFT);
 		}
 	}
-	
 }

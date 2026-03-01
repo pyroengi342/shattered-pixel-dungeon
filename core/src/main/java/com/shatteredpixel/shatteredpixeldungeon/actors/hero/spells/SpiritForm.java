@@ -21,8 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.spells;
 
-import static network.NetworkManager.getLocalPlayerId;
-
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
@@ -68,8 +66,6 @@ import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
 import java.util.ArrayList;
-
-import network.Multiplayer;
 
 public class SpiritForm extends ClericSpell {
 
@@ -253,7 +249,7 @@ public class SpiritForm extends ClericSpell {
             hero.spendAndNext(1f);
 
 		} else if (effect instanceof UnstableSpellbook){
-			((UnstableSpellbook) effect).doReadEffect(hero);
+			((UnstableSpellbook) effect).performReadEffect(hero);
 
 		} else if (effect instanceof SkeletonKey){
 			GameScene.selectCell(((SkeletonKey) effect).targeter);

@@ -21,8 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs;
 
-import static network.NetworkManager.getLocalPlayerId;
-
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
@@ -207,8 +205,7 @@ public class Shopkeeper extends NPC {
         if (item.value() <= 0)                                              return false;
         if (item.unique && !item.stackable)                                 return false;
         if (item instanceof Armor && ((Armor) item).checkSeal() != null)    return false;
-        if (item.isEquipped(hero) && item.cursed)                           return false;
-        return true;
+        return !item.isEquipped(hero) || !item.cursed;
     }
 
     // Теперь sell принимает героя и создаёт селектор с ним
@@ -268,7 +265,7 @@ public class Shopkeeper extends NPC {
 							Dungeon.gold -= returned.value();
 							Statistics.goldCollected -= returned.value();
 							if (returned instanceof MissileWeapon && returned.isUpgradable()){
-								Buff.affect((Hero) hero, MissileWeapon.UpgradedSetTracker.class, null).levelThresholds.put(((MissileWeapon) returned).setID, returned.level());
+								Buff.affect(hero, MissileWeapon.UpgradedSetTracker.class, null).levelThresholds.put(((MissileWeapon) returned).setID, returned.level());
 							}
 							if (!returned.doPickUp((Hero) hero)){
 								Dungeon.level.drop(returned, hero.pos);

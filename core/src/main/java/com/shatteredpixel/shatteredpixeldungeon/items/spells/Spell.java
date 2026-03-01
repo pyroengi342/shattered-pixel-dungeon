@@ -78,6 +78,6 @@ public abstract class Spell extends Item {
 		return false;
 	}
 	
-	protected abstract void onCast(Hero hero );
+	protected abstract void onCast(Hero hero);
 	
 }

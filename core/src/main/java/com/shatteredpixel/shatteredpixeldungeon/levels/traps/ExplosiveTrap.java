@@ -21,10 +21,7 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.levels.traps;
 
-import static network.NetworkManager.getLocalPlayerId;
-
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;

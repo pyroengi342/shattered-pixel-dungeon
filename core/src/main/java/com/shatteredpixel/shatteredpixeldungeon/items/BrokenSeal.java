@@ -1,7 +1,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.items;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Combo;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.HoldFast;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Regeneration;
@@ -22,7 +21,6 @@ import com.shatteredpixel.shatteredpixeldungeon.windows.WndBag;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndUseItem;
 import com.watabou.noosa.Image;
-import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.GameMath;
 
@@ -38,7 +36,7 @@ public class BrokenSeal extends Item {
     public static final String AC_INFO = "INFO_WINDOW";
 
     {
-        image = ItemSpriteSheet.SEAL;
+        setImage(ItemSpriteSheet.SEAL);
         cursedKnown = levelKnown = true;
         unique = true;
         bones = false;
@@ -54,13 +52,9 @@ public class BrokenSeal extends Item {
         }
         if (hero.pointsInTalent(Talent.RUNIC_TRANSFERENCE) == 2) {
             return true;
-        } else if (hero.pointsInTalent(Talent.RUNIC_TRANSFERENCE) == 1
+        } else return hero.pointsInTalent(Talent.RUNIC_TRANSFERENCE) == 1
                 && (Arrays.asList(Armor.Glyph.common).contains(glyph.getClass())
-                || Arrays.asList(Armor.Glyph.uncommon).contains(glyph.getClass()))) {
-            return true;
-        } else {
-            return false;
-        }
+                || Arrays.asList(Armor.Glyph.uncommon).contains(glyph.getClass()));
     }
 
     public Armor.Glyph getGlyph() {
@@ -189,8 +183,8 @@ public class BrokenSeal extends Item {
 
     // Внутренний класс для выбора брони, хранит героя
     private static class ArmorSelector extends WndBag.ItemSelector {
-        private Hero hero;
-        private BrokenSeal seal;
+        private final Hero hero;
+        private final BrokenSeal seal;
 
         ArmorSelector(Hero hero, BrokenSeal seal) {
             this.hero = hero;
@@ -245,7 +239,7 @@ public class BrokenSeal extends Item {
         private Armor armor;
         private int cooldown = 0;
         private float turnsSinceEnemies = 0;
-        private static int COOLDOWN_START = 150;
+        private static final int COOLDOWN_START = 150;
 
         @Override
         public int icon() {

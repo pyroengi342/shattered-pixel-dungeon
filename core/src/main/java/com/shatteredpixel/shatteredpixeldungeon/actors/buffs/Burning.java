@@ -182,7 +182,8 @@ public class Burning extends Buff implements Hero.Doom {
 		if (ch.isImmune(Burning.class)){
 			if (ch.glyphLevel(Brimstone.class) >= 0){
 				//generate avg of 1 shield per turn per 50% boost, to a max of 4x boost
-				float shieldChance = 2*(Armor.Glyph.genericProcChanceMultiplier(ch) - 1f);
+				Hero owner = (ch instanceof Hero) ? (Hero) ch : null;
+				float shieldChance = 2*(Armor.Glyph.genericProcChanceMultiplier(ch, owner) - 1f);
 				int shieldCap = Math.round(shieldChance*4f);
 				int shieldGain = (int)shieldChance;
 				if (Random.Float() < shieldChance%1) shieldGain++;

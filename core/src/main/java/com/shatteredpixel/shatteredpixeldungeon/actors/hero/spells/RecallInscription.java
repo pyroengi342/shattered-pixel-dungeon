@@ -21,7 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.spells;
 
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FlavourBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
@@ -76,7 +75,7 @@ public class RecallInscription extends ClericSpell {
 		if (item instanceof Scroll){
 			((Scroll) item).anonymize();
 			((Scroll) item).talentChance = 0; //does not trigger on-scroll effects
-			((Scroll) item).doRead();
+			((Scroll) item).doRead(hero);
 		} else if (item instanceof Runestone){
 			((Runestone) item).anonymize();
 			if (item instanceof InventoryStone){
@@ -158,7 +157,7 @@ public class RecallInscription extends ClericSpell {
 			return Messages.get(this, "desc", Messages.titleCase(Reflection.newInstance(item).name()), dispTurns());
 		}
 
-		private static String ITEM = "item";
+		private static final String ITEM = "item";
 
 		@Override
 		public void storeInBundle(Bundle bundle) {

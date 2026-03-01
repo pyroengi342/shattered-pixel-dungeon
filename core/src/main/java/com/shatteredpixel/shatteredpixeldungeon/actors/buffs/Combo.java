@@ -46,7 +46,6 @@ import com.shatteredpixel.shatteredpixeldungeon.windows.WndCombo;
 import com.watabou.noosa.BitmapText;
 import com.watabou.noosa.Image;
 import com.watabou.noosa.Visual;
-import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.BArray;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Callback;
@@ -387,14 +386,14 @@ public class Combo extends Buff implements ActionIndicator.Action {
 						}
 					}
 					if (enemy.pos == oldPos) {
-						WandOfBlastWave.throwChar(enemy, trajectory, dist, true, false, hero);
+						WandOfBlastWave.throwChar(enemy, trajectory, dist, true, false, hero, hero);
 					}
 					break;
 				case PARRY:
 					hit(enemy);
 					break;
 				case CRUSH:
-					WandOfBlastWave.BlastWave.blast(enemy.pos);
+					WandOfBlastWave.BlastWave.blast(hero, enemy.pos);
 					PathFinder.buildDistanceMap(target.pos, BArray.not(Dungeon.level.solid, null), 3);
 					for (Char ch : Actor.chars()) {
 						if (ch != enemy && ch.alignment == Char.Alignment.ENEMY
@@ -472,7 +471,7 @@ public class Combo extends Buff implements ActionIndicator.Action {
 
 	}
 
-	private CellSelector.Listener listener = new CellSelector.Listener() {
+	private final CellSelector.Listener listener = new CellSelector.Listener() {
 
 		@Override
 		public void onSelect(Integer cell) {
@@ -494,7 +493,7 @@ public class Combo extends Buff implements ActionIndicator.Action {
 						final int leapPos = c.path.get(c.dist-1);
 						if (!Dungeon.level.passable[leapPos] && !(target.flying && Dungeon.level.avoid[leapPos])){
 							GLog.w(Messages.get(Combo.class, "bad_target"));
-						} else if (((Hero) target).rooted) {
+						} else if (target.rooted) {
 							PixelScene.shake( 1, 1f );
 							GLog.w(Messages.get(Combo.class, "bad_target"));
 						} else {

@@ -42,7 +42,7 @@ public class StoneOfAugmentation extends InventoryStone {
 	
 	{
 		preferredBag = Belongings.Backpack.class;
-		image = ItemSpriteSheet.STONE_AUGMENTATION;
+		setImage(ItemSpriteSheet.STONE_AUGMENTATION);
 	}
 
 	@Override

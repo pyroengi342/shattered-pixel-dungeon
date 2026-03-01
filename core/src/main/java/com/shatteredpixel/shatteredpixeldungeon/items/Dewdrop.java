@@ -43,7 +43,7 @@ import com.watabou.noosa.audio.Sample;
 public class Dewdrop extends Item {
 	
 	{
-		image = ItemSpriteSheet.DEWDROP;
+		setImage(ItemSpriteSheet.DEWDROP);
 		
 		stackable = true;
 		dropsDownHeap = true;

@@ -21,9 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.ui;
 
-import static network.NetworkManager.getLocalPlayerId;
-
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.items.ArcaneResin;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
@@ -85,16 +82,18 @@ import com.watabou.utils.Reflection;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import network.Multiplayer;
 
 public class QuickRecipe extends Component {
 	
-	private ArrayList<Item> ingredients;
+	private final ArrayList<Item> ingredients;
 	
-	private ArrayList<ItemSlot> inputs;
-	private QuickRecipe.arrow arrow;
-	private ItemSlot output;
+	private final ArrayList<ItemSlot> inputs;
+	private final QuickRecipe.arrow arrow;
+	private final ItemSlot output;
 	
 	public QuickRecipe(Recipe.SimpleRecipe r){
 		this(r, r.getIngredients(), r.sampleOutput(null));
@@ -271,7 +270,7 @@ public class QuickRecipe extends Component {
 		ArrayList<QuickRecipe> result = new ArrayList<>();
 		switch (pageIdx){
 			case 0: default:
-				result.add(new QuickRecipe( new Potion.SeedToPotion(), new ArrayList<>(Arrays.asList(new Plant.Seed.PlaceHolder().quantity(3))), new WndBag.Placeholder(ItemSpriteSheet.POTION_HOLDER){
+				result.add(new QuickRecipe( new Potion.SeedToPotion(), new ArrayList<>(Collections.singletonList(new Plant.Seed.PlaceHolder().quantity(3))), new WndBag.Placeholder(ItemSpriteSheet.POTION_HOLDER){
 					@Override
 					public String name() {
 						return Messages.get(Potion.SeedToPotion.class, "name");
@@ -288,7 +287,7 @@ public class QuickRecipe extends Component {
 				for (Class<?> cls : Generator.Category.SCROLL.classes){
 					Scroll scroll = (Scroll) Reflection.newInstance(cls);
 					if (!scroll.isKnown()) scroll.anonymize();
-					ArrayList<Item> in = new ArrayList<Item>(Arrays.asList(scroll));
+					ArrayList<Item> in = new ArrayList<Item>(List.of(scroll));
 					result.add(new QuickRecipe( r, in, r.sampleOutput(in)));
 				}
 				return result;
@@ -319,7 +318,7 @@ public class QuickRecipe extends Component {
 				r = new ExoticPotion.PotionToExotic();
 				for (Class<?> cls : Generator.Category.POTION.classes){
 					Potion pot = (Potion) Reflection.newInstance(cls);
-					ArrayList<Item> in = new ArrayList<>(Arrays.asList(pot));
+					ArrayList<Item> in = new ArrayList<>(Collections.singletonList(pot));
 					result.add(new QuickRecipe( r, in, r.sampleOutput(in)));
 				}
 				return result;
@@ -327,7 +326,7 @@ public class QuickRecipe extends Component {
 				r = new ExoticScroll.ScrollToExotic();
 				for (Class<?> cls : Generator.Category.SCROLL.classes){
 					Scroll scroll = (Scroll) Reflection.newInstance(cls);
-					ArrayList<Item> in = new ArrayList<>(Arrays.asList(scroll));
+					ArrayList<Item> in = new ArrayList<>(Collections.singletonList(scroll));
 					result.add(new QuickRecipe( r, in, r.sampleOutput(in)));
 				}
 				return result;
@@ -347,10 +346,10 @@ public class QuickRecipe extends Component {
 				return result;
 			case 6:
 				result.add(new QuickRecipe( new LiquidMetal.Recipe(),
-						new ArrayList<Item>(Arrays.asList(new MissileWeapon.PlaceHolder())),
+						new ArrayList<Item>(List.of(new MissileWeapon.PlaceHolder())),
 						new LiquidMetal()));
 				result.add(new QuickRecipe( new ArcaneResin.Recipe(),
-						new ArrayList<Item>(Arrays.asList(new Wand.PlaceHolder())),
+						new ArrayList<Item>(List.of(new Wand.PlaceHolder())),
 						new ArcaneResin()));
 				return result;
 			case 7:

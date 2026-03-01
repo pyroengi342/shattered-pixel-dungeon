@@ -21,9 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
-import static network.NetworkManager.getLocalPlayerId;
-
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Ghost;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
@@ -41,9 +40,57 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 
 import network.Multiplayer;
+import network.handlers.window.GhostRewardHandler;
 
 public class WndSadGhost extends Window {
+	public static void processReward(Item reward, Hero hero) {
+		if (reward == null) return;
 
+		// Применяем зачарование/глиф, если они есть
+		if (reward instanceof Weapon && Ghost.Quest.enchant != null) {
+			((Weapon) reward).enchant(Ghost.Quest.enchant);
+		} else if (reward instanceof Armor && Ghost.Quest.glyph != null) {
+			((Armor) reward).inscribe(Ghost.Quest.glyph);
+		}
+
+		reward.identify(false);
+		// Пытаемся добавить предмет герою
+		if (reward.doPickUp(hero)) {
+			if (hero == Multiplayer.localHero()) {
+				com.shatteredpixel.shatteredpixeldungeon.utils.GLog.i(
+						com.shatteredpixel.shatteredpixeldungeon.messages.Messages.capitalize(
+								com.shatteredpixel.shatteredpixeldungeon.messages.Messages.get(hero, "you_now_have", reward.name())
+						)
+				);
+			}
+		} else {
+			// Если не влезает, бросаем на позицию призрака
+			Ghost ghost = findGhost();
+			if (ghost != null) {
+				Dungeon.level.drop(reward, ghost.pos).sprite.drop();
+			}
+		}
+
+		// Призрак прощается и исчезает
+		Ghost ghost = findGhost();
+		if (ghost != null) {
+			ghost.yell(com.shatteredpixel.shatteredpixeldungeon.messages.Messages.get(WndSadGhost.class, "farewell"));
+			ghost.die(null);
+		}
+
+		// Завершаем квест
+		Ghost.Quest.complete();
+	}
+
+	// Вспомогательный метод для поиска призрака на уровне
+	private static Ghost findGhost() {
+		for (com.shatteredpixel.shatteredpixeldungeon.actors.Char ch : com.shatteredpixel.shatteredpixeldungeon.actors.Actor.chars()) {
+			if (ch instanceof Ghost) {
+				return (Ghost) ch;
+			}
+		}
+		return null;
+	}
 	private static final int WIDTH		= 120;
 	private static final int BTN_SIZE	= 32;
 	private static final int BTN_GAP	= 5;
@@ -142,8 +189,11 @@ public class WndSadGhost extends Window {
 				@Override
 				protected void onClick() {
 					RewardWindow.this.hide();
-
-					WndSadGhost.this.selectReward( item );
+					WndSadGhost.this.selectReward(item); // локальное выполнение
+					if (network.Multiplayer.isMultiplayer) {
+						int choice = (item == Ghost.Quest.weapon) ? 0 : 1;
+						GhostRewardHandler.send(choice);
+					}
 				}
 			};
 			btnConfirm.setRect(0, height+2, width/2-1, 16);

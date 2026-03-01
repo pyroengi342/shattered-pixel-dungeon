@@ -23,7 +23,6 @@ package com.shatteredpixel.shatteredpixeldungeon.ui;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
@@ -144,9 +143,9 @@ public class BuffIndicator extends Component {
 	private static BuffIndicator heroInstance;
 	private static BuffIndicator bossInstance;
 	
-	private LinkedHashMap<Buff, BuffButton> buffButtons = new LinkedHashMap<>();
+	private final LinkedHashMap<Buff, BuffButton> buffButtons = new LinkedHashMap<>();
 	private boolean needsRefresh;
-	private Char ch;
+	private final Char ch;
 
 	private boolean large = false;
 
@@ -315,9 +314,9 @@ public class BuffIndicator extends Component {
 
 	private static class BuffButton extends IconButton {
 
-		private Buff buff;
+		private final Buff buff;
 
-		private boolean large;
+		private final boolean large;
 		private int topOffset = 0;
 
 		public Image grey; //only for small

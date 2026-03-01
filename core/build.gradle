@@ -16,5 +16,6 @@ dependencies {
 
     // Add KryoNet to core for shared networking code
     implementation "io.netty:netty-all:$nettyVersion" // Сетевой фреймворк
-    implementation "com.esotericsoftware:kryo:$kryoVersion" // Сериализация
+    implementation "com.esotericsoftware:kryo:$kryoVersion"
+    implementation 'org.jetbrains:annotations:15.0'// Сериализация
 }

@@ -21,6 +21,7 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.items.potions.exotic;
 
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.Recipe;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion;
@@ -105,7 +106,7 @@ public class ExoticPotion extends Potion {
 	public void reset() {
 		super.reset();
 		if (handler != null && handler.contains(exoToReg.get(this.getClass()))) {
-			image = handler.image(exoToReg.get(this.getClass())) + 16;
+			setImage(handler.image(exoToReg.get(this.getClass())) + 16);
 			color = handler.label(exoToReg.get(this.getClass()));
 		}
 	}
@@ -126,12 +127,8 @@ public class ExoticPotion extends Potion {
 
 		@Override
 		public boolean testIngredients(ArrayList<Item> ingredients) {
-			if (ingredients.size() == 1 && regToExo.containsKey(ingredients.get(0).getClass())){
-				return true;
-			}
-
-			return false;
-		}
+            return ingredients.size() == 1 && regToExo.containsKey(ingredients.get(0).getClass());
+        }
 		
 		@Override
 		public int cost(ArrayList<Item> ingredients) {
@@ -139,7 +136,7 @@ public class ExoticPotion extends Potion {
 		}
 
 		@Override
-		public Item brew(ArrayList<Item> ingredients) {
+		public Item brew(ArrayList<Item> ingredients, Hero hero) {
 			for (Item i : ingredients){
 				i.quantity(i.quantity()-1);
 			}

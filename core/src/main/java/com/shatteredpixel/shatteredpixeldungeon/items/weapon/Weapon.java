@@ -22,7 +22,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.weapon;
 
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Berserk;
@@ -93,8 +92,8 @@ abstract public class Weapon extends KindOfWeapon {
 		DAMAGE  (1.5f, 5/3f),
 		NONE	(1.0f, 1f);
 
-		private float damageFactor;
-		private float delayFactor;
+		private final float damageFactor;
+		private final float delayFactor;
 
 		Augment(float dmg, float dly){
 			damageFactor = dmg;
@@ -436,10 +435,10 @@ abstract public class Weapon extends KindOfWeapon {
 			//30% chance to be cursed
 			//10% chance to be enchanted
 			float effectRoll = Random.Float();
-			if (effectRoll < 0.3f * ParchmentScrap.curseChanceMultiplier()) {
+			if (effectRoll < 0.3f * ParchmentScrap.curseChanceMultiplier(null)) {
 				enchant(Enchantment.randomCurse());
 				cursed = true;
-			} else if (effectRoll >= 1f - (0.1f * ParchmentScrap.enchantChanceMultiplier())){
+			} else if (effectRoll >= 1f - (0.1f * ParchmentScrap.enchantChanceMultiplier(null))){
 				enchant();
 			}
 
@@ -447,7 +446,7 @@ abstract public class Weapon extends KindOfWeapon {
 
 		return this;
 	}
-	
+
 	public Weapon enchant( Enchantment ench ) {
 		if (ench == null || !ench.curse()) curseInfusionBonus = false;
 		enchantment = ench;
@@ -498,7 +497,7 @@ abstract public class Weapon extends KindOfWeapon {
 		return enchantment != null && enchantment.curse();
 	}
 
-	private static ItemSprite.Glowing HOLY = new ItemSprite.Glowing( 0xFFFF00 );
+	private static final ItemSprite.Glowing HOLY = new ItemSprite.Glowing( 0xFFFF00 );
 
 	@Override
 	public ItemSprite.Glowing glowing() {

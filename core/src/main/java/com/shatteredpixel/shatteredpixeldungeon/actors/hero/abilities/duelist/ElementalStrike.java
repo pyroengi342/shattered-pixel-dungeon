@@ -21,8 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.duelist;
 
-import static network.NetworkManager.getLocalPlayerId;
-
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
@@ -57,7 +55,6 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.KindOfWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClassArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.bombs.Bomb;
-import com.shatteredpixel.shatteredpixeldungeon.items.food.StewedMeat.threeMeat;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTeleportation;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfBlastWave;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
@@ -282,13 +279,13 @@ public class ElementalStrike extends ArmorAbility {
 		public float enchBoost = 0f;
 	}
 
-	public static class ElementalStrikeLuckyTracker extends Buff{};
+	public static class ElementalStrikeLuckyTracker extends Buff{}
 
-	private int storedKineticDamage = 0;
+    private int storedKineticDamage = 0;
 
-	public static class ElementalStrikeFurrowCounter extends CounterBuff{{revivePersists = true;}};
+	public static class ElementalStrikeFurrowCounter extends CounterBuff{{revivePersists = true;}}
 
-	//effects that affect the cells of the environment themselves
+    //effects that affect the cells of the environment themselves
 	private void perCellEffect(ConeAOE cone, Weapon.Enchantment ench, Hero hero){
 
 		int targetsHit = 0;
@@ -375,7 +372,7 @@ public class ElementalStrike extends ArmorAbility {
 		//*** no enchantment ***
 		if (ench == null) {
 			for (Char ch : affected){
-				ch.damage(Math.round(powerMulti* Hero.heroDamageIntRange(6, 12)), ElementalStrike.this);
+				ch.damage(Math.round(powerMulti* Hero.heroDamageIntRange(6, 12, hero)), ElementalStrike.this);
 			}
 
 		//*** Kinetic ***
@@ -420,7 +417,7 @@ public class ElementalStrike extends ArmorAbility {
 						knockback,
 						true,
 						true,
-						ElementalStrike.this);
+						ElementalStrike.this, hero);
 			}
 
 		//*** Lucky ***
@@ -499,7 +496,7 @@ public class ElementalStrike extends ArmorAbility {
 				if (Random.Float() < 0.5f*powerMulti){
 					int oldpos = ch.pos;
 					if (ScrollOfTeleportation.teleportChar(ch)){
-						if (ta[oldpos]) {
+						if (hero.fieldOfView[oldpos]) {
 							CellEmitter.get( oldpos ).start( Speck.factory( Speck.LIGHT ), 0.2f, 3 );
 						}
 
@@ -543,7 +540,7 @@ public class ElementalStrike extends ArmorAbility {
 		} else if (ench instanceof Polarized){
 			for (Char ch : affected){
 				if (Random.Float() < 0.5f*powerMulti){
-					ch.damage(Hero.heroDamageIntRange(24, 36), ElementalStrike.this);
+					ch.damage(Hero.heroDamageIntRange(24, 36, hero), ElementalStrike.this);
 				}
 			}
 

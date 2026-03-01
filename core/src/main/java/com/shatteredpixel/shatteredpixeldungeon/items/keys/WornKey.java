@@ -35,7 +35,7 @@ import java.io.IOException;
 public class WornKey extends Key {
 	
 	{
-		image = ItemSpriteSheet.WORN_KEY;
+		setImage(ItemSpriteSheet.WORN_KEY);
 	}
 	
 	public WornKey() {

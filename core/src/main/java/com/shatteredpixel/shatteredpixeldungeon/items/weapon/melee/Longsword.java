@@ -30,7 +30,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 public class Longsword extends MeleeWeapon {
 	
 	{
-		image = ItemSpriteSheet.LONGSWORD;
+		setImage(ItemSpriteSheet.LONGSWORD);
 		hitSound = Assets.Sounds.HIT_SLASH;
 		hitSoundPitch = 1f;
 

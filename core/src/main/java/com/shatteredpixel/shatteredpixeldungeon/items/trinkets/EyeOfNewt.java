@@ -10,7 +10,7 @@ import network.Multiplayer;
 public class EyeOfNewt extends Trinket {
 
     {
-        image = ItemSpriteSheet.EYE_OF_NEWT;
+        setImage(ItemSpriteSheet.EYE_OF_NEWT);
     }
 
     @Override
@@ -23,17 +23,17 @@ public class EyeOfNewt extends Trinket {
         Hero viewer = Multiplayer.localHero();
         int level = isIdentified() ? buffedLvl() : 0;
         return Messages.get(this, "stats_desc",
-                Messages.decimalFormat("#.##", 100 * (1f - visionRangeMultiplier(level, viewer))),
-                mindVisionRange(level, viewer));
+                Messages.decimalFormat("#.##", 100 * (1f - visionRangeMultiplier( viewer))),
+                mindVisionRange( viewer));
     }
 
-    public static float visionRangeMultiplier(int level, Hero hero) {
+    public static float visionRangeMultiplier(Hero hero) {
         int lvl = trinketLevel(EyeOfNewt.class, hero);
         if (lvl < 0) return 1;
         return 0.875f - 0.125f * lvl;
     }
 
-    public static int mindVisionRange(int level, Hero hero) {
+    public static int mindVisionRange(Hero hero) {
         int lvl = trinketLevel(EyeOfNewt.class, hero);
         if (lvl < 0) return 0;
         return 2 + lvl;

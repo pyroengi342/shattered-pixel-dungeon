@@ -47,9 +47,9 @@ import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 import com.watabou.utils.Reflection;
 
-import network.Multiplayer;
-
 import java.util.ArrayList;
+
+import network.Multiplayer;
 
 public class Succubus extends Mob {
 

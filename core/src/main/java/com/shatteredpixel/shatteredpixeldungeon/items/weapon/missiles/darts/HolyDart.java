@@ -34,7 +34,7 @@ import com.watabou.utils.Random;
 public class HolyDart extends TippedDart {
 
 	{
-		image = ItemSpriteSheet.HOLY_DART;
+		setImage(ItemSpriteSheet.HOLY_DART);
 	}
 	
 	@Override

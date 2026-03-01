@@ -51,7 +51,7 @@ public class CellSelector extends ScrollArea {
 	
 	public boolean enabled;
 	
-	private float dragThreshold;
+	private final float dragThreshold;
 	
 	public CellSelector( DungeonTilemap map ) {
 		super( map );
@@ -156,13 +156,13 @@ public class CellSelector extends ScrollArea {
 				&& listener != null && cell != -1) {
 
 			switch (button){
-				default:
-					listener.onSelect( cell );
-					break;
-				case PointerEvent.RIGHT:
+                case PointerEvent.RIGHT:
 					listener.onRightClick( cell );
 					break;
-			}
+                default:
+                    listener.onSelect( cell );
+                    break;
+            }
 			GameScene.ready();
 			
 		} else {
@@ -219,7 +219,7 @@ public class CellSelector extends ScrollArea {
 	}
 	
 	private boolean dragging = false;
-	private PointF lastPos = new PointF();
+	private final PointF lastPos = new PointF();
 	
 	@Override
 	protected void onDrag( PointerEvent event ) {
@@ -274,7 +274,7 @@ public class CellSelector extends ScrollArea {
 		}
 	}
 	
-	private Signal.Listener<KeyEvent> keyListener = new Signal.Listener<KeyEvent>() {
+	private final Signal.Listener<KeyEvent> keyListener = new Signal.Listener<KeyEvent>() {
 		@Override
 		public boolean onSignal(KeyEvent event) {
 			GameAction action = KeyBindings.getActionForKey( event );
@@ -431,8 +431,8 @@ public class CellSelector extends ScrollArea {
 		if (action == SPDAction.E)  return new Point(+1,  0);
 		if (action == SPDAction.SE) return new Point(+1, +1);
 		if (action == SPDAction.S)  return new Point( 0, +1);
-		if (action == SPDAction.SW) return new Point(-1, +1);;
-		if (action == SPDAction.W)  return new Point(-1,  0);
+		if (action == SPDAction.SW) return new Point(-1, +1);
+        if (action == SPDAction.W)  return new Point(-1,  0);
 		if (action == SPDAction.NW) return new Point(-1, -1);
 		else                        return new Point();
 	}

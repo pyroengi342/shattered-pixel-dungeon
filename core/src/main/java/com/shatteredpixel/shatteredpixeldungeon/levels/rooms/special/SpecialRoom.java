@@ -30,6 +30,7 @@ import com.watabou.utils.Reflection;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 
 public abstract class SpecialRoom extends Room {
 	
@@ -191,12 +192,14 @@ public abstract class SpecialRoom extends Room {
 	
 	private static final String ROOMS	= "special_rooms";
 	private static final String PIT	    = "pit_needed";
-	
+
 	public static void restoreRoomsFromBundle( Bundle bundle ) {
 		runSpecials.clear();
 		if (bundle.contains( ROOMS )) {
-			for (Class<? extends Room> type : bundle.getClassArray(ROOMS)) {
-				runSpecials.add(type);
+			Class[] classes = bundle.getClassArray(ROOMS);
+			for (Class c : classes) {
+				// Можно добавить проверку на принадлежность к Room, но обычно данные корректны
+				runSpecials.add((Class<? extends Room>) c);
 			}
 		} else {
 			initForRun();

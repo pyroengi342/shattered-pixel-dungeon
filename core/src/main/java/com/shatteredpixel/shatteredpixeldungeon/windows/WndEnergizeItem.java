@@ -37,38 +37,39 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.RedButton;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.Game;
 
+import network.Multiplayer;
+import network.handlers.window.EnergizeHandler;
+
 public class WndEnergizeItem extends WndInfoItem {
 
-	private static final float GAP		= 2;
-	private static final int BTN_HEIGHT	= 18;
+	private static final float GAP = 2;
+	private static final int BTN_HEIGHT = 18;
 
-	private WndBag owner;
+	private final WndBag owner;
+	private final Hero hero; // добавлено
 
-	public WndEnergizeItem(Item item, WndBag owner) {
+	public WndEnergizeItem(Item item, WndBag owner, Hero hero) {
 		super(item);
-
+		this.hero = hero;
 		this.owner = owner;
 
 		float pos = height;
 
 		if (item.quantity() == 1) {
-
-			RedButton btnEnergize = new RedButton( Messages.get(this, "energize", item.energyVal()) ) {
+			RedButton btnEnergize = new RedButton(Messages.get(this, "energize", item.energyVal())) {
 				@Override
 				protected void onClick() {
-					if (item instanceof Trinket){
+					if (item instanceof Trinket) {
 						Game.scene().addToFront(new WndOptions(new ItemSprite(item), Messages.titleCase(item.name()),
 								Messages.get(WndEnergizeItem.class, "trinket_warn"),
 								Messages.get(WndEnergizeItem.class, "trinket_yes"),
-								Messages.get(WndEnergizeItem.class, "trinket_no")){
-
+								Messages.get(WndEnergizeItem.class, "trinket_no")) {
 							@Override
 							protected void onSelect(int index) {
 								if (index == 0) {
-									energizeAll(item);
+									energizeAll(item, hero);
 								}
 							}
-
 							@Override
 							public void hide() {
 								super.hide();
@@ -76,131 +77,123 @@ public class WndEnergizeItem extends WndInfoItem {
 							}
 						});
 					} else {
-						energizeAll(item);
+						energizeAll(item, hero);
 						hide();
 					}
 				}
 			};
-			btnEnergize.setRect( 0, pos + GAP, width, BTN_HEIGHT );
+			btnEnergize.setRect(0, pos + GAP, width, BTN_HEIGHT);
 			btnEnergize.icon(new ItemSprite(ItemSpriteSheet.ENERGY));
-			add( btnEnergize );
-
+			add(btnEnergize);
 			pos = btnEnergize.bottom();
-
 		} else {
-
 			int energyAll = item.energyVal();
-			RedButton btnEnergize1 = new RedButton( Messages.get(this, "energize_1", energyAll / item.quantity()) ) {
+			RedButton btnEnergize1 = new RedButton(Messages.get(this, "energize_1", energyAll / item.quantity())) {
 				@Override
 				protected void onClick() {
-					energizeOne( item );
+					energizeOne(item, hero);
 					hide();
 				}
 			};
-			btnEnergize1.setRect( 0, pos + GAP, width, BTN_HEIGHT );
+			btnEnergize1.setRect(0, pos + GAP, width, BTN_HEIGHT);
 			btnEnergize1.icon(new ItemSprite(ItemSpriteSheet.ENERGY));
-			add( btnEnergize1 );
-			RedButton btnEnergizeAll = new RedButton( Messages.get(this, "energize_all", energyAll ) ) {
+			add(btnEnergize1);
+			RedButton btnEnergizeAll = new RedButton(Messages.get(this, "energize_all", energyAll)) {
 				@Override
 				protected void onClick() {
-					energizeAll( item );
+					energizeAll(item, hero);
 					hide();
 				}
 			};
-			btnEnergizeAll.setRect( 0, btnEnergize1.bottom() + 1, width, BTN_HEIGHT );
+			btnEnergizeAll.setRect(0, btnEnergize1.bottom() + 1, width, BTN_HEIGHT);
 			btnEnergizeAll.icon(new ItemSprite(ItemSpriteSheet.ENERGY));
-			add( btnEnergizeAll );
-
+			add(btnEnergizeAll);
 			pos = btnEnergizeAll.bottom();
-
 		}
-
-		resize( width, (int)pos );
-
+		resize(width, (int) pos);
 	}
 
 	@Override
 	public void hide() {
-
 		super.hide();
-
 		if (owner != null) {
 			owner.hide();
-			openItemSelector();
+			openItemSelector(hero);
 		}
 	}
 
-	public static void energizeAll(Item item ) {
-		if (item.isEquipped( Dungeon.hero ) && !((EquipableItem)item).doUnequip( Dungeon.hero, false )) {
+	public static void energizeAll(Item item, Hero hero) {
+		if (item.isEquipped(hero) && !((EquipableItem) item).doUnequip(hero, false)) {
 			return;
 		}
-		item.detachAll( Dungeon.hero.belongings.backpack );
-		energize(item);
+		item.detachAll(hero.belongings.backpack);
+		energize(item, hero);
 	}
 
-	public static void energizeOne( Item item ) {
-
+	public static void energizeOne(Item item, Hero hero) {
 		if (item.quantity() <= 1) {
-			energizeAll( item );
+			energizeAll(item, hero);
+			if (Multiplayer.isMultiplayer)
+				EnergizeHandler.send(item, true);
 		} else {
-			energize(item.detach( Dungeon.hero.belongings.backpack ));
+			energize(item.detach(hero.belongings.backpack), hero);
+			if (Multiplayer.isMultiplayer)
+				EnergizeHandler.send(item, false);
 		}
 	}
 
-	private static void energize(Item item){
-		Hero hero = Dungeon.hero;
-
-		if (ShatteredPixelDungeon.scene() instanceof AlchemyScene){
-
-			Dungeon.energy += item.energyVal();
+	private static void energize(Item item, Hero hero) {
+		if (ShatteredPixelDungeon.scene() instanceof AlchemyScene) {
+			Dungeon.energy += item.energyVal(); // нужно заменить на что-то общее? Пока оставим.
 			((AlchemyScene) ShatteredPixelDungeon.scene()).createEnergy();
-			if (!item.isIdentified()){
+			if (!item.isIdentified()) {
 				((AlchemyScene) ShatteredPixelDungeon.scene()).showIdentify(item);
 			}
-
 		} else {
-
-			//energizing items doesn't spend time
 			hero.spend(-hero.cooldown());
 			new EnergyCrystal(item.energyVal()).doPickUp(hero);
-			item.identify();
-			GLog.h("You energized: " + item.name());
-
+			item.identify(true);
+			if (hero == Multiplayer.localHero()) {
+				GLog.h("You energized: " + item.name());
+			}
 		}
+		// Отправить команду на сервер, чтобы другие клиенты тоже выполнили это действие
+		// Например, сформировать Bundle и отправить через NetworkManager.
 	}
 
-	public static WndBag openItemSelector(){
+	public static WndBag openItemSelector(Hero hero) {
+		EnergizeSelector selector = new EnergizeSelector(hero);
 		if (ShatteredPixelDungeon.scene() instanceof GameScene) {
-			return GameScene.selectItem( selector );
+			return GameScene.selectItem(selector);
 		} else {
-			WndBag window = WndBag.getBag( selector );
+			WndBag window = WndBag.getBag(selector);
 			ShatteredPixelDungeon.scene().addToFront(window);
 			return window;
 		}
 	}
 
-	public static WndBag.ItemSelector selector = new WndBag.ItemSelector() {
+	private static class EnergizeSelector extends WndBag.ItemSelector {
+		private final Hero hero;
+		EnergizeSelector(Hero hero) { this.hero = hero; }
 		@Override
 		public String textPrompt() {
 			return Messages.get(WndEnergizeItem.class, "prompt");
 		}
-
 		@Override
 		public boolean itemSelectable(Item item) {
 			return item.energyVal() > 0;
 		}
-
 		@Override
 		public void onSelect(Item item) {
 			if (item != null) {
-				WndBag parentWnd = openItemSelector();
+				WndBag parentWnd = openItemSelector(hero);
+				WndEnergizeItem wnd = new WndEnergizeItem(item, parentWnd, hero);
 				if (ShatteredPixelDungeon.scene() instanceof GameScene) {
-					GameScene.show(new WndEnergizeItem(item, parentWnd));
+					GameScene.show(wnd);
 				} else {
-					ShatteredPixelDungeon.scene().addToFront(new WndEnergizeItem(item, parentWnd));
+					ShatteredPixelDungeon.scene().addToFront(wnd);
 				}
 			}
 		}
-	};
-
+	}
 }

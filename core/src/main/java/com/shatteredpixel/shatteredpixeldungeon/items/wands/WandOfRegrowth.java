@@ -61,7 +61,7 @@ import java.util.Iterator;
 public class WandOfRegrowth extends Wand {
 
 	{
-		image = ItemSpriteSheet.WAND_REGROWTH;
+		setImage(ItemSpriteSheet.WAND_REGROWTH);
 
 		//only used for targeting, actual projectile logic is Ballistica.STOP_SOLID
 		collisionProperties = Ballistica.WONT_STOP;

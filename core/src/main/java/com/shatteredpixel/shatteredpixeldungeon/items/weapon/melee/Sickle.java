@@ -22,7 +22,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
@@ -40,7 +39,7 @@ import com.watabou.utils.Callback;
 public class Sickle extends MeleeWeapon {
 
 	{
-		image = ItemSpriteSheet.SICKLE;
+		setImage(ItemSpriteSheet.SICKLE);
 		hitSound = Assets.Sounds.HIT_SLASH;
 		hitSoundPitch = 1f;
 
@@ -117,7 +116,7 @@ public class Sickle extends MeleeWeapon {
 				Invisibility.dispel(hero);
 				hero.spendAndNext(hero.attackDelay());
 				if (!enemy.isAlive()){
-					wep.onAbilityKill(hero, enemy);
+					onAbilityKill(hero, enemy);
 				}
 				wep.afterAbilityUsed(hero);
 			}

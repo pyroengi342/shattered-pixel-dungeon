@@ -67,9 +67,10 @@ public class CaveExitRoom extends CaveRoom {
 			} else {
 				valid = false;
 				for (int i : PathFinder.NEIGHBOURS4){
-					if (level.map[exit+i] != Terrain.WALL){
-						valid = true;
-					}
+                    if (level.map[exit + i] != Terrain.WALL) {
+                        valid = true;
+                        break;
+                    }
 				}
 				valid = valid && level.findMob(exit) == null;
 			}

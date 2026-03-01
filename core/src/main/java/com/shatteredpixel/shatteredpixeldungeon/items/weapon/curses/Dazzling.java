@@ -22,7 +22,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.weapon.curses;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Blindness;
@@ -38,7 +37,7 @@ import network.Multiplayer;
 
 public class Dazzling extends Weapon.Enchantment {
 
-	private static ItemSprite.Glowing BLACK = new ItemSprite.Glowing( 0x000000 );
+	private static final ItemSprite.Glowing BLACK = new ItemSprite.Glowing( 0x000000 );
 
 	@Override
 	public int proc(Weapon weapon, Char attacker, Char defender, int damage ) {

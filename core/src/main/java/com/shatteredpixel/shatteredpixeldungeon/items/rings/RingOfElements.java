@@ -21,7 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.items.rings;
 
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Electricity;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.ToxicGas;
@@ -41,7 +40,7 @@ import java.util.HashSet;
 public class RingOfElements extends Ring {
 
 	{
-		icon = ItemSpriteSheet.Icons.RING_ELEMENTS;
+		setIcon(ItemSpriteSheet.Icons.RING_ELEMENTS);
 		buffClass = Resistance.class;
 	}
 

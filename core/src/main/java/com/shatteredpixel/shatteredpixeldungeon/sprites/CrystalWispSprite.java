@@ -47,10 +47,10 @@ public abstract class CrystalWispSprite extends MobSprite {
 		TextureFilm frames = new TextureFilm( texture, 12, 14 );
 
 		idle = new Animation( 1, true );
-		idle.frames( frames, c+0 );
+		idle.frames( frames, c);
 
 		run = new Animation( 12, true );
-		run.frames( frames, c+0, c+0, c+0, c+1 );
+		run.frames( frames, c, c, c, c+1 );
 
 		attack = new Animation( 16, false );
 		attack.frames( frames, c+2, c+3, c+4, c+5 );

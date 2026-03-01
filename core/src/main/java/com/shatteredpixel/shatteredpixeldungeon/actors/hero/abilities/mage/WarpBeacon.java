@@ -33,6 +33,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.ArmorAbili
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.MagicMissile;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Pushing;
+import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClassArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTeleportation;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
@@ -112,7 +113,7 @@ public class WarpBeacon extends ArmorAbility {
 						}
 
 						armor.charge -= chargeNeeded;
-						armor.updateQuickslot();
+						Item.updateQuickslot();
 
 						if (tracker.depth == Dungeon.depth && tracker.branch == Dungeon.branch){
 							Char existing = Actor.findChar(tracker.pos);
@@ -123,7 +124,7 @@ public class WarpBeacon extends ArmorAbility {
 									int heroDmg = 5 * hero.pointsInTalent(Talent.TELEFRAG);
 									hero.damage(Math.min(heroDmg, heroHP-1), WarpBeacon.this);
 
-									int damage = Hero.heroDamageIntRange(10*hero.pointsInTalent(Talent.TELEFRAG), 15*hero.pointsInTalent(Talent.TELEFRAG));
+									int damage = Hero.heroDamageIntRange(10*hero.pointsInTalent(Talent.TELEFRAG), 15*hero.pointsInTalent(Talent.TELEFRAG), hero);
 									existing.sprite.flash();
 									existing.sprite.bloodBurstA(existing.sprite.center(), damage);
 									existing.damage(damage, WarpBeacon.this);

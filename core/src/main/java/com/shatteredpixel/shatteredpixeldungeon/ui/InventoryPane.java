@@ -21,8 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.ui;
 
-import static network.NetworkManager.getLocalPlayerId;
-
 import com.shatteredpixel.shatteredpixeldungeon.Chrome;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.SPDAction;
@@ -612,7 +610,7 @@ public class InventoryPane extends Component {
 		private ColorBlock bgBottom;
 
 		private Bag bag;
-		private int index;
+		private final int index;
 
 		public BagButton( Bag bag, int index ){
 			super( bagIcon(bag) );

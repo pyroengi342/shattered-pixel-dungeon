@@ -48,7 +48,7 @@ import java.util.ArrayList;
 public class Pickaxe extends MeleeWeapon {
 	
 	{
-		image = ItemSpriteSheet.PICKAXE;
+		setImage(ItemSpriteSheet.PICKAXE);
 
 		levelKnown = true;
 		

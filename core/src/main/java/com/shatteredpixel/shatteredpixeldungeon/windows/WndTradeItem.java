@@ -29,7 +29,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Shopkeeper;
 import com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem;
-import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Gold;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -46,6 +45,8 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.CurrencyIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RedButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 
+import network.handlers.window.TradeHandler;
+
 public class WndTradeItem extends WndInfoItem {
 
 	private static final float GAP		= 2;
@@ -53,7 +54,7 @@ public class WndTradeItem extends WndInfoItem {
 
 	private WndBag owner;
     // Сохраняем ссылку на героя для использования в hide()
-    private Hero hero;
+    private final Hero hero;
 	private boolean selling = false;
 
 	//selling
@@ -108,8 +109,11 @@ public class WndTradeItem extends WndInfoItem {
 			RedButton btnSell1 = new RedButton( Messages.get(this, "sell_1", priceAll / item.quantity()) ) {
 				@Override
 				protected void onClick() {
-					sellOne( item, finalShop, hero );
+					sellOne(item, finalShop, hero);
 					hide();
+					if (network.Multiplayer.isMultiplayer) {
+						TradeHandler.sendSell(item, 1, hero);
+					}
 				}
 			};
 			btnSell1.setRect( 0, pos + GAP, width, BTN_HEIGHT );
@@ -118,8 +122,11 @@ public class WndTradeItem extends WndInfoItem {
 			RedButton btnSellAll = new RedButton( Messages.get(this, "sell_all", priceAll ) ) {
 				@Override
 				protected void onClick() {
-					sell( item, finalShop, hero );
+					sell(item, finalShop, hero);
 					hide();
+					if (network.Multiplayer.isMultiplayer) {
+						TradeHandler.sendSell(item, item.quantity(), hero);
+					}
 				}
 			};
 			btnSellAll.setRect( 0, btnSell1.bottom() + 1, width, BTN_HEIGHT );
@@ -152,7 +159,10 @@ public class WndTradeItem extends WndInfoItem {
 			@Override
 			protected void onClick() {
 				hide();
-				buy( heap, hero );
+				buy(heap, hero);
+				if (network.Multiplayer.isMultiplayer) {
+					TradeHandler.sendBuy(heap, hero);
+				}
 			}
 		};
 		btnBuy.setRect( 0, pos + GAP, width, BTN_HEIGHT );
@@ -185,16 +195,18 @@ public class WndTradeItem extends WndInfoItem {
 								Messages.get(WndTradeItem.class, "steal_warn_no")){
 							@Override
 							protected void onSelect(int index) {
-								super.onSelect(index);
-								if (index == 0){
+								if (index == 0) {
 									if (thievery.steal(item)) {
-										Item item = heap.pickUp();
+										Item stolenItem = heap.pickUp();
 										WndTradeItem.this.hide();
-
-										if (!item.doPickUp(hero)) {
-											Dungeon.level.drop(item, heap.pos).sprite.drop();
+										if (!stolenItem.doPickUp(hero)) {
+											Dungeon.level.drop(stolenItem, heap.pos).sprite.drop();
+										}
+										if (network.Multiplayer.isMultiplayer) {
+											TradeHandler.sendSteal(stolenItem, true, hero, heap);
 										}
 									} else {
+										// Неудача
 										for (Mob mob : Dungeon.level.mobs) {
 											if (mob instanceof Shopkeeper) {
 												mob.yell(Messages.get(mob, "thief"));
@@ -203,6 +215,11 @@ public class WndTradeItem extends WndInfoItem {
 											}
 										}
 										WndTradeItem.this.hide();
+										if (network.Multiplayer.isMultiplayer) {
+											// Отправляем неудачу, предмет не украден, но магазин убегает
+											// Передаём тот же heap, но itemId не нужен для неудачи
+											TradeHandler.sendSteal(item, false, hero, heap);
+										}
 									}
 								}
 							}

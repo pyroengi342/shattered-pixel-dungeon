@@ -345,9 +345,9 @@ public enum Rankings {
 		Ring.restore(handler);
 
 		Badges.loadLocal(data.getBundle(BADGES));
-
-		Dungeon.hero = (Hero)data.get(HERO);
-		Dungeon.hero.belongings.identify();
+		// TODO
+//		Dungeon.hero = (Hero)data.get(HERO);
+//		Dungeon.hero.belongings.identify();
 
 		Statistics.restoreFromBundle(data.getBundle(STATS));
 		

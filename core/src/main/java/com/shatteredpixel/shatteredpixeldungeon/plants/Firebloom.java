@@ -21,7 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.plants;
 
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Fire;
@@ -35,6 +34,8 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.particles.FlameParticle;
 import com.shatteredpixel.shatteredpixeldungeon.levels.traps.Trap;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
+
+import network.Multiplayer;
 
 public class Firebloom extends Plant {
 	
@@ -64,7 +65,7 @@ public class Firebloom extends Plant {
 	
 	public static class Seed extends Plant.Seed {
 		{
-			image = ItemSpriteSheet.SEED_FIREBLOOM;
+			setImage(ItemSpriteSheet.SEED_FIREBLOOM);
 
 			plantClass = Firebloom.class;
 		}

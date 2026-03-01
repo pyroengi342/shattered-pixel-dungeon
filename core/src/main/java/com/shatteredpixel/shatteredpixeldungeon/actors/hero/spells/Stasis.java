@@ -167,7 +167,7 @@ public class Stasis extends ClericSpell {
             }
 
             if (stasisAlly.buff(LifeLink.class) != null){
-                Buff.prolong((Hero) target, LifeLink.class, stasisAlly.buff(LifeLink.class).cooldown(), null).object = stasisAlly.id();
+                Buff.prolong(target, LifeLink.class, stasisAlly.buff(LifeLink.class).cooldown(), null).object = stasisAlly.id();
             }
 
             ScrollOfTeleportation.appear(stasisAlly, stasisAlly.pos);

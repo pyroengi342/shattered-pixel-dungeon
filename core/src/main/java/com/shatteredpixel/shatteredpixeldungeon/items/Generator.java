@@ -279,7 +279,7 @@ public class Generator {
 		public float secondProb;
 		public Class<? extends Item> superClass;
 		
-		private Category( float firstProb, float secondProb, Class<? extends Item> superClass ) {
+		Category(float firstProb, float secondProb, Class<? extends Item> superClass) {
 			this.firstProb = firstProb;
 			this.secondProb = secondProb;
 			this.superClass = superClass;
@@ -288,7 +288,7 @@ public class Generator {
 		//some generator categories can have ordering within that category as well
 		// note that sub category ordering doesn't need to always include items that belong
 		// to that categories superclass, e.g. bombs are ordered within thrown weapons
-		private static HashMap<Class, ArrayList<Class>> subOrderings = new HashMap<>();
+		private static final HashMap<Class, ArrayList<Class>> subOrderings = new HashMap<>();
 		static {
 			subOrderings.put(Trinket.class, new ArrayList<>(Arrays.asList(Trinket.class, TrinketCatalyst.class)));
 			subOrderings.put(MissileWeapon.class, new ArrayList<>(Arrays.asList(MissileWeapon.class, Bomb.class)));
@@ -619,8 +619,8 @@ public class Generator {
 	};
 
 	private static boolean usingFirstDeck = false;
-	private static HashMap<Category,Float> defaultCatProbs = new LinkedHashMap<>();
-	private static HashMap<Category,Float> categoryProbs = new LinkedHashMap<>();
+	private static final HashMap<Category,Float> defaultCatProbs = new LinkedHashMap<>();
+	private static final HashMap<Category,Float> categoryProbs = new LinkedHashMap<>();
 
 	public static void fullReset() {
 		usingFirstDeck = Random.Int(2) == 0;

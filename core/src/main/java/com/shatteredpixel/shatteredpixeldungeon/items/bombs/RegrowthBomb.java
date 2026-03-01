@@ -40,14 +40,14 @@ import com.watabou.utils.BArray;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
-import network.Multiplayer;
-
 import java.util.ArrayList;
+
+import network.Multiplayer;
 
 public class RegrowthBomb extends Bomb {
 	
 	{
-		image = ItemSpriteSheet.REGROWTH_BOMB;
+		setImage(ItemSpriteSheet.REGROWTH_BOMB);
 	}
 	
 	@Override

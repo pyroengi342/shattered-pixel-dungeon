@@ -99,7 +99,7 @@ public class WornDartTrap extends Trap {
 					if (local != null && local.fieldOfView != null &&
 							(local.fieldOfView[pos] || local.fieldOfView[target.pos])) {
 						((MissileSprite) ShatteredPixelDungeon.scene().recycle(MissileSprite.class)).
-								reset(pos, finalTarget.sprite, new Dart(), new Callback() {
+								reset(null, pos, finalTarget.sprite, new Dart(), new Callback() {
 									@Override
 									public void call() {
 										int dmg = Random.NormalIntRange(4, 8) - finalTarget.drRoll();

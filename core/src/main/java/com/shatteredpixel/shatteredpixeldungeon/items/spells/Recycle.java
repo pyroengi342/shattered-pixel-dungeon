@@ -23,6 +23,7 @@ package com.shatteredpixel.shatteredpixeldungeon.items.spells;
 
 import com.shatteredpixel.shatteredpixeldungeon.Challenges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Transmuting;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
@@ -45,7 +46,7 @@ import com.watabou.utils.Reflection;
 public class Recycle extends InventorySpell {
 	
 	{
-		image = ItemSpriteSheet.RECYCLE;
+		setImage(ItemSpriteSheet.RECYCLE);
 
 		talentFactor = 2;
 		talentChance = 1/(float)Recipe.OUT_QUANTITY;
@@ -59,9 +60,8 @@ public class Recycle extends InventorySpell {
 				item instanceof Runestone ||
 				item instanceof TippedDart;
 	}
-
 	@Override
-	protected void onItemSelected(Item item) {
+	protected void onItemSelected(Item item, Hero hero) {
 		Item result;
 		do {
 			if (item instanceof Potion) {
@@ -83,13 +83,13 @@ public class Recycle extends InventorySpell {
 			}
 		} while (result.getClass() == item.getClass() || Challenges.isItemBlocked(result));
 		
-		item.detach(curUser.belongings.backpack);
+		item.detach(hero.belongings.backpack);
 		GLog.p(Messages.get(this, "recycled", result.name()));
-		if (!result.collect()){
-			Dungeon.level.drop(result, curUser.pos).sprite.drop();
+		if (!result.collect(hero)){
+			Dungeon.level.drop(result, hero.pos).sprite.drop();
 		}
-		Transmuting.show(curUser, item, result);
-		curUser.sprite.emitter().start(Speck.factory(Speck.CHANGE), 0.2f, 10);
+		Transmuting.show(hero, item, result);
+		hero.sprite.emitter().start(Speck.factory(Speck.CHANGE), 0.2f, 10);
 	}
 	
 	@Override

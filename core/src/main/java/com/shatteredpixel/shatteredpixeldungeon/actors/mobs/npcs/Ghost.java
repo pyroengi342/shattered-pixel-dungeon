@@ -134,13 +134,12 @@ public class Ghost extends NPC {
 	
 	@Override
 	public boolean interact(Char c) {
+		if (!(c instanceof Hero))
+			return super.interact(c);
+
 		sprite.turnTo( pos, c.pos );
-		
 		Sample.INSTANCE.play( Assets.Sounds.GHOST );
 
-		if (!(c instanceof Hero)){
-			return super.interact(c);
-		}
         Hero hero = (Hero) c;
 
 		if (Quest.given) {
@@ -266,7 +265,7 @@ public class Ghost extends NPC {
 			if (spawned) {
 				
 				node.put( TYPE, type );
-				
+
 				node.put( GIVEN, given );
 				node.put( DEPTH, depth );
 				node.put( PROCESSED, processed );
@@ -362,8 +361,9 @@ public class Ghost extends NPC {
 				enchant = Weapon.Enchantment.random();
 				glyph = Armor.Glyph.random();
 
+				// TODO remake logic
 				float enchantRoll = Random.Float();
-				if (enchantRoll > 0.2f * ParchmentScrap.enchantChanceMultiplier()){
+				if (enchantRoll > 0.2f * ParchmentScrap.enchantChanceMultiplier(null)){
 					enchant = null;
 					glyph = null;
 				}

@@ -22,7 +22,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
 import com.shatteredpixel.shatteredpixeldungeon.Chrome;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
@@ -124,7 +123,7 @@ public class WndClericSpells extends Window {
 
 		//if we are on mobile, offset the window down to just above the toolbar
 		if (SPDSettings.interfaceSize() != 2){
-			offset(0, (int) (GameScene.uiCamera.height/2 - 30 - height/2));
+			offset(0, GameScene.uiCamera.height/2 - 30 - height/2);
 		}
 
 	}
@@ -224,10 +223,7 @@ public class WndClericSpells extends Window {
 				@Override
 				public void onSelect(int index) {
 					switch (index){
-						default:
-							//do nothing
-							break;
-						case 0:
+                        case 0:
 							hide();
 							if(!tome.canCast(hero, spell)){
 								GLog.w(Messages.get(HolyTome.class, "no_spell"));
@@ -247,7 +243,10 @@ public class WndClericSpells extends Window {
 							hide();
 							tome.setQuickSpell(spell);
 							break;
-					}
+                        default:
+                            //do nothing
+                            break;
+                    }
 				}
 			};
 			parent.addToFront(r);

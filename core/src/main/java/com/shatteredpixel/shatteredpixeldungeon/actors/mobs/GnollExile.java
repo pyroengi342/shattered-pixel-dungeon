@@ -36,9 +36,9 @@ import com.watabou.utils.BArray;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
-import network.Multiplayer;
-
 import java.util.ArrayList;
+
+import network.Multiplayer;
 
 public class GnollExile extends Gnoll {
 
@@ -98,10 +98,10 @@ public class GnollExile extends Gnoll {
 	}
 
 	@Override
-	public void rollToDropLoot() {
-		super.rollToDropLoot();
+	public void rollToDropLoot(Hero hero) {
+		super.rollToDropLoot(hero);
 
-		if (Dungeon.hero.lvl > maxLvl + 2) return;
+		if (hero.lvl > maxLvl + 2) return;
 
 		//drops 2 or 3 random items
 		ArrayList<Item> items = new ArrayList<>();

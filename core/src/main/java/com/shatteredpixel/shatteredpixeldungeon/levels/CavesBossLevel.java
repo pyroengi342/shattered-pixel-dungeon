@@ -69,10 +69,9 @@ import com.watabou.utils.Point;
 import com.watabou.utils.Random;
 import com.watabou.utils.Rect;
 
-import network.Multiplayer;
-
 import java.util.ArrayList;
 
+import network.Multiplayer;
 public class CavesBossLevel extends Level {
 
 	{
@@ -88,7 +87,7 @@ public class CavesBossLevel extends Level {
 			} else {
 				Music.INSTANCE.play(Assets.Music.CAVES_BOSS, true);
 			}
-		//if wall isn't broken
+			//if wall isn't broken
 		} else if (map[14 + 13*width()] == Terrain.CUSTOM_DECO){
 			Music.INSTANCE.end();
 		} else {
@@ -106,8 +105,8 @@ public class CavesBossLevel extends Level {
 		return Assets.Environment.WATER_CAVES;
 	}
 
-	private static int WIDTH = 33;
-	private static int HEIGHT = 42;
+	private static final int WIDTH = 33;
+	private static final int HEIGHT = 42;
 
 	public static Rect diggableArea = new Rect(2, 11, 31, 40);
 	public static Rect mainArena = new Rect(5, 14, 28, 37);
@@ -220,16 +219,16 @@ public class CavesBossLevel extends Level {
 	@Override
 	protected void createItems() {
 		Random.pushGenerator(Random.Long());
-			ArrayList<Item> bonesItems = Bones.get();
-			if (bonesItems != null) {
-				int pos;
-				do {
-					pos = randomRespawnCell(null);
-				} while (pos == entrance());
-				for (Item i : bonesItems) {
-					drop(i, pos).setHauntedIfCursed().type = Heap.Type.REMAINS;
-				}
+		ArrayList<Item> bonesItems = Bones.get();
+		if (bonesItems != null) {
+			int pos;
+			do {
+				pos = randomRespawnCell(null);
+			} while (pos == entrance());
+			for (Item i : bonesItems) {
+				drop(i, pos).setHauntedIfCursed().type = Heap.Type.REMAINS;
 			}
+		}
 		Random.popGenerator();
 	}
 
@@ -355,7 +354,7 @@ public class CavesBossLevel extends Level {
 		for (int j = gate.left; j < gate.right; j++){
 			set( i+j, Terrain.EMPTY );
 			Hero local = Multiplayer.localHero();
-        	if (local != null && local.fieldOfView != null && local.fieldOfView[i+j]) {
+			if (local != null && local.fieldOfView != null && local.fieldOfView[i+j]) {
 				CellEmitter.get(i+j).burst(BlastParticle.FACTORY, 10);
 			}
 		}
@@ -379,7 +378,8 @@ public class CavesBossLevel extends Level {
 
 	}
 
-	public void activatePylon(){
+	// Теперь activatePylon принимает героя, который убил пилон (или null)
+	public void activatePylon(Hero hero){
 		ArrayList<Pylon> pylons = new ArrayList<>();
 		for (Mob m : mobs){
 			if (m instanceof Pylon && m.alignment == Char.Alignment.NEUTRAL){
@@ -390,13 +390,17 @@ public class CavesBossLevel extends Level {
 		if (pylons.size() == 1){
 			pylons.get(0).activate();
 		} else if (!pylons.isEmpty()) {
+			// Если передан герой, выбираем пилон, ближайший к нему (оригинальная логика)
+			// Если герой не передан, выбираем случайный
 			Pylon closest = null;
-			for (Pylon p : pylons){
-				if (closest == null || trueDistance(p.pos, Dungeon.hero.pos) < trueDistance(closest.pos, Dungeon.hero.pos)){
-					closest = p;
+			if (hero != null) {
+				for (Pylon p : pylons) {
+					if (closest == null || trueDistance(p.pos, hero.pos) < trueDistance(closest.pos, hero.pos)) {
+						closest = p;
+					}
 				}
+				pylons.remove(closest);
 			}
-			pylons.remove(closest);
 			Random.element(pylons).activate();
 		}
 
@@ -489,7 +493,7 @@ public class CavesBossLevel extends Level {
 	private static final short e = Terrain.EMPTY;
 	private static final short s = Terrain.EMPTY_SP;
 
-	private static short[] entrance1 = {
+	private static final short[] entrance1 = {
 			n, n, n, n, n, n, n, n,
 			n, n, n, n, n, n, n, n,
 			n, n, n, n, W, e, W, W,
@@ -500,7 +504,7 @@ public class CavesBossLevel extends Level {
 			n, n, W, W, e, e, e, e
 	};
 
-	private static short[] entrance2 = {
+	private static final short[] entrance2 = {
 			n, n, n, n, n, n, n, n,
 			n, n, n, n, n, n, n, n,
 			n, n, n, n, n, e, e, e,
@@ -511,7 +515,7 @@ public class CavesBossLevel extends Level {
 			n, n, e, e, e, e, e, e
 	};
 
-	private static short[] entrance3 = {
+	private static final short[] entrance3 = {
 			n, n, n, n, n, n, n, n,
 			n, n, n, n, n, n, n, n,
 			n, n, n, n, n, n, n, n,
@@ -522,7 +526,7 @@ public class CavesBossLevel extends Level {
 			n, n, n, W, W, e, e, e
 	};
 
-	private static short[] entrance4 = {
+	private static final short[] entrance4 = {
 			n, n, n, n, n, n, n, n,
 			n, n, n, n, n, n, n, e,
 			n, n, n, n, n, n, W, e,
@@ -533,7 +537,7 @@ public class CavesBossLevel extends Level {
 			n, e, e, e, e, e, e, e
 	};
 
-	private static short[][] entranceVariants = {
+	private static final short[][] entranceVariants = {
 			entrance1,
 			entrance2,
 			entrance3,
@@ -566,7 +570,7 @@ public class CavesBossLevel extends Level {
 		transitions.add(new LevelTransition(this, entrance, LevelTransition.Type.REGULAR_ENTRANCE));
 	}
 
-	private static short[] corner1 = {
+	private static final short[] corner1 = {
 			W, W, W, W, W, W, W, W, W, W,
 			W, s, s, s, e, e, e, W, W, W,
 			W, s, s, s, W, W, e, e, W, W,
@@ -579,7 +583,7 @@ public class CavesBossLevel extends Level {
 			W, W, W, W, n, n, n, n, n, n,
 	};
 
-	private static short[] corner2 = {
+	private static final short[] corner2 = {
 			W, W, W, W, W, W, W, W, W, W,
 			W, s, s, s, W, W, W, W, W, W,
 			W, s, s, s, e, e, e, e, e, W,
@@ -592,7 +596,7 @@ public class CavesBossLevel extends Level {
 			W, W, W, e, e, n, n, n, n, n,
 	};
 
-	private static short[] corner3 = {
+	private static final short[] corner3 = {
 			W, W, W, W, W, W, W, W, W, W,
 			W, s, s, s, W, W, W, W, W, W,
 			W, s, s, s, e, e, e, e, W, W,
@@ -605,7 +609,7 @@ public class CavesBossLevel extends Level {
 			W, W, W, W, n, n, n, n, n, n,
 	};
 
-	private static short[] corner4 = {
+	private static final short[] corner4 = {
 			W, W, W, W, W, W, W, W, W, W,
 			W, s, s, s, W, W, W, W, W, W,
 			W, s, s, s, e, e, e, W, W, W,
@@ -618,7 +622,7 @@ public class CavesBossLevel extends Level {
 			W, W, W, W, n, n, n, n, n, n,
 	};
 
-	private static short[][] cornerVariants = {
+	private static final short[][] cornerVariants = {
 			corner1,
 			corner2,
 			corner3,
@@ -655,10 +659,10 @@ public class CavesBossLevel extends Level {
 			texture = Assets.Environment.CAVES_BOSS;
 		}
 
-		private static short[] entryWay = new short[]{
+		private static final short[] entryWay = new short[]{
 				-1,  7,  7,  7, -1,
 				-1,  1,  2,  3, -1,
-				 8,  1,  2,  3, 12,
+				8,  1,  2,  3, 12,
 				16,  9, 10, 11, 20,
 				16, 16, 18, 20, 20,
 				16, 17, 18, 19, 20,
@@ -684,7 +688,7 @@ public class CavesBossLevel extends Level {
 					data[i++] = entryWay[entryPos++];
 					data[i] = entryWay[entryPos++];
 
-				//otherwise check if we are on row 2 or 3, in which case we need to override walls
+					//otherwise check if we are on row 2 or 3, in which case we need to override walls
 				} else {
 					if (i / tileW == 2) {
 						data[i] = 13;
@@ -712,9 +716,9 @@ public class CavesBossLevel extends Level {
 			texture = Assets.Environment.CAVES_BOSS;
 		}
 
-		private static short[] entryWay = new short[]{
-				 0,  7,  7,  7,  4,
-				 0, 15, 15, 15,  4,
+		private static final short[] entryWay = new short[]{
+				0,  7,  7,  7,  4,
+				0, 15, 15, 15,  4,
 				-1, 23, 23, 23, -1,
 				-1, -1, -1, -1, -1,
 				-1,  6, -1, 14, -1,
@@ -874,12 +878,17 @@ public class CavesBossLevel extends Level {
 							ch.sprite.flash();
 
 							if (ch instanceof Hero){
-								if (energySourceSprite != null && energySourceSprite instanceof PylonSprite){
-									//took damage while DM-300 was supercharged
-									Statistics.qualifiedForBossChallengeBadge = false;
+								Hero hero = (Hero) ch;
+								// Обновляем статистику только для локального героя
+								if (hero == Multiplayer.localHero()) {
+									if (energySourceSprite != null && energySourceSprite instanceof PylonSprite){
+										//took damage while DM-300 was supercharged
+										Statistics.qualifiedForBossChallengeBadge = false;
+									}
+									Statistics.bossScores[2] -= 200;
 								}
-								Statistics.bossScores[2] -= 200;
-								if ( !ch.isAlive()) {
+								// Dungeon.fail вызывается только для умершего локального героя
+								if (!hero.isAlive() && hero == Multiplayer.localHero()) {
 									Dungeon.fail(DM300.class);
 									GLog.n(Messages.get(Electricity.class, "ondeath"));
 								}
@@ -898,7 +907,7 @@ public class CavesBossLevel extends Level {
 
 		private static CharSprite energySourceSprite = null;
 
-		private static Emitter.Factory DIRECTED_SPARKS = new Emitter.Factory() {
+		private static final Emitter.Factory DIRECTED_SPARKS = new Emitter.Factory() {
 			@Override
 			public void emit(Emitter emitter, int index, float x, float y) {
 				if (energySourceSprite == null){
@@ -915,7 +924,7 @@ public class CavesBossLevel extends Level {
 					}
 				}
 
-				float dist = (float)Math.max( Math.abs(energySourceSprite.x - x), Math.abs(energySourceSprite.y - y) );
+				float dist = Math.max( Math.abs(energySourceSprite.x - x), Math.abs(energySourceSprite.y - y) );
 				dist = GameMath.gate(0, dist-40, 320);
 				//more sparks closer up
 				if (Random.Float(360) > dist) {

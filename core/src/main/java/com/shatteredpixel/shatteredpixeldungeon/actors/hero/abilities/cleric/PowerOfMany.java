@@ -39,10 +39,10 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.spells.BeamingRay;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.spells.ClericSpell;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.spells.LifeLinkSpell;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.spells.Stasis;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.DirectableAlly;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShaftParticle;
+import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClassArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTeleportation;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfLivingEarth;
@@ -125,8 +125,7 @@ public class PowerOfMany extends ArmorAbility {
 
 		if (ally instanceof LightAlly){
 			if (target == null){
-				return;
-			} else {
+            } else {
 				((LightAlly) ally).directTocell(target);
 			}
 		} else if (allyExists) {
@@ -165,14 +164,14 @@ public class PowerOfMany extends ArmorAbility {
                 LightAlly new_ally = new LightAlly(hero.lvl);
                 new_ally.setOwnerId(hero.id());  // <-- запоминаем владельца
 				new_ally.pos = target;
-				GameScene.add((Mob) new_ally);
+				GameScene.add(new_ally);
 				ScrollOfTeleportation.appear(new_ally, new_ally.pos);
                 Buff.affect(new_ally, PowerBuff.class, 100f, hero);
                 Buff.affect(new_ally, Barrier.class, hero).setShield(25);
 			}
 
 			armor.charge -= chargeUse;
-			armor.updateQuickslot();
+			Item.updateQuickslot();
 
 			hero.sprite.zap(target);
 			Sample.INSTANCE.play(Assets.Sounds.CHARGEUP);

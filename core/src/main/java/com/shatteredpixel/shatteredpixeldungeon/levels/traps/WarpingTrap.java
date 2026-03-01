@@ -21,8 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.levels.traps;
 
-import static network.NetworkManager.getLocalPlayerId;
-
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.watabou.utils.BArray;

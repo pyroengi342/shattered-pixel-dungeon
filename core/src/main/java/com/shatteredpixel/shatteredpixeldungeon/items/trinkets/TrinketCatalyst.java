@@ -48,16 +48,16 @@ import com.shatteredpixel.shatteredpixeldungeon.windows.WndSadGhost;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
 
-import network.Multiplayer;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import network.Multiplayer;
+
 public class TrinketCatalyst extends Item {
 
 	{
-		image = ItemSpriteSheet.TRINKET_CATA;
+		setImage(ItemSpriteSheet.TRINKET_CATA);
 
 		unique = true;
 	}
@@ -84,7 +84,7 @@ public class TrinketCatalyst extends Item {
 		}
 	}
 
-	private ArrayList<Trinket> rolledTrinkets = new ArrayList<>();
+	private final ArrayList<Trinket> rolledTrinkets = new ArrayList<>();
 
 	public boolean hasRolledTrinkets(){
 		return !rolledTrinkets.isEmpty();
@@ -148,7 +148,7 @@ public class TrinketCatalyst extends Item {
 	public static class RandomTrinket extends Item {
 
 		{
-			image = ItemSpriteSheet.SOMETHING;
+			setImage(ItemSpriteSheet.SOMETHING);
 		}
 
 	}

@@ -21,9 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
-import static network.NetworkManager.getLocalPlayerId;
-
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MonkEnergy;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -34,10 +31,13 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.RedButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 
+import java.util.Arrays;
+
 import network.Multiplayer;
+import network.handlers.window.MonkAbilityHandler;
 
 public class WndMonkAbilities extends Window {
-    private MonkEnergy energyBuffed;
+    private final MonkEnergy energyBuffed;
 	private static final int WIDTH_P = 120;
 	private static final int WIDTH_L = 180;
 
@@ -58,7 +58,7 @@ public class WndMonkAbilities extends Window {
 		pos = title.bottom() + 3*MARGIN;
 
 		for (MonkEnergy.MonkAbility abil : MonkEnergy.MonkAbility.abilities) {
-			String text = "_" + Messages.titleCase(abil.name()) + " " + Messages.get(this, "energycost", abil.energyCost()) + ":_ " + abil.desc();
+			String text = "_" + Messages.titleCase(abil.name()) + " " + Messages.get(this, "energycost", abil.energyCost()) + ":_ " + abil.desc(energyBuff);
 			RedButton moveBtn = new RedButton(text, 6){
 				@Override
 				protected void onClick() {
@@ -69,6 +69,11 @@ public class WndMonkAbilities extends Window {
 						GameScene.selectCell(listener);
 					} else {
 						abil.doAbility((Hero) energyBuff.target, null);
+						// Отправка сообщения в мультиплеере
+						if (Multiplayer.isMultiplayer) {
+							int abilityIndex = Arrays.asList(MonkEnergy.MonkAbility.abilities).indexOf(abil);
+							MonkAbilityHandler.send(abilityIndex, null);
+						}
 					}
 				}
 			};
@@ -87,10 +92,14 @@ public class WndMonkAbilities extends Window {
 
 	MonkEnergy.MonkAbility abilityBeingUsed;
 
-	private CellSelector.Listener listener = new CellSelector.Listener() {
+	private final CellSelector.Listener listener = new CellSelector.Listener() {
         @Override
 		public void onSelect(Integer cell) {
-            abilityBeingUsed.doAbility((Hero) energyBuffed.target, cell);
+			abilityBeingUsed.doAbility((Hero) energyBuffed.target, cell);
+			if (Multiplayer.isMultiplayer) {
+				int abilityIndex = Arrays.asList(MonkEnergy.MonkAbility.abilities).indexOf(abilityBeingUsed);
+				MonkAbilityHandler.send(abilityIndex, cell);
+			}
 		}
 
 		@Override

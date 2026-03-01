@@ -38,6 +38,9 @@ import com.watabou.noosa.Game;
 
 import java.io.IOException;
 
+import network.Multiplayer;
+import network.NetworkManager;
+
 public class WndGame extends Window {
 
 	private static final int WIDTH		= 120;
@@ -74,12 +77,12 @@ public class WndGame extends Window {
 		}
 
 		// Restart
-		if (Dungeon.hero == null || !Dungeon.hero.isAlive()) {
+		if (Multiplayer.localHero() == null || !Multiplayer.localHero().isAlive()) {
 
 			addButton( curBtn = new RedButton( Messages.get(this, "start") ) {
 				@Override
 				protected void onClick() {
-					GamesInProgress.selectedClass = Dungeon.hero.heroClass;
+					GamesInProgress.selectedClass = Multiplayer.localHero().heroClass;
 					GamesInProgress.curSlot = GamesInProgress.firstEmpty();
 					ShatteredPixelDungeon.switchScene(HeroSelectScene.class);
 				}
@@ -105,6 +108,10 @@ public class WndGame extends Window {
 					Dungeon.saveAll();
 				} catch (IOException e) {
 					ShatteredPixelDungeon.reportException(e);
+				}
+				// Если мультиплеер активен, отключаемся от сервера
+				if (Multiplayer.isMultiplayer) {
+					NetworkManager.getInstance().disconnect();
 				}
 				Game.switchScene(TitleScene.class);
 			}

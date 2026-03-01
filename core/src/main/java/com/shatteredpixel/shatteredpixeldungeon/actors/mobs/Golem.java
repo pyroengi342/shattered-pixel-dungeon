@@ -74,16 +74,16 @@ public class Golem extends Mob {
 	}
 
 	@Override
-	public float lootChance() {
+	public float lootChance(Hero hero) {
 		//each drop makes future drops 1/3 as likely
 		// so loot chance looks like: 1/5, 1/15, 1/45, 1/135, etc.
-		return super.lootChance() * (float)Math.pow(1/3f, Dungeon.LimitedDrops.GOLEM_EQUIP.count);
+		return super.lootChance(hero) * (float)Math.pow(1/3f, Dungeon.LimitedDrops.GOLEM_EQUIP.count);
 	}
 
 	@Override
-	public void rollToDropLoot() {
+	public void rollToDropLoot(Hero hero) {
 		Imp.Quest.process( this );
-		super.rollToDropLoot();
+		super.rollToDropLoot(hero);
 	}
 
 	public Item createLoot() {
@@ -176,11 +176,8 @@ public class Golem extends Mob {
 		if (enemyTeleCooldown > 0) return false;
 		PathFinder.buildDistanceMap(target, BArray.not(Dungeon.level.solid, null), Dungeon.level.distance(pos, target)+1);
 		//zaps can go around blocking terrain, but not through it
-		if (PathFinder.distance[pos] == Integer.MAX_VALUE){
-			return false;
-		}
-		return true;
-	}
+        return PathFinder.distance[pos] != Integer.MAX_VALUE;
+    }
 
 	private class Wandering extends Mob.Wandering{
 

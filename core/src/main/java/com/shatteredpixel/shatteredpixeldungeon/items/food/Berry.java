@@ -33,7 +33,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 public class Berry extends Food {
 
 	{
-		image = ItemSpriteSheet.BERRY;
+		setImage(ItemSpriteSheet.BERRY);
 		energy = Hunger.HUNGRY/3f; //100 food value
 
 		bones = false;
@@ -56,7 +56,7 @@ public class Berry extends Food {
 	@Override
 	protected void satisfy(Hero hero) {
 		super.satisfy(hero);
-		SeedCounter counter = Buff.count(hero, SeedCounter.class, 1);
+		SeedCounter counter = Buff.count(hero, SeedCounter.class, 1, this);
 		if (counter.count() >= 2){
 			Dungeon.level.drop(Generator.randomUsingDefaults(Generator.Category.SEED), hero.pos).sprite.drop();
 			counter.detach();
@@ -68,5 +68,5 @@ public class Berry extends Food {
 		return 5 * quantity;
 	}
 
-	public static class SeedCounter extends CounterBuff{{revivePersists = true;}};
+	public static class SeedCounter extends CounterBuff{{revivePersists = true;}}
 }

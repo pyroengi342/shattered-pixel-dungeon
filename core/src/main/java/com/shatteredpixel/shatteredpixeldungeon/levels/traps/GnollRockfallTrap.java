@@ -46,9 +46,9 @@ import com.watabou.utils.BArray;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
-import network.Multiplayer;
-
 import java.util.ArrayList;
+
+import network.Multiplayer;
 
 public class GnollRockfallTrap extends RockfallTrap {
 
@@ -64,9 +64,10 @@ public class GnollRockfallTrap extends RockfallTrap {
 				if (Dungeon.level instanceof MiningLevel){
 					boolean barricade = false;
 					for (int j : PathFinder.NEIGHBOURS9){
-						if (Dungeon.level.map[i+j] == Terrain.BARRICADE){
-							barricade = true;
-						}
+                        if (Dungeon.level.map[i + j] == Terrain.BARRICADE) {
+                            barricade = true;
+                            break;
+                        }
 					}
 					if (barricade) continue;
 				}

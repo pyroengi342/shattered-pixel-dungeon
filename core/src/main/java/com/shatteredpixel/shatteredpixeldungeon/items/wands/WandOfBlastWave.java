@@ -55,7 +55,7 @@ import com.watabou.utils.Random;
 public class WandOfBlastWave extends DamageWand {
 
 	{
-		image = ItemSpriteSheet.WAND_BLAST_WAVE;
+		setImage(ItemSpriteSheet.WAND_BLAST_WAVE);
 
 		collisionProperties = Ballistica.PROJECTILE;
 	}
@@ -184,9 +184,13 @@ public class WandOfBlastWave extends DamageWand {
 				if (ch instanceof Hero){
 					Dungeon.observe((Hero) ch);
 					GameScene.updateFog();
-				} else if (owner != null && owner.fieldOfView[initialpos] != owner.fieldOfView[newPos]){
+				} else {
+					// TODO здесь надо поменять, что observeAll при попадании по герою или owner
 					Dungeon.observeAll();
 				}
+//				else if (owner != null && owner.fieldOfView[initialpos] != owner.fieldOfView[newPos]){
+//					Dungeon.observeAll();
+//				}
 			}
 		}));
 	}

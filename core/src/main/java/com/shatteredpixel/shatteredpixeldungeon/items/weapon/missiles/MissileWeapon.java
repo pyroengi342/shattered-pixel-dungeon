@@ -77,7 +77,7 @@ abstract public class MissileWeapon extends Weapon {
 	public int min(Char owner) {
 		int lvl = buffedLvl();
 		if (owner instanceof Hero) {
-			return Math.max(0, min(lvl) + RingOfSharpshooting.levelDamageBonus((Hero) owner));
+			return Math.max(0, min(lvl) + RingOfSharpshooting.levelDamageBonus(owner));
 		} else {
 			return Math.max(0, min(lvl));
 		}
@@ -86,7 +86,7 @@ abstract public class MissileWeapon extends Weapon {
 	public int max(Char owner) {
 		int lvl = buffedLvl();
 		if (owner instanceof Hero) {
-			return Math.max(0, max(lvl) + RingOfSharpshooting.levelDamageBonus((Hero) owner));
+			return Math.max(0, max(lvl) + RingOfSharpshooting.levelDamageBonus(owner));
 		} else {
 			return Math.max(0, max(lvl));
 		}
@@ -354,10 +354,10 @@ abstract public class MissileWeapon extends Weapon {
 
 		Random.pushGenerator(Random.Long());
 			float effectRoll = Random.Float();
-			if (effectRoll < 0.3f * ParchmentScrap.curseChanceMultiplier()) {
+			if (effectRoll < 0.3f * ParchmentScrap.curseChanceMultiplier(null)) {
 				enchant(Enchantment.randomCurse());
 				cursed = true;
-			} else if (effectRoll >= 1f - (0.1f * ParchmentScrap.enchantChanceMultiplier())){
+			} else if (effectRoll >= 1f - (0.1f * ParchmentScrap.enchantChanceMultiplier(null))){
 				enchant();
 			}
 		Random.popGenerator();
@@ -475,7 +475,7 @@ abstract public class MissileWeapon extends Weapon {
 			Hero hero = (Hero) owner;
 			int exStr = hero.STR() - STRReq();
 			if (exStr > 0) {
-				damage += Hero.heroDamageIntRange( 0, exStr );
+				damage += Hero.heroDamageIntRange( 0, exStr, hero);
 			}
 			if (owner.buff(Momentum.class) != null && owner.buff(Momentum.class).freerunning()) {
 				damage = Math.round(damage * (1f + 0.15f * hero.pointsInTalent(Talent.PROJECTILE_MOMENTUM)));
@@ -717,7 +717,7 @@ abstract public class MissileWeapon extends Weapon {
 
 	public static class PlaceHolder extends MissileWeapon {
 		{
-			image = ItemSpriteSheet.MISSILE_HOLDER;
+			setImage(ItemSpriteSheet.MISSILE_HOLDER);
 		}
 		@Override
 		public boolean isSimilar(Item item) {

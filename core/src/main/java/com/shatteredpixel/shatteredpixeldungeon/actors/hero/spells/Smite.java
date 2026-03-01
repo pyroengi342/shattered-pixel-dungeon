@@ -21,10 +21,7 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.spells;
 
-import static network.NetworkManager.getLocalPlayerId;
-
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
@@ -42,8 +39,6 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Callback;
 import com.watabou.utils.Random;
-
-import network.Multiplayer;
 
 public class Smite extends TargetedClericSpell {
 
@@ -131,6 +126,6 @@ public String desc(Hero hero){
 		}
 	}
 
-	public static class SmiteTracker extends FlavourBuff {};
+	public static class SmiteTracker extends FlavourBuff {}
 
 }

@@ -41,8 +41,8 @@ public class Tooltip extends Component {
 		tooltipAlpha = -5;
 	}
 
-	private Component parent;
-	private RectF parentDims;
+	private final Component parent;
+	private final RectF parentDims;
 
 	private NinePatch bg;
 	private RenderedTextBlock text;

@@ -31,7 +31,7 @@ import com.watabou.noosa.audio.Sample;
 public class TornPage extends RemainsItem {
 
 	{
-		image = ItemSpriteSheet.TORN_PAGE;
+		setImage(ItemSpriteSheet.TORN_PAGE);
 	}
 
 	@Override

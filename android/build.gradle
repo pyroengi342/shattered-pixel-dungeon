@@ -45,6 +45,11 @@ android {
             }
         }
     }
+    packagingOptions {
+        resources {
+            excludes += ['META-INF/INDEX.LIST', 'META-INF/DEPENDENCIES', 'META-INF/io.netty.versions.properties']
+        }
+    }
 
     sourceSets {
         main {
@@ -52,11 +57,6 @@ android {
         }
     }
 
-    packagingOptions {
-        exclude 'META-INF/INDEX.LIST'
-        exclude 'META-INF/DEPENDENCIES'
-        exclude 'META-INF/io.netty.versions.properties'
-    }
 }
 
 configurations { natives }

@@ -22,6 +22,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.mobs;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.HermitCrabSprite;
 
@@ -38,10 +39,10 @@ public class HermitCrab extends Crab {
 	}
 
 	@Override
-	public void rollToDropLoot() {
-		super.rollToDropLoot();
+	public void rollToDropLoot(Hero hero) {
+		super.rollToDropLoot(hero);
 
-		if (Dungeon.hero.lvl <= maxLvl + 2){
+		if (hero.lvl <= maxLvl + 2){
 			Dungeon.level.drop(Generator.randomArmor(), pos).sprite.drop();
 		}
 	}

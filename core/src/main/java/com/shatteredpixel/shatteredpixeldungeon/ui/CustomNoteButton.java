@@ -155,7 +155,7 @@ public class CustomNoteButton extends IconButton {
 
 	}
 
-	private WndBag.ItemSelector itemSelector = new WndBag.ItemSelector() {
+	private final WndBag.ItemSelector itemSelector = new WndBag.ItemSelector() {
 
 		@Override
 		public String textPrompt() {
@@ -254,7 +254,7 @@ public class CustomNoteButton extends IconButton {
 	}
 
 	//items are sorted first sorted potions -> scrolls -> rings, and then based on their sprites.
-	private static Comparator<Item> itemVisualcomparator = new Comparator<Item>() {
+	private static final Comparator<Item> itemVisualcomparator = new Comparator<Item>() {
 		@Override
 		public int compare(Item i1, Item i2) {
 			int i1Idx = i1.image();

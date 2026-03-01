@@ -30,7 +30,7 @@ import com.watabou.utils.Callback;
 
 public class GnollTricksterSprite extends MobSprite {
 
-	private Animation cast;
+	private final Animation cast;
 
 	public GnollTricksterSprite() {
 		super();
@@ -42,13 +42,13 @@ public class GnollTricksterSprite extends MobSprite {
 		int c = 42;
 
 		idle = new MovieClip.Animation( 2, true );
-		idle.frames( frames, 0+c, 0+c, 0+c, 1+c, 0+c, 0+c, 1+c, 1+c );
+		idle.frames( frames, c, c, c, 1+c, c, c, 1+c, 1+c );
 
 		run = new MovieClip.Animation( 12, true );
 		run.frames( frames, 4+c, 5+c, 6+c, 7+c );
 
 		attack = new MovieClip.Animation( 12, false );
-		attack.frames( frames, 2+c, 3+c, 0+c );
+		attack.frames( frames, 2+c, 3+c, c);
 
 		cast = attack.clone();
 
@@ -63,7 +63,7 @@ public class GnollTricksterSprite extends MobSprite {
 		if (!Dungeon.level.adjacent(cell, ch.pos)) {
 
 			((MissileSprite)parent.recycle( MissileSprite.class )).
-					reset( this, cell, new ParalyticDart(), new Callback() {
+					reset(null, ch.pos, cell, new ParalyticDart(), new Callback() {
 						@Override
 						public void call() {
 							ch.onAttackComplete();

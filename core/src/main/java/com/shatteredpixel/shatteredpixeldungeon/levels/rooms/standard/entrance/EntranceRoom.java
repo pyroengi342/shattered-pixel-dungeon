@@ -132,7 +132,7 @@ public class EntranceRoom extends StandardRoom {
 		Random.popGenerator();
 	}
 
-	private static ArrayList<Class<?extends StandardRoom>> rooms = new ArrayList<>();
+	private static final ArrayList<Class<?extends StandardRoom>> rooms = new ArrayList<>();
 	static {
 		rooms.add(WaterBridgeEntranceRoom.class);
 		rooms.add(RegionDecoPatchEntranceRoom.class);
@@ -160,7 +160,7 @@ public class EntranceRoom extends StandardRoom {
 		rooms.add(RitualEntranceRoom.class);
 	}
 
-	private static float[][] chances = new float[27][];
+	private static final float[][] chances = new float[27][];
 	static {
 		//first 2 floors only use simpler entrance rooms
 		chances[1] =  new float[]{4,3,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0};

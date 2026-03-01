@@ -57,7 +57,7 @@ import com.watabou.utils.Random;
 public class WandOfWarding extends Wand {
 
 	{
-		image = ItemSpriteSheet.WAND_WARDING;
+		setImage(ItemSpriteSheet.WAND_WARDING);
 		usesTargeting = false; //player usually targets wards or spaces, not enemies
 	}
 
@@ -298,9 +298,9 @@ public class WandOfWarding extends Wand {
 		}
 
 		//this class is used so that wards and sentries can have two entries in the Bestiary
-		public static class WardSentry extends Ward{};
+		public static class WardSentry extends Ward{}
 
-		public void wandHeal( int wandLevel ){
+        public void wandHeal( int wandLevel ){
 			wandHeal( wandLevel, 1f );
 		}
 
@@ -377,10 +377,10 @@ public class WandOfWarding extends Wand {
 		private void zap() {
 			spend( 1f );
 
-			//always hits
-			int dmg = Hero.heroDamageIntRange( 2 + wandLevel, 8 + 4*wandLevel );
+			// Используем владельца варда для расчёта урона с учётом тринкетов
+			int dmg = Hero.heroDamageIntRange(2 + wandLevel, 8 + 4 * wandLevel, getOwner());
 			Char enemy = this.enemy;
-			enemy.damage( dmg, this );
+			enemy.damage(dmg, this);
 			if (enemy.isAlive()) {
 				Hero owner = getOwner();
 				if (owner != null) {
@@ -390,14 +390,14 @@ public class WandOfWarding extends Wand {
 
 			if (!enemy.isAlive() && enemy instanceof Hero) {
 				Badges.validateDeathFromFriendlyMagic();
-				GLog.n(Messages.capitalize(Messages.get( this, "kill", name() )));
-				Dungeon.fail( WandOfWarding.class );
+				GLog.n(Messages.capitalize(Messages.get(this, "kill", name())));
+				Dungeon.fail(WandOfWarding.class);
 			}
 
 			totalZaps++;
-			switch(tier){
+			switch (tier) {
 				case 1: case 2: case 3: default:
-					if (totalZaps >= (2*tier-1)){
+					if (totalZaps >= (2 * tier - 1)) {
 						die(this);
 					}
 					break;

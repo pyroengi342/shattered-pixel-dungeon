@@ -29,7 +29,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 public class HandAxe extends MeleeWeapon {
 
 	{
-		image = ItemSpriteSheet.HAND_AXE;
+		setImage(ItemSpriteSheet.HAND_AXE);
 		hitSound = Assets.Sounds.HIT_SLASH;
 		hitSoundPitch = 1f;
 

@@ -20,9 +20,8 @@
  */
 
 package com.shatteredpixel.shatteredpixeldungeon.scenes;
-import static network.NetworkManager.getLocalPlayerId;
+
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.Ratmogrify;
@@ -37,8 +36,8 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.EarthGuardianSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.GhostSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.RatSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.WardSprite;
-import com.shatteredpixel.shatteredpixeldungeon.ui.TitleBackground;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RedButton;
+import com.shatteredpixel.shatteredpixeldungeon.ui.TitleBackground;
 import com.watabou.gltextures.SmartTexture;
 import com.watabou.gltextures.TextureCache;
 import com.watabou.glwrap.Matrix;
@@ -59,12 +58,12 @@ import com.watabou.utils.PointF;
 import com.watabou.utils.Random;
 import com.watabou.utils.RectF;
 
-import network.Multiplayer;
-
 import java.nio.Buffer;
 import java.nio.FloatBuffer;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+
+import network.Multiplayer;
 
 public class SurfaceScene extends PixelScene {
 
@@ -307,8 +306,8 @@ public class SurfaceScene extends PixelScene {
 		private static final int[] day		= {0xFF4488FF, 0xFFCCEEFF};
 		private static final int[] night	= {0xFF001155, 0xFF335980};
 		
-		private SmartTexture texture;
-		private FloatBuffer verticesBuffer;
+		private final SmartTexture texture;
+		private final FloatBuffer verticesBuffer;
 		
 		public Sky( boolean dayTime ) {
 			super( 0, 0, 1, 1 );
@@ -446,13 +445,13 @@ public class SurfaceScene extends PixelScene {
 		public static final int WIDTH	= 16;
 		public static final int HEIGHT	= 14;
 		
-		private float tx;
-		private float ty;
+		private final float tx;
+		private final float ty;
 		
 		private double a = Random.Float( 5 );
 		private double angle;
 		
-		private boolean forward;
+		private final boolean forward;
 		
 		public GrassPatch( float tx, float ty, boolean forward ) {
 			

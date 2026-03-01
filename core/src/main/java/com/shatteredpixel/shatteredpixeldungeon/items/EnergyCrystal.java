@@ -36,7 +36,7 @@ import java.util.ArrayList;
 public class EnergyCrystal extends Item {
 
 	{
-		image = ItemSpriteSheet.ENERGY;
+		setImage(ItemSpriteSheet.ENERGY);
 		stackable = true;
 	}
 

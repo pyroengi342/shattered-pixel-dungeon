@@ -64,7 +64,7 @@ public class SummonElemental extends Spell {
 	public static final String AC_IMBUE = "IMBUE";
 
 	{
-		image = ItemSpriteSheet.SUMMON_ELE;
+		setImage(ItemSpriteSheet.SUMMON_ELE);
 
 		talentChance = 1/(float)Recipe.OUT_QUANTITY;
 	}
@@ -105,25 +105,25 @@ public class SummonElemental extends Spell {
 				if (ch instanceof Elemental && ch.buff(InvisAlly.class) != null){
 					ScrollOfTeleportation.appear( ch, Random.element(spawnPoints) );
 					((Elemental) ch).state = ((Elemental) ch).HUNTING;
-					curUser.spendAndNext(Actor.TICK);
+					hero.spendAndNext(Actor.TICK);
 					return;
 				}
 			}
 
 			Elemental elemental = Reflection.newInstance(summonClass);
 			GameScene.add( elemental );
-			Buff.affect(elemental, InvisAlly.class);
+			Buff.affect(elemental, InvisAlly.class, hero);
 			elemental.setSummonedALly();
 			elemental.HP = elemental.HT;
 			ScrollOfTeleportation.appear( elemental, Random.element(spawnPoints) );
-			Invisibility.dispel(curUser);
-			curUser.sprite.operate(curUser.pos);
-			curUser.spendAndNext(Actor.TICK);
+			Invisibility.dispel(hero);
+			hero.sprite.operate(hero.pos);
+			hero.spendAndNext(Actor.TICK);
 
-			detach(curUser.belongings.backpack);
+			detach(hero.belongings.backpack);
 			Catalog.countUse(getClass());
 			if (Random.Float() < talentChance){
-				Talent.onScrollUsed(curUser, curUser.pos, talentFactor, getClass());
+				Talent.onScrollUsed(hero, hero.pos, talentFactor, getClass());
 			}
 
 		} else {

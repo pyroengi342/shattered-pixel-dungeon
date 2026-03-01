@@ -1,7 +1,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ArtifactRecharge;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
@@ -35,8 +34,6 @@ import com.watabou.noosa.Image;
 import com.watabou.noosa.Visual;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
-
-import network.Multiplayer;
 
 import java.util.ArrayList;
 
@@ -275,7 +272,7 @@ public class MeleeWeapon extends Weapon {
             Hero hero = (Hero) owner;
             int exStr = hero.STR() - STRReq();
             if (exStr > 0) {
-                damage += Hero.heroDamageIntRange(0, exStr);
+                damage += Hero.heroDamageIntRange(0, exStr, hero);
             }
         }
         return damage;

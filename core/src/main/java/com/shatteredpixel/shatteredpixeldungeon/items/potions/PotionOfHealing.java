@@ -43,7 +43,7 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 public class PotionOfHealing extends Potion {
 
 	{
-		icon = ItemSpriteSheet.Icons.POTION_HEALING;
+		setIcon(ItemSpriteSheet.Icons.POTION_HEALING);
 
 		bones = true;
 	}
@@ -57,10 +57,10 @@ public class PotionOfHealing extends Potion {
 
 	public static void heal( Char ch ){
 		if (ch instanceof Hero && Dungeon.isChallenged(Challenges.NO_HEALING)){
-			pharmacophobiaProc(curUser);
+			pharmacophobiaProc((Hero) ch);
 		} else {
 			//starts out healing 30 hp, equalizes with hero health total at level 11
-			Healing healing = Buff.affect(ch, Healing.class);
+			Healing healing = Buff.affect(ch, Healing.class, ch);
 			healing.setHeal((int) (0.8f * ch.HT + 14), 0.25f, 0);
 			healing.applyVialEffect();
 			if (ch instanceof Hero){

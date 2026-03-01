@@ -64,6 +64,8 @@ import com.watabou.utils.DeviceCompat;
 import java.text.NumberFormat;
 import java.util.Locale;
 
+import network.Multiplayer;
+
 public class WndRanking extends WndTabbed {
 	
 	private static final int WIDTH			= 115;
@@ -71,8 +73,8 @@ public class WndRanking extends WndTabbed {
 	
 	private static WndRanking INSTANCE;
 	
-	private String gameID;
-	private Rankings.Record record;
+	private final String gameID;
+	private final Rankings.Record record;
 	private Hero loadedHero;
 	private QuickSlot loadedQuickslot;
 	
@@ -95,7 +97,6 @@ public class WndRanking extends WndTabbed {
 			createControls();
 		} catch ( Exception e ) {
 			Game.reportException( new RuntimeException("Rankings Display Failed!",e));
-			Dungeon.hero = null;
 			createControls();
 		}
 	}
@@ -109,8 +110,14 @@ public class WndRanking extends WndTabbed {
 	}
 	
 	private void createControls() {
-
-		if (Dungeon.hero != null) {
+		if (Multiplayer.isMultiplayer) {
+			RenderedTextBlock msg = PixelScene.renderTextBlock(Messages.get(this, "not_available"), 8);
+			msg.maxWidth(WIDTH);
+			msg.setPos(0, (HEIGHT - msg.height())/2);
+			add(msg);
+			return;
+		}
+		if (Multiplayer.localHero() != null) {
 			Icons[] icons =
 					{Icons.RANKINGS, Icons.TALENT, Icons.BACKPACK_LRG, Icons.BADGES, Icons.CHALLENGE_COLOR};
 			Group[] pages =
@@ -142,7 +149,7 @@ public class WndRanking extends WndTabbed {
 
 	private class RankingTab extends IconTab {
 		
-		private Group page;
+		private final Group page;
 		
 		public RankingTab( Icons icon, Group page ) {
 			super( Icons.get(icon) );
@@ -166,8 +173,8 @@ public class WndRanking extends WndTabbed {
 			super();
 			
 			String heroClass = record.heroClass.name();
-			if (Dungeon.hero != null){
-				heroClass = Dungeon.hero.className();
+			if (Multiplayer.localHero() != null){
+				heroClass = Multiplayer.localHero().className();
 			}
 			
 			IconTitle title = new IconTitle();
@@ -177,7 +184,7 @@ public class WndRanking extends WndTabbed {
 			title.setRect( 0, 0, WIDTH, 0 );
 			add( title );
 
-			if (Dungeon.hero != null && Dungeon.seed != -1){
+			if (Multiplayer.localHero() != null && Dungeon.seed != -1){
 				GAP--;
 			}
 			
@@ -197,7 +204,7 @@ public class WndRanking extends WndTabbed {
 
 			NumberFormat num = NumberFormat.getInstance(Messages.locale());
 
-			if (Dungeon.hero == null){
+			if (Multiplayer.localHero() == null){
 				pos = statSlot( this, Messages.get(this, "score"), num.format( record.score ), pos );
 				pos += GAP;
 
@@ -227,13 +234,13 @@ public class WndRanking extends WndTabbed {
 
 				pos += GAP;
 
-				int strBonus = Dungeon.hero.STR() - Dungeon.hero.STR;
+				int strBonus = Multiplayer.localHero().STR() - Multiplayer.localHero().STR;
 				if (strBonus > 0)
-					pos = statSlot(this, Messages.get(this, "str"), Dungeon.hero.STR + " + " + strBonus, pos);
+					pos = statSlot(this, Messages.get(this, "str"), Multiplayer.localHero().STR + " + " + strBonus, pos);
 				else if (strBonus < 0)
-					pos = statSlot(this, Messages.get(this, "str"), Dungeon.hero.STR + " - " + -strBonus, pos);
+					pos = statSlot(this, Messages.get(this, "str"), Multiplayer.localHero().STR + " - " + -strBonus, pos);
 				else
-					pos = statSlot(this, Messages.get(this, "str"), Integer.toString(Dungeon.hero.STR), pos);
+					pos = statSlot(this, Messages.get(this, "str"), Integer.toString(Multiplayer.localHero().STR), pos);
 				pos = statSlot(this, Messages.get(this, "duration"), num.format((int) Statistics.duration), pos);
 				if (Statistics.highestAscent == 0) {
 					pos = statSlot(this, Messages.get(this, "depth"), num.format(Statistics.deepestFloor), pos);
@@ -266,7 +273,7 @@ public class WndRanking extends WndTabbed {
 
 			int buttontop = HEIGHT - 16;
 
-			if (Dungeon.hero != null && Dungeon.seed != -1 && !Dungeon.daily &&
+			if (Multiplayer.localHero() != null && Dungeon.seed != -1 && !Dungeon.daily &&
 					(DeviceCompat.isDebug() || Badges.isUnlocked(Badges.Badge.VICTORY))){
 				final Image icon = Icons.get(Icons.SEED);
 				RedButton btnSeed = new RedButton(Messages.get(this, "copy_seed")){
@@ -332,11 +339,11 @@ public class WndRanking extends WndTabbed {
 			camera = WndRanking.this.camera;
 
 			int tiers = 1;
-			if (Dungeon.hero.lvl >= 6) tiers++;
-			if (Dungeon.hero.lvl >= 12 && Dungeon.hero.subClass != HeroSubClass.NONE) tiers++;
-			if (Dungeon.hero.lvl >= 20 && Dungeon.hero.armorAbility != null) tiers++;
-			while (Dungeon.hero.talents.size() > tiers){
-				Dungeon.hero.talents.remove(Dungeon.hero.talents.size()-1);
+			if (Multiplayer.localHero().lvl >= 6) tiers++;
+			if (Multiplayer.localHero().lvl >= 12 && Multiplayer.localHero().subClass != HeroSubClass.NONE) tiers++;
+			if (Multiplayer.localHero().lvl >= 20 && Multiplayer.localHero().armorAbility != null) tiers++;
+			while (Multiplayer.localHero().talents.size() > tiers){
+				Multiplayer.localHero().talents.remove(Multiplayer.localHero().talents.size()-1);
 			}
 
 			TalentsPane p = new TalentsPane(TalentButton.Mode.INFO);
@@ -356,7 +363,7 @@ public class WndRanking extends WndTabbed {
 		public ItemsTab() {
 			super();
 			
-			Belongings stuff = Dungeon.hero.belongings;
+			Belongings stuff = Multiplayer.localHero().belongings;
 			if (stuff.weapon != null) {
 				addItem( stuff.weapon );
 			}
@@ -377,9 +384,10 @@ public class WndRanking extends WndTabbed {
 
 			int slotsActive = 0;
 			for (int i = 0; i < QuickSlot.SIZE; i++){
-				if (Dungeon.quickslot.isNonePlaceholder(i)){
-					slotsActive++;
-				}
+				// TODO
+//				if (Dungeon.quickslot.isNonePlaceholder(i)){
+//					slotsActive++;
+//				}
 			}
 
 			Trinket trinket = stuff.getItem(Trinket.class);
@@ -393,9 +401,11 @@ public class WndRanking extends WndTabbed {
 				Item item = null;
 				if (i == -1){
 					item = trinket;
-				} else if (Dungeon.quickslot.isNonePlaceholder(i)) {
-					item = Dungeon.quickslot.getItem(i);
 				}
+				// TODO
+//				else if (Dungeon.quickslot.isNonePlaceholder(i)) {
+//					item = Dungeon.quickslot.getItem(i);
+//				}
 				if (item != null){
 					QuickSlotButton slot = new QuickSlotButton(item);
 
@@ -483,7 +493,7 @@ public class WndRanking extends WndTabbed {
 		
 		public static final int HEIGHT	= 23;
 		
-		private Item item;
+		private final Item item;
 		
 		private ItemSlot slot;
 		private ColorBlock bg;
@@ -563,7 +573,7 @@ public class WndRanking extends WndTabbed {
 
 	private class QuickSlotButton extends ItemSlot{
 
-		private Item item;
+		private final Item item;
 		private ColorBlock bg;
 
 		QuickSlotButton(Item item){

@@ -21,8 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.ui;
 
-import static network.NetworkManager.getLocalPlayerId;
-
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.SPDAction;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;

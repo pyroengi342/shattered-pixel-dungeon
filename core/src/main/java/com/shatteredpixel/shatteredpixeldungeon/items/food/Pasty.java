@@ -57,34 +57,34 @@ public class Pasty extends Food {
 		super.reset();
 		switch(Holiday.getCurrentHoliday()){
 			case NONE: default:
-				image = ItemSpriteSheet.PASTY;
+				setImage(ItemSpriteSheet.PASTY);
 				break;
 			case LUNAR_NEW_YEAR:
-				image = ItemSpriteSheet.STEAMED_FISH;
+				setImage(ItemSpriteSheet.STEAMED_FISH);
 				break;
 			case APRIL_FOOLS:
-				image = ItemSpriteSheet.CHOC_AMULET;
+				setImage(ItemSpriteSheet.CHOC_AMULET);
 				break;
 			case EASTER:
-				image = ItemSpriteSheet.EASTER_EGG;
+				setImage(ItemSpriteSheet.EASTER_EGG);
 				break;
 			case PRIDE:
-				image = ItemSpriteSheet.RAINBOW_POTION;
+				setImage(ItemSpriteSheet.RAINBOW_POTION);
 				break;
 			case SHATTEREDPD_BIRTHDAY:
-				image = ItemSpriteSheet.SHATTERED_CAKE;
+				setImage(ItemSpriteSheet.SHATTERED_CAKE);
 				break;
 			case HALLOWEEN:
-				image = ItemSpriteSheet.PUMPKIN_PIE;
+				setImage(ItemSpriteSheet.PUMPKIN_PIE);
 				break;
 			case PD_BIRTHDAY:
-				image = ItemSpriteSheet.VANILLA_CAKE;
+				setImage(ItemSpriteSheet.VANILLA_CAKE);
 				break;
 			case WINTER_HOLIDAYS:
-				image = ItemSpriteSheet.CANDY_CANE;
+				setImage(ItemSpriteSheet.CANDY_CANE);
 				break;
 			case NEW_YEARS:
-				image = ItemSpriteSheet.SPARKLING_POTION;
+				setImage(ItemSpriteSheet.SPARKLING_POTION);
 				break;
 		}
 	}
@@ -110,9 +110,7 @@ public class Pasty extends Food {
 		super.satisfy(hero);
 		
 		switch(Holiday.getCurrentHoliday()){
-			default:
-				break; //do nothing extra
-			case LUNAR_NEW_YEAR:
+            case LUNAR_NEW_YEAR:
 				//...but it also awards an extra item that restores 150 hunger
 				FishLeftover left = new FishLeftover();
 				if (!left.collect(hero)){
@@ -168,7 +166,9 @@ public class Pasty extends Food {
 				Buff.affect(hero, Barrier.class, this).setShield(toShield);
 				hero.sprite.showStatusWithIcon( CharSprite.POSITIVE, Integer.toString(toShield), FloatingText.SHIELDING );
 				break;
-		}
+            default:
+                break; //do nothing extra
+        }
 	}
 
 	@Override
@@ -231,7 +231,7 @@ public class Pasty extends Food {
 	public static class FishLeftover extends Food {
 
 		{
-			image = ItemSpriteSheet.FISH_LEFTOVER;
+			setImage(ItemSpriteSheet.FISH_LEFTOVER);
 			energy = Hunger.HUNGRY/2;
 		}
 

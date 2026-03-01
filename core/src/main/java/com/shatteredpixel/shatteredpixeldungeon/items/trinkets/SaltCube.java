@@ -10,7 +10,7 @@ import network.Multiplayer;
 public class SaltCube extends Trinket {
 
     {
-        image = ItemSpriteSheet.SALT_CUBE;
+        setImage(ItemSpriteSheet.SALT_CUBE);
     }
 
     @Override
@@ -21,20 +21,20 @@ public class SaltCube extends Trinket {
     @Override
     public String statsDesc() {
         Hero viewer = Multiplayer.localHero();
-        int level = isIdentified() ? buffedLvl() : 0;
+//        int level = isIdentified() ? buffedLvl() : 0;
         return Messages.get(this,
                 "stats_desc",
-                Messages.decimalFormat("#.##", 100 * ((1f / hungerGainMultiplier(level, viewer)) - 1f)),
-                Messages.decimalFormat("#.##", 100 * (1f - healthRegenMultiplier(level, viewer))));
+                Messages.decimalFormat("#.##", 100 * ((1f / hungerGainMultiplier( viewer)) - 1f)),
+                Messages.decimalFormat("#.##", 100 * (1f - healthRegenMultiplier( viewer))));
     }
 
-    public static float hungerGainMultiplier(int level, Hero hero) {
+    public static float hungerGainMultiplier(Hero hero) {
         int lvl = trinketLevel(SaltCube.class, hero);
         if (lvl == -1) return 1f;
         return 1f / (1f + 0.25f * (lvl + 1));
     }
 
-    public static float healthRegenMultiplier(int level, Hero hero) {
+    public static float healthRegenMultiplier( Hero hero) {
         int lvl = trinketLevel(SaltCube.class, hero);
         switch (lvl) {
             case -1: default:

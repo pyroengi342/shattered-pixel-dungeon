@@ -34,6 +34,8 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.particles.LeafParticle;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 
+import network.Multiplayer;
+
 public class Rotberry extends Plant {
 
 	{
@@ -44,7 +46,7 @@ public class Rotberry extends Plant {
 	@Override
 	public void activate( Char ch ) {
 		if (ch instanceof Hero && ((Hero) ch).subClass == HeroSubClass.WARDEN){
-			Buff.affect(ch, AdrenalineSurge.class, this)reset(1, AdrenalineSurge.DURATION);
+			Buff.affect(ch, AdrenalineSurge.class, this).reset(1, AdrenalineSurge.DURATION);
 		} else {
 			GameScene.add( Blob.seed( pos, 100, ToxicGas.class ) );
 		}
@@ -65,7 +67,7 @@ public class Rotberry extends Plant {
 
 	public static class Seed extends Plant.Seed {
 		{
-			image = ItemSpriteSheet.SEED_ROTBERRY;
+			setImage(ItemSpriteSheet.SEED_ROTBERRY);
 
 			plantClass = Rotberry.class;
 

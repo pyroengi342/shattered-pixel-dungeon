@@ -9,7 +9,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Identification;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
-import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.HornOfPlenty.hornRecharge;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.Ring;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
@@ -22,14 +21,12 @@ import com.shatteredpixel.shatteredpixeldungeon.windows.WndBag;
 import com.watabou.noosa.Image;
 import com.watabou.noosa.audio.Sample;
 
-import network.Multiplayer;
-
 import java.util.ArrayList;
 
 public class ShardOfOblivion extends Trinket {
 
     {
-        image = ItemSpriteSheet.OBLIVION_SHARD;
+        setImage(ItemSpriteSheet.OBLIVION_SHARD);
     }
 
     public static final String AC_IDENTIFY = "IDENTIFY";
@@ -72,8 +69,8 @@ public class ShardOfOblivion extends Trinket {
 
     // Внутренний класс для выбора предмета, захватывает героя
     private class IdentifySelector extends WndBag.ItemSelector {
-        private Hero hero;
-        private ShardOfOblivion shard;
+        private final Hero hero;
+        private final ShardOfOblivion shard;
 
         IdentifySelector(Hero hero, ShardOfOblivion shard) {
             this.hero = hero;

@@ -21,12 +21,7 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import static network.NetworkManager.getLocalPlayerId;
 import com.shatteredpixel.shatteredpixeldungeon.Chrome;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
@@ -34,7 +29,6 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.Artifact;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.CloakOfShadows;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.HolyTome;
-import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.HornOfPlenty.hornRecharge;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -45,11 +39,15 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.watabou.noosa.Game;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+
 import network.Multiplayer;
 
 public class WndQuickBag extends Window {
 
-	private Item bag; // убрали static
+	private final Item bag; // убрали static
 
 	public WndQuickBag(Bag bag){
 		super(0, 0, Chrome.get(Chrome.Type.TOAST_TR));

@@ -21,7 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.mage;
 
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
@@ -53,7 +52,7 @@ public class WildMagic extends ArmorAbility {
 	}
 
 	@Override
-	public String targetingPrompt() {
+	public String targetingPrompt(Hero hero) {
 		return Messages.get(this, "prompt");
 	}
 
@@ -120,15 +119,15 @@ public class WildMagic extends ArmorAbility {
 		Buff.affect(hero, WildMagicTracker.class, 0f);
 
 		armor.charge -= chargeUse(hero);
-		armor.updateQuickslot();
+		Item.updateQuickslot();
 
 		zapWand(wands, hero, target);
 
 	}
 
-	public static class WildMagicTracker extends FlavourBuff{};
+	public static class WildMagicTracker extends FlavourBuff{}
 
-	Actor wildMagicActor = null;
+    Actor wildMagicActor = null;
 
 	private void zapWand( ArrayList<Wand> wands, Hero hero, int cell){
 		Wand cur = wands.remove(0);
@@ -144,7 +143,7 @@ public class WildMagic extends ArmorAbility {
 					@Override
 					public void call() {
 						cur.onZap(aim);
-						boolean alsoCursedZap = Random.Float() < WondrousResin.extraCurseEffectChance();
+						boolean alsoCursedZap = Random.Float() < WondrousResin.extraCurseEffectChance(hero);
 						if (Game.timeTotal - startTime < 0.33f) {
 							hero.sprite.parent.add(new Delayer(0.33f - (Game.timeTotal - startTime)) {
 								@Override

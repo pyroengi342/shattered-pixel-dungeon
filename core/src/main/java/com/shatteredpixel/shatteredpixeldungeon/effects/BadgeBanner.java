@@ -137,7 +137,7 @@ public class BadgeBanner extends Image {
 	}
 
 	//map to cache highlight positions so we don't have to keep looking at texture pixels
-	private static HashMap<Integer, Point> highlightPositions = new HashMap<>();
+	private static final HashMap<Integer, Point> highlightPositions = new HashMap<>();
 
 	//we also hardcode any special cases
 	static {

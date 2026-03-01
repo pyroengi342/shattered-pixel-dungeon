@@ -1,27 +1,8 @@
-/*
- * Pixel Dungeon
- * Copyright (C) 2012-2015 Oleg Dolya
- *
- * Shattered Pixel Dungeon
- * Copyright (C) 2014-2025 Evan Debenham
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>
- */
-
+// ScrollOfDivination.java
 package com.shatteredpixel.shatteredpixeldungeon.items.scrolls.exotic;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Identification;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion;
@@ -43,32 +24,34 @@ import com.watabou.utils.Reflection;
 import java.util.ArrayList;
 import java.util.HashSet;
 
-public class ScrollOfDivination extends ExoticScroll {
-	
-	{
-		icon = ItemSpriteSheet.Icons.SCROLL_DIVINATE;
-	}
-	
-	@Override
-	public void doRead() {
+import network.Multiplayer;
 
-		detach(curUser.belongings.backpack);
-		curUser.sprite.parent.add( new Identification( curUser.sprite.center().offset( 0, -16 ) ) );
-		
-		Sample.INSTANCE.play( Assets.Sounds.READ );
-		
+public class ScrollOfDivination extends ExoticScroll {
+
+	{
+		setIcon(ItemSpriteSheet.Icons.SCROLL_DIVINATE);
+	}
+
+	@Override
+	public void doRead(Hero hero) {
+		detach(hero.belongings.backpack);
+		if (hero == Multiplayer.localHero()) {
+			hero.sprite.parent.add(new Identification(hero.sprite.center().offset(0, -16)));
+			Sample.INSTANCE.play(Assets.Sounds.READ);
+		}
+
 		HashSet<Class<? extends Potion>> potions = Potion.getUnknown();
 		HashSet<Class<? extends Scroll>> scrolls = Scroll.getUnknown();
 		HashSet<Class<? extends Ring>> rings = Ring.getUnknown();
-		
+
 		int total = potions.size() + scrolls.size() + rings.size();
-		
+
 		ArrayList<Item> IDed = new ArrayList<>();
 		int left = 4;
-		
+
 		float[] baseProbs = new float[]{3, 3, 3};
 		float[] probs = baseProbs.clone();
-		
+
 		while (left > 0 && total > 0) {
 			switch (Random.chances(probs)) {
 				default:
@@ -81,7 +64,7 @@ public class ScrollOfDivination extends ExoticScroll {
 					}
 					probs[0]--;
 					Potion p = Reflection.newInstance(Random.element(potions));
-					p.identify();
+					p.identify(true);
 					IDed.add(p);
 					potions.remove(p.getClass());
 					break;
@@ -92,7 +75,7 @@ public class ScrollOfDivination extends ExoticScroll {
 					}
 					probs[1]--;
 					Scroll s = Reflection.newInstance(Random.element(scrolls));
-					s.identify();
+					s.identify(true);
 					IDed.add(s);
 					scrolls.remove(s.getClass());
 					break;
@@ -112,44 +95,42 @@ public class ScrollOfDivination extends ExoticScroll {
 			total --;
 		}
 
-		if (left == 4){
-			GLog.n( Messages.get(this, "nothing_left") );
-		} else {
-			GameScene.show(new WndDivination(IDed));
+		if (hero == Multiplayer.localHero()) {
+			if (left == 4){
+				GLog.n(Messages.get(this, "nothing_left"));
+			} else {
+				GameScene.show(new WndDivination(IDed));
+			}
 		}
-
-		readAnimation();
-		identify();
+		identify(true);
+		readAnimation(hero);
 	}
-	
+
 	private class WndDivination extends Window {
-		
+
 		private static final int WIDTH = 120;
-		
-		WndDivination(ArrayList<Item> IDed ){
+
+		WndDivination(ArrayList<Item> IDed){
 			IconTitle cur = new IconTitle(new ItemSprite(ScrollOfDivination.this),
 					Messages.titleCase(Messages.get(ScrollOfDivination.class, "name")));
 			cur.setRect(0, 0, WIDTH, 0);
 			add(cur);
-			
+
 			RenderedTextBlock msg = PixelScene.renderTextBlock(Messages.get(this, "desc"), 6);
 			msg.maxWidth(120);
 			msg.setPos(0, cur.bottom() + 2);
 			add(msg);
-			
+
 			float pos = msg.bottom() + 10;
-			
+
 			for (Item i : IDed){
-				
 				cur = new IconTitle(i);
 				cur.setRect(0, pos, WIDTH, 0);
 				add(cur);
 				pos = cur.bottom() + 2;
-				
 			}
-			
+
 			resize(WIDTH, (int)pos);
 		}
-		
 	}
 }

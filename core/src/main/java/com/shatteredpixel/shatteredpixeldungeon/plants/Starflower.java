@@ -21,7 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.plants;
 
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bless;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
@@ -61,7 +60,7 @@ public class Starflower extends Plant {
 	public static class Seed extends Plant.Seed{
 
 		{
-			image = ItemSpriteSheet.SEED_STARFLOWER;
+			setImage(ItemSpriteSheet.SEED_STARFLOWER);
 
 			plantClass = Starflower.class;
 		}

@@ -27,7 +27,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 public class MetalShard extends Item {
 	
 	{
-		image = ItemSpriteSheet.SHARD;
+		setImage(ItemSpriteSheet.SHARD);
 		stackable = true;
 	}
 	

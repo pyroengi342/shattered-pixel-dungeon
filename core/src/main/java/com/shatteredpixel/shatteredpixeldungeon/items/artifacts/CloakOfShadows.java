@@ -23,7 +23,6 @@ package com.shatteredpixel.shatteredpixeldungeon.items.artifacts;
 
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicImmune;
@@ -50,7 +49,7 @@ import java.util.ArrayList;
 public class CloakOfShadows extends Artifact {
 
 	{
-		image = ItemSpriteSheet.ARTIFACT_CLOAK;
+		setImage(ItemSpriteSheet.ARTIFACT_CLOAK);
 
 		exp = 0;
 		levelCap = 10;
@@ -144,7 +143,7 @@ public class CloakOfShadows extends Artifact {
 			if (container.owner instanceof Hero
 					&& passiveBuff == null
 					&& ((Hero) container.owner).hasTalent(Talent.LIGHT_CLOAK)){
-				activate((Hero) container.owner);
+				activate(container.owner);
 			}
 			return true;
 		} else{

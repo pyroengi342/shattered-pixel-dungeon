@@ -63,9 +63,9 @@ import com.watabou.utils.Callback;
 import com.watabou.utils.PointF;
 import com.watabou.utils.Random;
 
-import network.Multiplayer;
-
 import java.util.ArrayList;
+
+import network.Multiplayer;
 
 public class CavesLevel extends RegularLevel {
 
@@ -252,9 +252,9 @@ public class CavesLevel extends RegularLevel {
 	
 	private static class Vein extends Group {
 		
-		private int pos;
+		private final int pos;
 
-		private boolean includeOverhang;
+		private final boolean includeOverhang;
 		
 		private float delay;
 

@@ -35,6 +35,8 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.FetidRatSprite;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
+import network.Multiplayer;
+
 public class FetidRat extends Rat {
 
 	{
@@ -94,11 +96,15 @@ public class FetidRat extends Rat {
 	protected class Wandering extends Mob.Wandering{
 		@Override
 		protected int randomDestination() {
-			//of two potential wander positions, picks the one closest to the hero
 			int pos1 = super.randomDestination();
 			int pos2 = super.randomDestination();
-			PathFinder.buildDistanceMap(Dungeon.hero.pos, Dungeon.level.passable);
-			if (PathFinder.distance[pos2] < PathFinder.distance[pos1]){
+
+			Hero nearest = Multiplayer.findNearestHero(pos);
+			if (nearest == null) return pos1;
+
+			int heroPos = nearest.pos;
+			PathFinder.buildDistanceMap(heroPos, Dungeon.level.passable);
+			if (PathFinder.distance[pos2] < PathFinder.distance[pos1]) {
 				return pos2;
 			} else {
 				return pos1;

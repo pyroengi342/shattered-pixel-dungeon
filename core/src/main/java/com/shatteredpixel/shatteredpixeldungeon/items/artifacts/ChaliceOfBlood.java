@@ -51,7 +51,7 @@ import java.util.ArrayList;
 public class ChaliceOfBlood extends Artifact {
 
 	{
-		image = ItemSpriteSheet.ARTIFACT_CHALICE1;
+		setImage(ItemSpriteSheet.ARTIFACT_CHALICE1);
 
 		levelCap = 10;
 	}
@@ -168,17 +168,17 @@ public class ChaliceOfBlood extends Artifact {
 	@Override
 	public Item upgrade() {
 		if (level() >= 6)
-			image = ItemSpriteSheet.ARTIFACT_CHALICE3;
+			setImage(ItemSpriteSheet.ARTIFACT_CHALICE3);
 		else if (level() >= 2)
-			image = ItemSpriteSheet.ARTIFACT_CHALICE2;
+			setImage(ItemSpriteSheet.ARTIFACT_CHALICE2);
 		return super.upgrade();
 	}
 
 	@Override
 	public void restoreFromBundle(Bundle bundle) {
 		super.restoreFromBundle(bundle);
-		if (level() >= 7) image = ItemSpriteSheet.ARTIFACT_CHALICE3;
-		else if (level() >= 3) image = ItemSpriteSheet.ARTIFACT_CHALICE2;
+		if (level() >= 7) setImage(ItemSpriteSheet.ARTIFACT_CHALICE3);
+		else if (level() >= 3) setImage(ItemSpriteSheet.ARTIFACT_CHALICE2);
 	}
 
 	@Override
@@ -205,7 +205,7 @@ public class ChaliceOfBlood extends Artifact {
 			target.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString((int)heal), FloatingText.HEALING);
 
 			if (target.HP == target.HT && target instanceof Hero) {
-				((Hero) target).resting = false;
+				target.resting = false;
 			}
 		}
 	}

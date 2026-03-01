@@ -21,8 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.ui;
 
-import static network.NetworkManager.getLocalPlayerId;
-
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.SPDAction;
@@ -51,9 +49,9 @@ import network.Multiplayer;
 
 public class StatusPane extends Component {
 
-	private NinePatch bg;
-	private Image avatar;
-	private Button heroInfo;
+	private final NinePatch bg;
+	private final Image avatar;
+	private final Button heroInfo;
 	public static float talentBlink;
 	private float warning;
 
@@ -61,32 +59,32 @@ public class StatusPane extends Component {
 
 	private int lastTier = 0;
 
-	private Image shieldHP;
-	private Image hp;
-	private BitmapText hpText;
-	private Button heroInfoOnBar;
+	private final Image shieldHP;
+	private final Image hp;
+	private final BitmapText hpText;
+	private final Button heroInfoOnBar;
 
-	private Image exp;
-	private BitmapText expText;
+	private final Image exp;
+	private final BitmapText expText;
 
 	private int lastLvl = -1;
 
-	private BitmapText level;
+	private final BitmapText level;
 
-	private BuffIndicator buffs;
-	private Compass compass;
+	private final BuffIndicator buffs;
+	private final Compass compass;
 
-	private BusyIndicator busy;
-	private CircleArc counter;
+	private final BusyIndicator busy;
+	private final CircleArc counter;
 
-	private boolean large;
+	private final boolean large;
 
 	//potentially extends the hero portrait space to avoid some cutouts
 	public static float heroPaneExtraWidth = 0;
-	private NinePatch heroPaneCutout;
+	private final NinePatch heroPaneCutout;
 	//potentially shrinks and/or repositions the hp bar to avoid some cutouts
 	public static int hpBarMaxWidth = 50;
-	private Image hpCutout;
+	private final Image hpCutout;
 	//potentially adjusts the row(s) of the the buff indicator to avoid some cutouts
 	public static float[] buffBarRowMaxWidths;
 	public static float[] buffBarRowAdjusts;
@@ -240,7 +238,7 @@ public class StatusPane extends Component {
 			float hpleft = x + heroPaneWidth;
 			if (hpBarMaxWidth < 82){
 				//the class variable assumes the left of the bar can't move, but we can inset it 9px
-				int hpWidth = (int)hpBarMaxWidth;
+				int hpWidth = hpBarMaxWidth;
 				if (hpWidth <= 41){
 					hpleft -= 9;
 					hpWidth += 9;

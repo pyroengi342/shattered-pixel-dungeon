@@ -24,6 +24,7 @@ package com.shatteredpixel.shatteredpixeldungeon.levels;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.Torch;
 import com.shatteredpixel.shatteredpixeldungeon.levels.painters.HallsPainter;
 import com.shatteredpixel.shatteredpixeldungeon.levels.painters.Painter;
@@ -58,6 +59,8 @@ import com.watabou.utils.PointF;
 import com.watabou.utils.Random;
 
 import java.util.ArrayList;
+
+import network.Multiplayer;
 
 public class HallsLevel extends RegularLevel {
 
@@ -203,7 +206,7 @@ public class HallsLevel extends RegularLevel {
 	
 	private static class Stream extends Group {
 		
-		private int pos;
+		private final int pos;
 		
 		private float delay;
 		
@@ -225,7 +228,7 @@ public class HallsLevel extends RegularLevel {
 			
 			Hero local = Multiplayer.localHero();
     		boolean[] fov = (local != null) ? local.fieldOfView : null;
-			if (visible = (fov != null && pos >= 0 && pos < fov.length && fov[pos])) {
+			if (fov != null && pos >= 0 && pos < fov.length && fov[pos]) {
 				
 				super.update();
 				

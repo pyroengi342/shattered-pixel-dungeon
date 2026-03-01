@@ -21,7 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.ArmorAbility;
@@ -38,6 +37,11 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.RedButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.watabou.utils.Random;
+
+import java.util.Arrays;
+
+import network.Multiplayer;
+import network.handlers.window.AbilityHandler;
 
 public class WndChooseAbility extends Window {
 
@@ -72,6 +76,10 @@ public class WndChooseAbility extends Window {
 							ArmorAbility abil = Random.oneOf(hero.heroClass.armorAbilities());
 							crown.upgradeArmor(hero, armor, abil);
 							GameScene.show(new WndInfoArmorAbility(hero.heroClass, abil));
+							if (Multiplayer.isMultiplayer) {
+								int idx = Arrays.asList(hero.heroClass.armorAbilities()).indexOf(abil);
+								AbilityHandler.send(idx);
+							}
 						}
 					}
 				});
@@ -117,6 +125,10 @@ public class WndChooseAbility extends Window {
 									new KingsCrown().upgradeArmor(hero, null, ability);
 								}
 								Statistics.qualifiedForRandomVictoryBadge = false;
+								if (Multiplayer.isMultiplayer) {
+									int idx = Arrays.asList(hero.heroClass.armorAbilities()).indexOf(ability);
+									AbilityHandler.send(idx);
+								}
 							}
 						}
 					});

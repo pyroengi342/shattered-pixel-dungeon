@@ -29,7 +29,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 public class Greatshield extends MeleeWeapon {
 
 	{
-		image = ItemSpriteSheet.GREATSHIELD;
+		setImage(ItemSpriteSheet.GREATSHIELD);
 
 		tier = 5;
 	}

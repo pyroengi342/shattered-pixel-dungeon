@@ -55,7 +55,7 @@ import java.util.ArrayList;
 public class PotionOfDragonsBreath extends ExoticPotion {
 	
 	{
-		icon = ItemSpriteSheet.Icons.POTION_DRGBREATH;
+		setIcon(ItemSpriteSheet.Icons.POTION_DRGBREATH);
 	}
 
 	protected static boolean identifiedByUse = false;
@@ -75,7 +75,7 @@ public class PotionOfDragonsBreath extends ExoticPotion {
 		GameScene.selectCell(targeter);
 	}
 	
-	private CellSelector.Listener targeter = new CellSelector.Listener() {
+	private final CellSelector.Listener targeter = new CellSelector.Listener() {
 
 		private boolean showingWindow = false;
 		private boolean potionAlreadyUsed = false;
@@ -181,7 +181,7 @@ public class PotionOfDragonsBreath extends ExoticPotion {
 											Char ch = Actor.findChar( cell );
 											if (ch != null) {
 												
-												Buff.affect( ch, Burning.class , this)reignite( ch );
+												Buff.affect( ch, Burning.class , this).reignite( ch );
 												Buff.prolong(ch, Cripple.class, 5f, this);
 											}
 										}

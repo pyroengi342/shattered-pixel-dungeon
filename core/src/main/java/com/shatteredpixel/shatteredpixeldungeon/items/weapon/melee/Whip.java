@@ -37,7 +37,7 @@ import java.util.ArrayList;
 public class Whip extends MeleeWeapon {
 
 	{
-		image = ItemSpriteSheet.WHIP;
+		setImage(ItemSpriteSheet.WHIP);
 		hitSound = Assets.Sounds.HIT;
 		hitSoundPitch = 1.1f;
 

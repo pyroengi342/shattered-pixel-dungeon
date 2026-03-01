@@ -36,8 +36,8 @@ public class LevelTransition extends Rect implements Bundlable {
 		REGULAR_ENTRANCE,
 		REGULAR_EXIT,
 		BRANCH_ENTRANCE,
-		BRANCH_EXIT;
-	}
+		BRANCH_EXIT
+    }
 
 	public Type type;
 	public int destDepth;

@@ -235,8 +235,7 @@ public class MobSpawner extends Actor {
 			// City
 			case 19:
 				if (Random.Float() < 0.025f) rotation.add(Succubus.class);
-				return;
-		}
+        }
 	}
 
 	//switches out regular mobs for their alt versions when appropriate

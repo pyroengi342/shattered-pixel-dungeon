@@ -21,8 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.ui;
 
-import static network.NetworkManager.getLocalPlayerId;
-
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.QuickSlot;
@@ -260,10 +258,10 @@ public class Toolbar extends Component {
 						&& Multiplayer.localHero().handle(Multiplayer.localHero().pos)){
 						//trigger hold fast and patient strike here, even if the hero didn't specifically wait
 						if (Multiplayer.localHero().hasTalent(Talent.HOLD_FAST)){
-							Buff.affect(Multiplayer.localHero(), HoldFast.class).pos = Multiplayer.localHero().pos;
+							Buff.affect(Multiplayer.localHero(), HoldFast.class, this).pos = Multiplayer.localHero().pos;
 						}
 						if (Multiplayer.localHero().hasTalent(Talent.PATIENT_STRIKE)){
-							Buff.affect(Multiplayer.localHero(), Talent.PatientStrikeTracker.class).pos = Multiplayer.localHero().pos;
+							Buff.affect(Multiplayer.localHero(), Talent.PatientStrikeTracker.class, this).pos = Multiplayer.localHero().pos;
 						}
 						Multiplayer.localHero().next();
 					} else {
@@ -687,7 +685,7 @@ public class Toolbar extends Component {
 			btnInventory.centerY());
 	}
 	
-	private static CellSelector.Listener informer = new CellSelector.Listener() {
+	private static final CellSelector.Listener informer = new CellSelector.Listener() {
 		@Override
 		public void onSelect( Integer cell ) {
 			if (instance != null) {
@@ -779,7 +777,7 @@ public class Toolbar extends Component {
 	
 	private static class QuickslotTool extends Tool {
 		
-		private QuickSlotButton slot;
+		private final QuickSlotButton slot;
 		private int borderLeft = 2;
 		private int borderRight = 2;
 		
@@ -821,8 +819,8 @@ public class Toolbar extends Component {
 
 	public static class SlotSwapTool extends Tool {
 
-		private Image[] icons = new Image[4];
-		private Item[] items = new Item[4];
+		private final Image[] icons = new Image[4];
+		private final Item[] items = new Item[4];
 
 		public SlotSwapTool(int x, int y, int width, int height) {
 			super(x, y, width, height);

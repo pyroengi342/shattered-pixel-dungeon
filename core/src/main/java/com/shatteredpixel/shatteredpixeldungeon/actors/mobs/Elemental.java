@@ -63,9 +63,9 @@ import com.watabou.utils.GameMath;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
-import network.Multiplayer;
-
 import java.util.ArrayList;
+
+import network.Multiplayer;
 
 public abstract class Elemental extends Mob {
 
@@ -243,7 +243,7 @@ public abstract class Elemental extends Mob {
 		@Override
 		protected void meleeProc( Char enemy, int damage ) {
 			if (Random.Int( 2 ) == 0 && !Dungeon.level.water[enemy.pos]) {
-				Buff.affect( enemy, Burning.class , this)reignite( enemy );
+				Buff.affect( enemy, Burning.class , this).reignite( enemy );
 				if (enemy.sprite.visible) Splash.at( enemy.sprite.center(), sprite.blood(), 5);
 			}
 		}
@@ -251,7 +251,7 @@ public abstract class Elemental extends Mob {
 		@Override
 		protected void rangedProc( Char enemy ) {
 			if (!Dungeon.level.water[enemy.pos]) {
-				Buff.affect( enemy, Burning.class , this)reignite( enemy, 4f );
+				Buff.affect( enemy, Burning.class , this).reignite( enemy, 4f );
 			}
 			if (enemy.sprite.visible) Splash.at( enemy.sprite.center(), sprite.blood(), 5);
 		}
@@ -541,7 +541,10 @@ public abstract class Elemental extends Mob {
 
 			boolean visible = sprite.visible || enemy.sprite.visible;
 			for (Char ch : affected){
-				if (ch.sprite.visible) visible = true;
+                if (ch.sprite.visible) {
+                    visible = true;
+                    break;
+                }
 			}
 
 			if (visible) {

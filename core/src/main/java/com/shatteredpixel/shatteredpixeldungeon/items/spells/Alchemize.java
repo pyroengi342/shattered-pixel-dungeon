@@ -1,28 +1,6 @@
-/*
- * Pixel Dungeon
- * Copyright (C) 2012-2015 Oleg Dolya
- *
- * Shattered Pixel Dungeon
- * Copyright (C) 2014-2025 Evan Debenham
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>
- */
-
 package com.shatteredpixel.shatteredpixeldungeon.items.spells;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Shopkeeper;
@@ -49,22 +27,20 @@ import com.shatteredpixel.shatteredpixeldungeon.windows.WndUpgrade;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Random;
 
+import network.Multiplayer;
+
 import java.util.ArrayList;
 
 public class Alchemize extends Spell {
-	
-	{
-		image = ItemSpriteSheet.ALCHEMIZE;
 
-		talentChance = 1/(float)Recipe.OUT_QUANTITY;
-	}
-
-	private static WndBag parentWnd;
+    {
+        setImage(ItemSpriteSheet.ALCHEMIZE);
+        talentChance = 1 / (float) Recipe.OUT_QUANTITY;
+    }
 
     @Override
     protected void onCast(Hero hero) {
-        // Создаём селектор динамически, захватывая героя
-        WndBag.ItemSelector selector = new WndBag.ItemSelector() {
+        GameScene.selectItem(new WndBag.ItemSelector() {
             @Override
             public String textPrompt() {
                 return Messages.get(Alchemize.class, "prompt");
@@ -72,7 +48,6 @@ public class Alchemize extends Spell {
 
             @Override
             public boolean itemSelectable(Item item) {
-                // Используем захваченного героя
                 return !(item instanceof Alchemize)
                         && (Shopkeeper.canSell(item, hero) || item.energyVal() > 0);
             }
@@ -80,101 +55,61 @@ public class Alchemize extends Spell {
             @Override
             public void onSelect(Item item) {
                 if (item != null) {
-                    // parentWnd должно быть текущим окном выбора, но здесь мы создаём новое
-                    // Чтобы избежать рекурсии, передаём null, а в WndAlchemizeItem будем открывать новое окно при необходимости
-                    GameScene.show(new WndAlchemizeItem(item, null, hero));
+                    GameScene.show(new WndAlchemizeItem(item, hero));
                 }
             }
-        };
-        // Показываем окно выбора предмета
-        parentWnd = GameScene.selectItem(selector);
+        });
     }
-	
-	@Override
-	public int value() {
-		//lower value, as it's very cheap to make (and also sold at shops)
-		return (int)(20 * (quantity/(float)Recipe.OUT_QUANTITY));
-	}
 
-	@Override
-	public int energyVal() {
-		return (int)(4 * (quantity/(float)Recipe.OUT_QUANTITY));
-	}
+    @Override
+    public int value() {
+        return (int) (20 * (quantity / (float) Recipe.OUT_QUANTITY));
+    }
 
-	public static class Recipe extends com.shatteredpixel.shatteredpixeldungeon.items.Recipe {
+    @Override
+    public int energyVal() {
+        return (int) (4 * (quantity / (float) Recipe.OUT_QUANTITY));
+    }
 
-		private static final int OUT_QUANTITY = 8;
+    public static class Recipe extends com.shatteredpixel.shatteredpixeldungeon.items.Recipe {
 
-		@Override
-		public boolean testIngredients(ArrayList<Item> ingredients) {
-			if (ingredients.size() != 2) return false;
+        private static final int OUT_QUANTITY = 8;
 
-			if (ingredients.get(0) instanceof Plant.Seed && ingredients.get(1) instanceof Runestone){
-				return true;
-			}
+        @Override
+        public boolean testIngredients(ArrayList<Item> ingredients) {
+            if (ingredients.size() != 2) return false;
+            return (ingredients.get(0) instanceof Plant.Seed && ingredients.get(1) instanceof Runestone)
+                    || (ingredients.get(0) instanceof Runestone && ingredients.get(1) instanceof Plant.Seed);
+        }
 
-			if (ingredients.get(0) instanceof Runestone && ingredients.get(1) instanceof Plant.Seed){
-				return true;
-			}
+        @Override
+        public int cost(ArrayList<Item> ingredients) {
+            return 2;
+        }
 
-			return false;
-		}
+        @Override
+        public Item brew(ArrayList<Item> ingredients, Hero hero) {
+            ingredients.get(0).quantity(ingredients.get(0).quantity() - 1);
+            ingredients.get(1).quantity(ingredients.get(1).quantity() - 1);
+            return sampleOutput(null);
+        }
 
-		@Override
-		public int cost(ArrayList<Item> ingredients) {
-			return 2;
-		}
+        @Override
+        public Item sampleOutput(ArrayList<Item> ingredients) {
+            return new Alchemize().quantity(OUT_QUANTITY);
+        }
+    }
 
-		@Override
-		public Item brew(ArrayList<Item> ingredients) {
-			ingredients.get(0).quantity(ingredients.get(0).quantity()-1);
-			ingredients.get(1).quantity(ingredients.get(1).quantity()-1);
-			return sampleOutput(null);
-		}
-
-		@Override
-		public Item sampleOutput(ArrayList<Item> ingredients) {
-			return new Alchemize().quantity(OUT_QUANTITY);
-		}
-	}
-
-//	private static WndBag.ItemSelector itemSelector = new WndBag.ItemSelector() {
-//		@Override
-//		public String textPrompt() {
-//			return Messages.get(Alchemize.class, "prompt");
-//		}
-//
-//		@Override
-//		public boolean itemSelectable(Item item) {
-//			return !(item instanceof Alchemize)
-//					&& (Shopkeeper.canSell(item, hero) || item.energyVal() > 0);
-//		}
-//
-//		@Override
-//		public void onSelect( Item item ) {
-//			if (item != null) {
-//				if (parentWnd != null) {
-//					parentWnd = GameScene.selectItem(itemSelector);
-//				}
-//				GameScene.show( new WndAlchemizeItem( item, parentWnd, hero ) );
-//			}
-//		}
-//	};
-
-
-	public static class WndAlchemizeItem extends WndInfoItem {
+    public class WndAlchemizeItem extends WndInfoItem {
 
         private static final float GAP = 2;
         private static final int BTN_HEIGHT = 18;
 
-        private WndBag owner;
-        private Hero hero; // сохраняем героя
+        private final Hero hero;
 
-
-        public WndAlchemizeItem(Item item, WndBag owner, Hero hero) {
+        public WndAlchemizeItem(Item item, Hero hero) {
             super(item);
             this.hero = hero;
-            this.owner = owner;
 
             float pos = height;
 
@@ -184,7 +119,7 @@ public class Alchemize extends Spell {
                     if (item instanceof MissileWeapon && ((MissileWeapon) item).extraThrownLeft) {
                         RenderedTextBlock warn = PixelScene.renderTextBlock(Messages.get(WndUpgrade.class, "thrown_dust"), 6);
                         warn.hardlight(CharSprite.WARNING);
-                        warn.maxWidth(this.width);
+                        warn.maxWidth(width);
                         warn.setPos(0, pos + GAP);
                         add(warn);
                         pos = warn.bottom();
@@ -195,24 +130,22 @@ public class Alchemize extends Spell {
                         protected void onClick() {
                             WndTradeItem.sell(item, hero);
                             hide();
-                            consumeAlchemize();
+                            consumeAlchemize(item);
                         }
                     };
                     btnSell.setRect(0, pos + GAP, width, BTN_HEIGHT);
                     btnSell.icon(new ItemSprite(ItemSpriteSheet.GOLD));
                     add(btnSell);
-
                     pos = btnSell.bottom();
 
                 } else {
-
                     int priceAll = item.value();
                     RedButton btnSell1 = new RedButton(Messages.get(this, "sell_1", priceAll / item.quantity())) {
                         @Override
                         protected void onClick() {
                             WndTradeItem.sellOne(item, hero);
                             hide();
-                            consumeAlchemize();
+                            consumeAlchemize(item);
                         }
                     };
                     btnSell1.setRect(0, pos + GAP, width, BTN_HEIGHT);
@@ -223,21 +156,18 @@ public class Alchemize extends Spell {
                         protected void onClick() {
                             WndTradeItem.sell(item, hero);
                             hide();
-                            consumeAlchemize();
+                            consumeAlchemize(item);
                         }
                     };
                     btnSellAll.setRect(0, btnSell1.bottom() + 1, width, BTN_HEIGHT);
                     btnSellAll.icon(new ItemSprite(ItemSpriteSheet.GOLD));
                     add(btnSellAll);
-
                     pos = btnSellAll.bottom();
-
                 }
             }
 
             if (item.energyVal() > 0) {
                 if (item.quantity() == 1) {
-
                     RedButton btnEnergize = new RedButton(Messages.get(this, "energize", item.energyVal())) {
                         @Override
                         protected void onClick() {
@@ -246,42 +176,35 @@ public class Alchemize extends Spell {
                                         Messages.get(WndEnergizeItem.class, "trinket_warn"),
                                         Messages.get(WndEnergizeItem.class, "trinket_yes"),
                                         Messages.get(WndEnergizeItem.class, "trinket_no")) {
-
                                     @Override
                                     protected void onSelect(int index) {
                                         if (index == 0) {
-                                            WndEnergizeItem.energizeAll(item);
+                                            WndEnergizeItem.energizeAll(item, hero);
+                                            hide();
+                                            consumeAlchemize(item);
                                         }
-                                    }
-
-                                    @Override
-                                    public void hide() {
-                                        super.hide();
-                                        WndAlchemizeItem.this.hide();
                                     }
                                 });
                             } else {
-                                WndEnergizeItem.energizeAll(item);
+                                WndEnergizeItem.energizeAll(item, hero);
                                 hide();
-                                consumeAlchemize();
+                                consumeAlchemize(item);
                             }
                         }
                     };
                     btnEnergize.setRect(0, pos + GAP, width, BTN_HEIGHT);
                     btnEnergize.icon(new ItemSprite(ItemSpriteSheet.ENERGY));
                     add(btnEnergize);
-
                     pos = btnEnergize.bottom();
 
                 } else {
-
                     int energyAll = item.energyVal();
                     RedButton btnEnergize1 = new RedButton(Messages.get(this, "energize_1", energyAll / item.quantity())) {
                         @Override
                         protected void onClick() {
-                            WndEnergizeItem.energizeOne(item);
+                            WndEnergizeItem.energizeOne(item, hero);
                             hide();
-                            consumeAlchemize();
+                            consumeAlchemize(item);
                         }
                     };
                     btnEnergize1.setRect(0, pos + GAP, width, BTN_HEIGHT);
@@ -290,37 +213,33 @@ public class Alchemize extends Spell {
                     RedButton btnEnergizeAll = new RedButton(Messages.get(this, "energize_all", energyAll)) {
                         @Override
                         protected void onClick() {
-                            WndEnergizeItem.energizeAll(item);
+                            WndEnergizeItem.energizeAll(item, hero);
                             hide();
-                            consumeAlchemize();
+                            consumeAlchemize(item);
                         }
                     };
                     btnEnergizeAll.setRect(0, btnEnergize1.bottom() + 1, width, BTN_HEIGHT);
                     btnEnergizeAll.icon(new ItemSprite(ItemSpriteSheet.ENERGY));
                     add(btnEnergizeAll);
-
                     pos = btnEnergizeAll.bottom();
-
                 }
             }
 
             resize(width, (int) pos);
-
         }
 
-        private void consumeAlchemize() {
+        private void consumeAlchemize(Item item) {
             Sample.INSTANCE.play(Assets.Sounds.TELEPORT);
-            if (curItem.quantity() <= 1) {
-                curItem.detachAll(curUser.belongings.backpack);
-                if (owner != null) {
-                    owner.hide();
-                }
+
+            // Удаляем текущее заклинание (Alchemize.this)
+            if (Alchemize.this.quantity() <= 1) {
+                Alchemize.this.detachAll(hero.belongings.backpack);
             } else {
-                curItem.detach(curUser.belongings.backpack);
-                if (owner != null) {
-                    owner.hide();
-                }
-                // После частичного использования открываем новое окно выбора
+                Alchemize.this.detach(hero.belongings.backpack);
+            }
+
+            // Если после использования остались заклинания, открываем новое окно выбора
+            if (Alchemize.this.quantity() > 0) {
                 GameScene.selectItem(new WndBag.ItemSelector() {
                     @Override
                     public String textPrompt() {
@@ -330,21 +249,23 @@ public class Alchemize extends Spell {
                     @Override
                     public boolean itemSelectable(Item item) {
                         return !(item instanceof Alchemize)
-                                && (Shopkeeper.canSell(item, curUser) || item.energyVal() > 0);
+                                && (Shopkeeper.canSell(item, hero) || item.energyVal() > 0);
                     }
 
                     @Override
                     public void onSelect(Item item) {
                         if (item != null) {
-                            GameScene.show(new WndAlchemizeItem(item, null, curUser));
+                            GameScene.show(new WndAlchemizeItem(item, hero));
                         }
                     }
                 });
             }
-            // Учитываем использование заклинания в каталоге
-            Catalog.countUse(Alchemize.class);  // или curItem.getClass() если нужно учитывать подклассы
-            if (curItem instanceof Alchemize && Random.Float() < ((Alchemize) curItem).talentChance) {
-                Talent.onScrollUsed(curUser, curUser.pos, ((Alchemize) curItem).talentFactor, curItem.getClass());
+
+            if (hero == Multiplayer.localHero()) {
+                Catalog.countUse(Alchemize.class);
+                if (Random.Float() < Alchemize.this.talentChance) {
+                    Talent.onScrollUsed(hero, hero.pos, Alchemize.this.talentFactor, Alchemize.class);
+                }
             }
         }
     }

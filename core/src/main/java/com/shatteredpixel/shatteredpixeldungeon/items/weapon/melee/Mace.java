@@ -22,7 +22,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
@@ -42,7 +41,7 @@ import network.Multiplayer;
 public class Mace extends MeleeWeapon {
 
 	{
-		image = ItemSpriteSheet.MACE;
+		setImage(ItemSpriteSheet.MACE);
 		hitSound = Assets.Sounds.HIT_CRUSH;
 		hitSoundPitch = 1f;
 
@@ -124,7 +123,7 @@ public class Mace extends MeleeWeapon {
 					if (enemy.isAlive()){
 						Buff.affect(enemy, Daze.class, Daze.DURATION);
 					} else {
-						wep.onAbilityKill(hero, enemy);
+						onAbilityKill(hero, enemy);
 					}
 				}
 				Invisibility.dispel(hero);

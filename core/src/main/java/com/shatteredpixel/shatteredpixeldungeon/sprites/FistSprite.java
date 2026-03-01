@@ -60,19 +60,19 @@ public abstract class FistSprite extends MobSprite {
 		TextureFilm frames = new TextureFilm( texture, 24, 17 );
 
 		idle = new Animation( 2, true );
-		idle.frames( frames, c+0, c+0, c+1 );
+		idle.frames( frames, c, c, c+1 );
 
 		run = new Animation( 3, true );
-		run.frames( frames, c+0, c+1 );
+		run.frames( frames, c, c+1 );
 
 		attack = new Animation( Math.round(1 / SLAM_TIME), false );
-		attack.frames( frames, c+0 );
+		attack.frames( frames, c);
 
 		zap = new Animation( 8, false );
-		zap.frames( frames, c+0, c+5, c+6 );
+		zap.frames( frames, c, c+5, c+6 );
 
 		die = new Animation( 10, false );
-		die.frames( frames, c+0, c+2, c+3, c+4 );
+		die.frames( frames, c, c+2, c+3, c+4 );
 
 		play( idle );
 	}

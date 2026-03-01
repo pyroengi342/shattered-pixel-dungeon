@@ -163,7 +163,7 @@ public class ScrollPane extends Component {
 
 	public class PointerController extends ScrollArea {
 
-		private float dragThreshold;
+		private final float dragThreshold;
 
 		public PointerController() {
 			super( 0, 0, 0, 0 );
@@ -194,7 +194,7 @@ public class ScrollPane extends Component {
 		}
 
 		private boolean dragging = false;
-		private PointF lastPos = new PointF();
+		private final PointF lastPos = new PointF();
 
 		@Override
 		protected void onDrag( PointerEvent event ) {

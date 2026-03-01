@@ -74,6 +74,8 @@ import com.watabou.utils.Random;
 
 import java.util.ArrayList;
 
+import network.Multiplayer;
+
 public class CityLevel extends RegularLevel {
 
 	{
@@ -179,8 +181,8 @@ public class CityLevel extends RegularLevel {
 								EscapeCrystal crystal = hero.belongings.getItem(EscapeCrystal.class);
 								if (crystal == null) {
 									crystal = new EscapeCrystal();
-									crystal.storeHeroBelongings(Dungeon.hero);
-									crystal.collect();
+									crystal.storeHeroBelongings(hero);
+									crystal.collect(hero);
 								}
 								hero.belongings.armor = new ClothArmor();
 								hero.belongings.armor.identify();
@@ -276,7 +278,7 @@ public class CityLevel extends RegularLevel {
 
 	public static class GreenFlame extends Emitter {
 
-		private int pos;
+		private final int pos;
 
 		public static final Emitter.Factory factory = new Factory() {
 			@Override
@@ -305,7 +307,7 @@ public class CityLevel extends RegularLevel {
 		public void update() {
 			Hero local = Multiplayer.localHero();
     		boolean[] fov = (local != null) ? local.fieldOfView : null;
-			if (visible = (fov != null && pos >= 0 && pos < fov.length && fov[pos])) {
+			if (fov != null && pos >= 0 && pos < fov.length && fov[pos]) {
 				super.update();
 			}
 		}
@@ -324,7 +326,7 @@ public class CityLevel extends RegularLevel {
 	
 	public static class Smoke extends Emitter {
 		
-		private int pos;
+		private final int pos;
 
 		public static final Emitter.Factory factory = new Factory() {
 			
@@ -350,7 +352,7 @@ public class CityLevel extends RegularLevel {
 		public void update() {
 			Hero local = Multiplayer.localHero();
     		boolean[] fov = (local != null) ? local.fieldOfView : null;
-			if (visible = (fov != null && pos >= 0 && pos < fov.length && fov[pos])) {
+			if (fov != null && pos >= 0 && pos < fov.length && fov[pos]) {
 				super.update();
 			}
 		}

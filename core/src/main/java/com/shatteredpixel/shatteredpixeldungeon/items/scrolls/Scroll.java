@@ -21,7 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.items.scrolls;
 
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Blindness;
@@ -64,29 +63,29 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 
+import network.Multiplayer;
+
 public abstract class Scroll extends Item {
 	
 	public static final String AC_READ	= "READ";
 	
 	protected static final float TIME_TO_READ	= 1f;
 
-	private static final LinkedHashMap<String, Integer> runes = new LinkedHashMap<String, Integer>() {
-		{
-			put("KAUNAN",ItemSpriteSheet.SCROLL_KAUNAN);
-			put("SOWILO",ItemSpriteSheet.SCROLL_SOWILO);
-			put("LAGUZ",ItemSpriteSheet.SCROLL_LAGUZ);
-			put("YNGVI",ItemSpriteSheet.SCROLL_YNGVI);
-			put("GYFU",ItemSpriteSheet.SCROLL_GYFU);
-			put("RAIDO",ItemSpriteSheet.SCROLL_RAIDO);
-			put("ISAZ",ItemSpriteSheet.SCROLL_ISAZ);
-			put("MANNAZ",ItemSpriteSheet.SCROLL_MANNAZ);
-			put("NAUDIZ",ItemSpriteSheet.SCROLL_NAUDIZ);
-			put("BERKANAN",ItemSpriteSheet.SCROLL_BERKANAN);
-			put("ODAL",ItemSpriteSheet.SCROLL_ODAL);
-			put("TIWAZ",ItemSpriteSheet.SCROLL_TIWAZ);
-		}
-	};
-	
+	private static final LinkedHashMap<String, Integer> runes = new LinkedHashMap<>();
+	static {
+		runes.put("KAUNAN", ItemSpriteSheet.SCROLL_KAUNAN);
+		runes.put("SOWILO", ItemSpriteSheet.SCROLL_SOWILO);
+		runes.put("LAGUZ", ItemSpriteSheet.SCROLL_LAGUZ);
+		runes.put("YNGVI", ItemSpriteSheet.SCROLL_YNGVI);
+		runes.put("GYFU", ItemSpriteSheet.SCROLL_GYFU);
+		runes.put("RAIDO", ItemSpriteSheet.SCROLL_RAIDO);
+		runes.put("ISAZ", ItemSpriteSheet.SCROLL_ISAZ);
+		runes.put("MANNAZ", ItemSpriteSheet.SCROLL_MANNAZ);
+		runes.put("NAUDIZ", ItemSpriteSheet.SCROLL_NAUDIZ);
+		runes.put("BERKANAN", ItemSpriteSheet.SCROLL_BERKANAN);
+		runes.put("ODAL", ItemSpriteSheet.SCROLL_ODAL);
+		runes.put("TIWAZ", ItemSpriteSheet.SCROLL_TIWAZ);
+	}
 	protected static ItemStatusHandler<Scroll> handler;
 	
 	protected String rune;
@@ -145,7 +144,7 @@ public abstract class Scroll extends Item {
 	//useful for items that appear in UIs, or which are only spawned for their effects
 	protected boolean anonymous = false;
 	public void anonymize(){
-		if (!isKnown()) image = ItemSpriteSheet.SCROLL_HOLDER;
+		if (!isKnown()) setImage(ItemSpriteSheet.SCROLL_HOLDER);
 		anonymous = true;
 	}
 	
@@ -154,10 +153,10 @@ public abstract class Scroll extends Item {
 	public void reset(){
 		super.reset();
 		if (handler != null && handler.contains(this)) {
-			image = handler.image(this);
+			setImage(handler.image(this));
 			rune = handler.label(this);
 		} else {
-			image = ItemSpriteSheet.SCROLL_KAUNAN;
+			setImage(ItemSpriteSheet.SCROLL_KAUNAN);
 			rune = "KAUNAN";
 		}
 	}
@@ -168,44 +167,47 @@ public abstract class Scroll extends Item {
 		actions.add( AC_READ );
 		return actions;
 	}
-	
+
 	@Override
-	public void execute( Hero hero, String action ) {
-
-		super.execute( hero, action );
-
-		if (action.equals( AC_READ )) {
-			
+	public void execute(Hero hero, String action) {
+		super.execute(hero, action);
+		if (action.equals(AC_READ)) {
 			if (hero.buff(MagicImmune.class) != null){
-				GLog.w( Messages.get(this, "no_magic") );
-			} else if (hero.buff( Blindness.class ) != null) {
-				GLog.w( Messages.get(this, "blinded") );
+				if (hero == Multiplayer.localHero()) {
+					GLog.w(Messages.get(this, "no_magic"));
+				}
+			} else if (hero.buff(Blindness.class) != null) {
+				if (hero == Multiplayer.localHero()) {
+					GLog.w(Messages.get(this, "blinded"));
+				}
 			} else if (hero.buff(UnstableSpellbook.bookRecharge.class) != null
 					&& hero.buff(UnstableSpellbook.bookRecharge.class).isCursed()
-					&& !(this instanceof ScrollOfRemoveCurse || this instanceof ScrollOfAntiMagic)){
-				GLog.n( Messages.get(this, "cursed") );
+					&& !(this instanceof ScrollOfRemoveCurse || this instanceof ScrollOfAntiMagic)) {
+				if (hero == Multiplayer.localHero()) {
+					GLog.n(Messages.get(this, "cursed"));
+				}
 			} else {
-				doRead();
+				doRead(hero); // изменённая сигнатура
 			}
-			
 		}
 	}
 	
-	public abstract void doRead();
+	public abstract void doRead(Hero hero);
 
-	public void readAnimation() {
-		Invisibility.dispel();
-		curUser.spend( TIME_TO_READ );
-		curUser.busy();
-		((HeroSprite)curUser.sprite).read();
+	public void readAnimation(Hero hero) {
+		Invisibility.dispel(hero);
+		hero.spend(TIME_TO_READ);
+		hero.busy();
+		((HeroSprite) hero.sprite).read();
 
 		if (!anonymous) {
-			Catalog.countUse(getClass());
+			if (hero == Multiplayer.localHero()) {
+				Catalog.countUse(getClass());
+			}
 		}
 		if (Random.Float() < talentChance) {
-			Talent.onScrollUsed(curUser, curUser.pos, talentFactor, getClass());
+			Talent.onScrollUsed(hero, hero.pos, talentFactor, getClass());
 		}
-
 	}
 	
 	public boolean isKnown() {
@@ -287,7 +289,7 @@ public abstract class Scroll extends Item {
 	public static class PlaceHolder extends Scroll {
 		
 		{
-			image = ItemSpriteSheet.SCROLL_HOLDER;
+			setImage(ItemSpriteSheet.SCROLL_HOLDER);
 		}
 		
 		@Override
@@ -297,7 +299,7 @@ public abstract class Scroll extends Item {
 		}
 		
 		@Override
-		public void doRead() {}
+		public void doRead(Hero hero) {}
 		
 		@Override
 		public String info() {
@@ -307,7 +309,7 @@ public abstract class Scroll extends Item {
 	
 	public static class ScrollToStone extends Recipe {
 		
-		private static HashMap<Class<?extends Scroll>, Class<?extends Runestone>> stones = new HashMap<>();
+		private static final HashMap<Class<?extends Scroll>, Class<?extends Runestone>> stones = new HashMap<>();
 		static {
 			stones.put(ScrollOfIdentify.class,      StoneOfIntuition.class);
 			stones.put(ScrollOfLullaby.class,       StoneOfDeepSleep.class);
@@ -325,35 +327,33 @@ public abstract class Scroll extends Item {
 		
 		@Override
 		public boolean testIngredients(ArrayList<Item> ingredients) {
-			if (ingredients.size() != 1
-					|| !(ingredients.get(0) instanceof Scroll)
-					|| !stones.containsKey(ingredients.get(0).getClass())){
-				return false;
-			}
-			
-			return true;
-		}
+            return ingredients.size() == 1
+                    && ingredients.get(0) instanceof Scroll
+                    && stones.containsKey(ingredients.get(0).getClass());
+        }
 		
 		@Override
 		public int cost(ArrayList<Item> ingredients) {
 			return 0;
 		}
-		
+
 		@Override
-		public Item brew(ArrayList<Item> ingredients) {
+		public Item brew(ArrayList<Item> ingredients, Hero hero) {
 			if (!testIngredients(ingredients)) return null;
-			
+
 			Scroll s = (Scroll) ingredients.get(0);
-			
+
 			s.quantity(s.quantity() - 1);
-			if (ShatteredPixelDungeon.scene() instanceof AlchemyScene){
-				if (!s.isIdentified()){
+			// Показываем окно идентификации только локальному герою в сцене алхимии
+			if (hero == Multiplayer.localHero() && ShatteredPixelDungeon.scene() instanceof AlchemyScene) {
+				if (!s.isIdentified()) {
 					((AlchemyScene) ShatteredPixelDungeon.scene()).showIdentify(s);
 				}
 			} else {
-				s.identify();
+				// Иначе просто идентифицируем (если нужно)
+				s.identify(true);
 			}
-			
+
 			return Reflection.newInstance(stones.get(s.getClass())).quantity(2);
 		}
 		

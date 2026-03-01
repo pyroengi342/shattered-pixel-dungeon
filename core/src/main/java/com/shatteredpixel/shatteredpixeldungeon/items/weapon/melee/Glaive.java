@@ -29,7 +29,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 public class Glaive extends MeleeWeapon {
 
 	{
-		image = ItemSpriteSheet.GLAIVE;
+		setImage(ItemSpriteSheet.GLAIVE);
 		hitSound = Assets.Sounds.HIT_SLASH;
 		hitSoundPitch = 0.8f;
 

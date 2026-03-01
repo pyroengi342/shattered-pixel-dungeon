@@ -53,7 +53,7 @@ import com.watabou.utils.Random;
 public class WandOfTransfusion extends DamageWand {
 
 	{
-		image = ItemSpriteSheet.WAND_TRANSFUSION;
+		setImage(ItemSpriteSheet.WAND_TRANSFUSION);
 
 		collisionProperties = Ballistica.PROJECTILE;
 	}

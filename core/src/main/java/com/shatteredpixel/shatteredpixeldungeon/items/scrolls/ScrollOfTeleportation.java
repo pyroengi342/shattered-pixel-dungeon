@@ -1,24 +1,3 @@
-/*
- * Pixel Dungeon
- * Copyright (C) 2012-2015 Oleg Dolya
- *
- * Shattered Pixel Dungeon
- * Copyright (C) 2014-2025 Evan Debenham
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>
- */
-
 package com.shatteredpixel.shatteredpixeldungeon.items.scrolls;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
@@ -38,155 +17,148 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.SpecialRoom
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
-import com.watabou.noosa.Camera;
-import com.watabou.utils.BArray;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
+import com.watabou.noosa.Camera;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.noosa.tweeners.AlphaTweener;
+import com.watabou.utils.BArray;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Point;
 import com.watabou.utils.Random;
 
-import network.Multiplayer;
-
 import java.util.ArrayList;
+
+import network.AudioWrapper;
+import network.Multiplayer;
 
 public class ScrollOfTeleportation extends Scroll {
 
 	{
-		icon = ItemSpriteSheet.Icons.SCROLL_TELEPORT;
+		setIcon(ItemSpriteSheet.Icons.SCROLL_TELEPORT);
 	}
 
 	@Override
-	public void doRead() {
+	public void doRead(Hero hero) {
+		detach(hero.belongings.backpack);
+		AudioWrapper.play(Assets.Sounds.READ, hero.pos);
 
-		detach(curUser.belongings.backpack);
-		Sample.INSTANCE.play( Assets.Sounds.READ );
-		
-		if (teleportPreferringUnseen( curUser )){
-			readAnimation();
+		if (teleportPreferringUnseen(hero)) {
+			// already handled inside
 		}
-		identify();
-
+		identify(true);
+		readAnimation(hero);
 	}
-	
-	public static boolean teleportToLocation(Char ch, int pos){
+
+	public static boolean teleportToLocation(Char ch, int pos) {
 		PathFinder.buildDistanceMap(pos, BArray.or(Dungeon.level.passable, Dungeon.level.avoid, null));
 		if (PathFinder.distance[ch.pos] == Integer.MAX_VALUE
 				|| (!Dungeon.level.passable[pos] && !Dungeon.level.avoid[pos])
-				|| (Actor.findChar(pos) != null && Actor.findChar(pos) != ch)){
-			if (ch instanceof Hero){
-				GLog.w( Messages.get(ScrollOfTeleportation.class, "cant_reach") );
+				|| (Actor.findChar(pos) != null && Actor.findChar(pos) != ch)) {
+			if (ch instanceof Hero) {
+				GLog.w(Messages.get(ScrollOfTeleportation.class, "cant_reach"));
 			}
 			return false;
 		}
-		
-		appear( ch, pos );
-		Dungeon.level.occupyCell( ch );
+
+		appear(ch, pos);
+		Dungeon.level.occupyCell(ch);
 		Buff.detach(ch, Roots.class);
 		if (ch instanceof Hero) {
-			Dungeon.observe( (Hero) ch);
+			Dungeon.observe((Hero) ch);
 			GameScene.updateFog();
 		}
 		return true;
-		
 	}
 
-	public static boolean teleportChar( Char ch ) {
-		return teleportChar( ch, ScrollOfTeleportation.class );
+	public static boolean teleportChar(Char ch) {
+		return teleportChar(ch, ScrollOfTeleportation.class);
 	}
 
-	public static boolean teleportChar( Char ch, Class source ) {
-
-		if (!(Dungeon.level instanceof RegularLevel)){
-			return teleportInNonRegularLevel( ch, false );
+	public static boolean teleportChar(Char ch, Class source) {
+		if (!(Dungeon.level instanceof RegularLevel)) {
+			return teleportInNonRegularLevel(ch, false);
 		}
 
-		if (Char.hasProp(ch, Char.Property.IMMOVABLE) || ch.isImmune(source)){
-			GLog.w( Messages.get(ScrollOfTeleportation.class, "no_tele") );
+		if (Char.hasProp(ch, Char.Property.IMMOVABLE) || ch.isImmune(source)) {
+			GLog.w(Messages.get(ScrollOfTeleportation.class, "no_tele"));
 			return false;
 		}
-		
+
 		int count = 20;
 		int pos;
 		do {
-			pos = Dungeon.level.randomRespawnCell( ch );
+			pos = Dungeon.level.randomRespawnCell(ch);
 			if (count-- <= 0) {
 				break;
 			}
 		} while (pos == -1 || Dungeon.level.secret[pos]);
-		
+
 		if (pos == -1) {
-			
-			GLog.w( Messages.get(ScrollOfTeleportation.class, "no_tele") );
+			GLog.w(Messages.get(ScrollOfTeleportation.class, "no_tele"));
 			return false;
-			
 		} else {
-			
-			appear( ch, pos );
-			Dungeon.level.occupyCell( ch );
+			appear(ch, pos);
+			Dungeon.level.occupyCell(ch);
 			Buff.detach(ch, Roots.class);
 
-            if (ch instanceof Hero) {
-				GLog.i( Messages.get(ScrollOfTeleportation.class, "tele") );
-
-                Dungeon.observe( (Hero) ch);
+			if (ch instanceof Hero) {
+				Hero hero = (Hero) ch;
+				GLog.i(Messages.get(ScrollOfTeleportation.class, "tele"));
+				Dungeon.observe(hero);
 				GameScene.updateFog();
-				curUser.interrupt();
+				hero.interrupt();
 			}
 			return true;
-			
 		}
 	}
-	
-	public static boolean teleportPreferringUnseen( Hero hero ){
-		
-		if (!(Dungeon.level instanceof RegularLevel)){
-			return teleportInNonRegularLevel( hero, true );
+
+	public static boolean teleportPreferringUnseen(Hero hero) {
+		if (!(Dungeon.level instanceof RegularLevel)) {
+			return teleportInNonRegularLevel(hero, true);
 		}
-		
+
 		RegularLevel level = (RegularLevel) Dungeon.level;
 		ArrayList<Integer> candidates = new ArrayList<>();
-		
-		for (Room r : level.rooms()){
-			if (r instanceof SpecialRoom){
+
+		for (Room r : level.rooms()) {
+			if (r instanceof SpecialRoom) {
 				int terr;
 				boolean locked = false;
-				for (Point p : r.getPoints()){
+				for (Point p : r.getPoints()) {
 					terr = level.map[level.pointToCell(p)];
-					if (terr == Terrain.LOCKED_DOOR || terr == Terrain.CRYSTAL_DOOR || terr == Terrain.BARRICADE){
+					if (terr == Terrain.LOCKED_DOOR || terr == Terrain.CRYSTAL_DOOR || terr == Terrain.BARRICADE) {
 						locked = true;
 						break;
 					}
 				}
-				if (locked){
+				if (locked) {
 					continue;
 				}
 			}
-			
+
 			int cell;
-			for (Point p : r.charPlaceablePoints(level)){
+			for (Point p : r.charPlaceablePoints(level)) {
 				cell = level.pointToCell(p);
-				if (level.passable[cell] && !level.visited[cell] && !level.secret[cell] && Actor.findChar(cell) == null){
+				if (level.passable[cell] && !level.visited[cell] && !level.secret[cell] && Actor.findChar(cell) == null) {
 					candidates.add(cell);
 				}
 			}
 		}
-		
-		if (candidates.isEmpty()){
-			return teleportChar( hero );
+
+		if (candidates.isEmpty()) {
+			return teleportChar(hero);
 		} else {
 			int pos = Random.element(candidates);
 			boolean secretDoor = false;
 			int doorPos = -1;
-			if (level.room(pos) instanceof SpecialRoom){
+			if (level.room(pos) instanceof SpecialRoom) {
 				SpecialRoom room = (SpecialRoom) level.room(pos);
-				if (room.entrance() != null){
+				if (room.entrance() != null) {
 					doorPos = level.pointToCell(room.entrance());
-					for (int i : PathFinder.NEIGHBOURS8){
+					for (int i : PathFinder.NEIGHBOURS8) {
 						if (!room.inside(level.cellToPoint(doorPos + i))
 								&& level.passable[doorPos + i]
-								&& Actor.findChar(doorPos + i) == null){
+								&& Actor.findChar(doorPos + i) == null) {
 							secretDoor = room instanceof SecretRoom;
 							pos = doorPos + i;
 							break;
@@ -194,30 +166,28 @@ public class ScrollOfTeleportation extends Scroll {
 					}
 				}
 			}
-			GLog.i( Messages.get(ScrollOfTeleportation.class, "tele") );
-			appear( hero, pos );
-			Dungeon.level.occupyCell( hero );
+			GLog.i(Messages.get(ScrollOfTeleportation.class, "tele"));
+			appear(hero, pos);
+			Dungeon.level.occupyCell(hero);
 			Buff.detach(hero, Roots.class);
-			if (secretDoor && level.map[doorPos] == Terrain.SECRET_DOOR){
-				Sample.INSTANCE.play( Assets.Sounds.SECRET );
+			if (secretDoor && level.map[doorPos] == Terrain.SECRET_DOOR) {
+				AudioWrapper.play(Assets.Sounds.SECRET, doorPos);
 				int oldValue = Dungeon.level.map[doorPos];
-				GameScene.discoverTile( doorPos, oldValue );
-				Dungeon.level.discover( doorPos );
-				ScrollOfMagicMapping.discover( doorPos );
+				GameScene.discoverTile(doorPos, oldValue);
+				Dungeon.level.discover(doorPos);
+				ScrollOfMagicMapping.discover(doorPos);
 			}
-			Dungeon.observe( hero );
+			Dungeon.observe(hero);
 			GameScene.updateFog();
 			return true;
 		}
-		
 	}
 
-	//teleports to a random pathable location on the floor
-	//prefers not seen(optional) > not visible > visible
-	private static boolean teleportInNonRegularLevel(Char ch, boolean preferNotSeen ){
-
-		if (Char.hasProp(ch, Char.Property.IMMOVABLE)){
-			GLog.w( Messages.get(ScrollOfTeleportation.class, "no_tele") );
+	// teleports to a random pathable location on the floor
+	// prefers not seen(optional) > not visible > visible
+	private static boolean teleportInNonRegularLevel(Char ch, boolean preferNotSeen) {
+		if (Char.hasProp(ch, Char.Property.IMMOVABLE)) {
+			GLog.w(Messages.get(ScrollOfTeleportation.class, "no_tele"));
 			return false;
 		}
 
@@ -227,19 +197,19 @@ public class ScrollOfTeleportation extends Scroll {
 
 		boolean[] passable = Dungeon.level.passable;
 
-		if (Char.hasProp(ch, Char.Property.LARGE)){
+		if (Char.hasProp(ch, Char.Property.LARGE)) {
 			passable = BArray.and(passable, Dungeon.level.openSpace, null);
 		}
 
 		PathFinder.buildDistanceMap(ch.pos, passable);
 
-		for (int i = 0; i < Dungeon.level.length(); i++){
+		for (int i = 0; i < Dungeon.level.length(); i++) {
 			if (PathFinder.distance[i] < Integer.MAX_VALUE
 					&& !Dungeon.level.secret[i]
-					&& Actor.findChar(i) == null){
-				if (preferNotSeen && !Dungeon.level.visited[i]){
+					&& Actor.findChar(i) == null) {
+				if (preferNotSeen && !Dungeon.level.visited[i]) {
 					notSeenValid.add(i);
-				} else if (curUser.fieldOfView[i]){
+				} else if (ch.fieldOfView[i]) {
 					visibleValid.add(i);
 				} else {
 					notVisibleValid.add(i);
@@ -249,45 +219,43 @@ public class ScrollOfTeleportation extends Scroll {
 
 		int pos;
 
-		if (!notSeenValid.isEmpty()){
+		if (!notSeenValid.isEmpty()) {
 			pos = Random.element(notSeenValid);
-		} else if (!notVisibleValid.isEmpty()){
+		} else if (!notVisibleValid.isEmpty()) {
 			pos = Random.element(notVisibleValid);
-		} else if (!visibleValid.isEmpty()){
+		} else if (!visibleValid.isEmpty()) {
 			pos = Random.element(visibleValid);
 		} else {
-			GLog.w( Messages.get(ScrollOfTeleportation.class, "no_tele") );
+			GLog.w(Messages.get(ScrollOfTeleportation.class, "no_tele"));
 			return false;
 		}
 
-		appear( ch, pos );
-		Dungeon.level.occupyCell( ch );
+		appear(ch, pos);
+		Dungeon.level.occupyCell(ch);
 
 		Buff.detach(ch, Roots.class);
 
-        if (ch instanceof Hero) {
-			GLog.i( Messages.get(ScrollOfTeleportation.class, "tele") );
-			Dungeon.observe( (Hero) ch);
+		if (ch instanceof Hero) {
+			Hero hero = (Hero) ch;
+			GLog.i(Messages.get(ScrollOfTeleportation.class, "tele"));
+			Dungeon.observe(hero);
 			GameScene.updateFog();
-			((Hero) ch).interrupt();
+			hero.interrupt();
 		}
 
 		return true;
-
 	}
 
-	public static void appear( Char ch, int pos ) {
+	public static void appear(Char ch, int pos) {
 		ch.sprite.interruptMotion();
 
 		Hero local = Multiplayer.localHero();
 		boolean[] fov = (local != null) ? local.fieldOfView : null;
 
-		// Звук телепорта, если локальный игрок видит начальную или конечную позицию
 		if (fov != null && (fov[pos] || fov[ch.pos])) {
 			Sample.INSTANCE.play(Assets.Sounds.TELEPORT);
 		}
 
-		// Частицы на старой позиции, если она видна локально и персонаж — не локальный герой
 		if (fov != null && fov[ch.pos] && ch != local) {
 			CellEmitter.get(ch.pos).start(Speck.factory(Speck.LIGHT), 0.2f, 3);
 		}
@@ -303,7 +271,6 @@ public class ScrollOfTeleportation extends Scroll {
 			ch.sprite.parent.add(new AlphaTweener(ch.sprite, 1, 0.4f));
 		}
 
-		// Частицы на новой позиции, если она видна локально или это локальный герой
 		if (fov != null && (fov[pos] || ch == local)) {
 			ch.sprite.emitter().start(Speck.factory(Speck.LIGHT), 0.2f, 3);
 		} else {
@@ -312,27 +279,27 @@ public class ScrollOfTeleportation extends Scroll {
 			}
 		}
 	}
-	//just plays the VFX for teleporting, without any position changes, does re-press cells though
-		public static void appearVFX( Char ch ){
-			Hero local = Multiplayer.localHero();
-			boolean[] fov = (local != null) ? local.fieldOfView : null;
 
-			if (fov != null && fov[ch.pos]) {
-				Sample.INSTANCE.play(Assets.Sounds.TELEPORT);
-			}
+	public static void appearVFX(Char ch) {
+		Hero local = Multiplayer.localHero();
+		boolean[] fov = (local != null) ? local.fieldOfView : null;
 
-			Dungeon.level.occupyCell(ch);
-
-			if (ch.invisible == 0) {
-				ch.sprite.alpha(0);
-				ch.sprite.parent.add(new AlphaTweener(ch.sprite, 1, 0.4f));
-			}
-
-			if (fov != null && fov[ch.pos]) {
-				ch.sprite.emitter().start(Speck.factory(Speck.LIGHT), 0.2f, 3);
-			}
+		if (fov != null && fov[ch.pos]) {
+			Sample.INSTANCE.play(Assets.Sounds.TELEPORT);
 		}
-	
+
+		Dungeon.level.occupyCell(ch);
+
+		if (ch.invisible == 0) {
+			ch.sprite.alpha(0);
+			ch.sprite.parent.add(new AlphaTweener(ch.sprite, 1, 0.4f));
+		}
+
+		if (fov != null && fov[ch.pos]) {
+			ch.sprite.emitter().start(Speck.factory(Speck.LIGHT), 0.2f, 3);
+		}
+	}
+
 	@Override
 	public int value() {
 		return isKnown() ? 30 * quantity : super.value();

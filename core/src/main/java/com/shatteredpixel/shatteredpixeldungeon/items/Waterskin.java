@@ -47,7 +47,7 @@ public class Waterskin extends Item {
 	private static final String TXT_STATUS	= "%d/%d";
 
 	{
-		image = ItemSpriteSheet.WATERSKIN;
+		setImage(ItemSpriteSheet.WATERSKIN);
 
 		defaultAction = AC_DRINK;
 
@@ -94,8 +94,8 @@ public class Waterskin extends Item {
 				float dropsNeeded = missingHealthPercent / 0.05f;
 
 				//we are getting extra heal value, scale back drops needed accordingly
-				if (dropsNeeded > 1.01f && VialOfBlood.delayBurstHealing()){
-					dropsNeeded /= VialOfBlood.totalHealMultiplier();
+				if (dropsNeeded > 1.01f && VialOfBlood.delayBurstHealing(hero)){
+					dropsNeeded /= VialOfBlood.totalHealMultiplier(hero);
 				}
 
 				//add extra drops if we can gain shielding

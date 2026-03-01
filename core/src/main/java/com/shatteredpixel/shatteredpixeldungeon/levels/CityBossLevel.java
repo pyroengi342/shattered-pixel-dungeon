@@ -56,6 +56,8 @@ import com.watabou.utils.Rect;
 import java.util.ArrayList;
 import java.util.HashSet;
 
+import network.Multiplayer;
+
 public class CityBossLevel extends Level {
 
 	{
@@ -63,8 +65,8 @@ public class CityBossLevel extends Level {
 		color2 = 0xf2f2f2;
 	}
 
-	private static int WIDTH = 15;
-	private static int HEIGHT = 48;
+	private static final int WIDTH = 15;
+	private static final int HEIGHT = 48;
 
 	private static final Rect entry = new Rect(1, 37, 14, 48);
 	private static final Rect arena = new Rect(1, 25, 14, 38);
@@ -324,19 +326,22 @@ public class CityBossLevel extends Level {
 		//moves intelligent allies with the hero, preferring closer pos to entrance door
 		int doorPos = pointToCell(new Point(arena.left + arena.width()/2, arena.bottom));
 		Mob.holdAllies(this, doorPos);
-		Mob.restoreAllies(this, Dungeon.hero.pos, doorPos);
 
 		DwarfKing boss = new DwarfKing();
 		boss.state = boss.WANDERING;
 		boss.pos = pointToCell(arena.center());
 		GameScene.add( boss );
-		boss.beckon(Dungeon.hero.pos);
-
-		if (heroFOV[boss.pos]) {
-			boss.notice();
-			boss.sprite.alpha( 0 );
-			boss.sprite.parent.add( new AlphaTweener( boss.sprite, 1, 0.1f ) );
+		for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+			Mob.restoreAllies(this, doorPos, player.hero);
+			if (player.hero.fieldOfView[boss.pos]) {
+				boss.notice();
+				boss.sprite.alpha( 0 );
+				boss.sprite.parent.add( new AlphaTweener( boss.sprite, 1, 0.1f ) );
+				boss.beckon(player.hero.pos);
+			}
 		}
+
+
 
 		set( bottomDoor, Terrain.LOCKED_DOOR );
 		GameScene.updateMap( bottomDoor );
@@ -492,7 +497,7 @@ public class CityBossLevel extends Level {
 
 					//final ground stiching with city tiles
 					if (i/tileW == 21){
-						data[i] = 11*8 + 0;
+						data[i] = 11 * 8;
 						data[++i] = 11*8 + 1;
 						data[++i] = 11*8 + 2;
 						data[++i] = 11*8 + 3;
@@ -560,11 +565,11 @@ public class CityBossLevel extends Level {
 
 					//otherwise entrance carpet
 					} else if (map[i-tileW] != Terrain.EMPTY_SP){
-						data[i] = 13*8 + 0;
+						data[i] = 13 * 8;
 					} else if (map[i+tileW] != Terrain.EMPTY_SP){
-						data[i] = 15*8 + 0;
+						data[i] = 15 * 8;
 					} else {
-						data[i] = 14*8 + 0;
+						data[i] = 14 * 8;
 					}
 
 					//otherwise no tile here
@@ -670,7 +675,7 @@ public class CityBossLevel extends Level {
 			//custom shadow  for stairs
 			for (int i = 0; i < 8; i++){
 				if (i < 4){
-					data[shadowTop] = i*8 + 0;
+					data[shadowTop] = i * 8;
 					data[shadowTop+1] = data[shadowTop+2] = data[shadowTop+3] = data[shadowTop+4] =
 							data[shadowTop+5] = data[shadowTop+6] = i*8 + 1;
 					data[shadowTop+7] = i*8 + 2;

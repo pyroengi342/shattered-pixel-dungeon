@@ -36,12 +36,11 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndChooseSubclass;
-import com.watabou.noosa.audio.Sample;
 import com.watabou.noosa.particles.Emitter;
 
-import network.AudioWrapper;
-
 import java.util.ArrayList;
+
+import network.AudioWrapper;
 
 public class TengusMask extends Item {
 	
@@ -49,7 +48,7 @@ public class TengusMask extends Item {
 	
 	{
 		stackable = false;
-		image = ItemSpriteSheet.MASK;
+		setImage(ItemSpriteSheet.MASK);
 
 		defaultAction = AC_WEAR;
 

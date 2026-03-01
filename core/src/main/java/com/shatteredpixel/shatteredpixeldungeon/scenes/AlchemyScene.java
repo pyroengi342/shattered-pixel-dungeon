@@ -82,10 +82,10 @@ import com.watabou.noosa.particles.Emitter;
 import com.watabou.noosa.ui.Component;
 import com.watabou.utils.RectF;
 
-import network.Multiplayer;
-
 import java.io.IOException;
 import java.util.ArrayList;
+
+import network.Multiplayer;
 
 public class AlchemyScene extends PixelScene {
 
@@ -96,7 +96,7 @@ public class AlchemyScene extends PixelScene {
 
 	private IconButton cancel;
 	private IconButton repeat;
-	private static ArrayList<Item> lastIngredients = new ArrayList<>();
+	private static final ArrayList<Item> lastIngredients = new ArrayList<>();
 	private static Recipe lastRecipe = null;
 
 	private Emitter smokeEmitter;
@@ -469,7 +469,9 @@ public class AlchemyScene extends PixelScene {
 
 			@Override
 			protected void onClick() {
-				WndEnergizeItem.openItemSelector();
+				Hero hero = Multiplayer.localHero();
+				if (hero == null) return;
+				WndEnergizeItem.openItemSelector(hero);
 			}
 
 			@Override
@@ -604,7 +606,7 @@ public class AlchemyScene extends PixelScene {
 		ArrayList<T> filtered = new ArrayList<>();
 		for (int i = 0; i < inputs.length; i++){
 			Item item = inputs[i].item();
-			if (item != null && itemClass.isInstance(item)){
+			if (itemClass.isInstance(item)){
 				filtered.add((T)item);
 			}
 		}
@@ -682,7 +684,12 @@ public class AlchemyScene extends PixelScene {
 	}
 	
 	private void combine( int slot ){
-		
+		if (Multiplayer.isMultiplayer) {
+			Game.scene().addToFront(new WndMessage("Alchemy is not available in multiplayer yet."));
+			return;
+		}
+		Hero hero = Multiplayer.localHero();
+		if (hero == null) return;
 		ArrayList<Item> ingredients = filterInput(Item.class);
 		if (ingredients.isEmpty()) return;
 
@@ -722,7 +729,7 @@ public class AlchemyScene extends PixelScene {
 			energyAdd.setPos(energyLeft.right(), energyAdd.top());
 			align(energyAdd);
 			
-			result = recipe.brew(ingredients);
+			result = recipe.brew(ingredients, hero);
 		}
 		
 		if (result != null){
@@ -730,8 +737,6 @@ public class AlchemyScene extends PixelScene {
 			craftItem(ingredients, result);
 
 		}
-		Hero hero = Multiplayer.localHero();
-		if (hero == null) return; // защита
 
 		boolean foundItems = true;
 		for (Item i : lastIngredients){
@@ -768,7 +773,7 @@ public class AlchemyScene extends PixelScene {
 		Sample.INSTANCE.play( Assets.Sounds.PUFF );
 
 		int resultQuantity = result.quantity();
-		if (!result.collect()){
+		if (!result.collect(hero)){
 			Dungeon.level.drop(result, hero.pos);
 		}
 
@@ -804,6 +809,8 @@ public class AlchemyScene extends PixelScene {
 	}
 	
 	public void populate(ArrayList<Item> toFind, Belongings inventory){
+		Hero hero = Multiplayer.localHero();
+		if (hero == null) return;
 		clearSlots();
 		
 		int curslot = 0;
@@ -873,7 +880,7 @@ public class AlchemyScene extends PixelScene {
 			for (int i = 0; i < inputs.length; i++) {
 				if (inputs[i] != null && inputs[i].item() != null) {
 					Item item = inputs[i].item();
-					if (!item.collect()) {
+					if (!item.collect(hero)) {
 						Dungeon.level.drop(item, hero.pos);
 					}
 					inputs[i].item(null);
@@ -888,6 +895,8 @@ public class AlchemyScene extends PixelScene {
 	}
 
 	public void createEnergy(){
+		Hero hero = Multiplayer.localHero();
+		if (hero == null) return;
 		String energyText = Messages.get(AlchemyScene.class, "energy") + " " + Dungeon.energy;
 		if (toolkit != null){
 			energyText += "+" + toolkit.availableEnergy();
@@ -1013,7 +1022,7 @@ public class AlchemyScene extends PixelScene {
 					super.onClick();
 					Item item = InputButton.this.item;
 					if (item != null) {
-						if (!item.collect()) {
+						if (!item.collect(hero)) {
 							Dungeon.level.drop(item, hero.pos);
 						}
 						InputButton.this.item(null);

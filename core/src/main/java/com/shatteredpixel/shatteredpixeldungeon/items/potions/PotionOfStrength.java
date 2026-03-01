@@ -32,7 +32,7 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 public class PotionOfStrength extends Potion {
 
 	{
-		icon = ItemSpriteSheet.Icons.POTION_STRENGTH;
+		setIcon(ItemSpriteSheet.Icons.POTION_STRENGTH);
 
 		unique = true;
 

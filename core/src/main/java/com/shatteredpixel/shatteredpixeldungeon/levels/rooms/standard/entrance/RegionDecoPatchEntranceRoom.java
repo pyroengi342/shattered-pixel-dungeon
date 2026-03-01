@@ -82,9 +82,10 @@ public class RegionDecoPatchEntranceRoom extends RegionDecoPatchRoom {
 			} else {
 				valid = false;
 				for (int i : PathFinder.NEIGHBOURS4){
-					if (level.map[entrance+i] != Terrain.REGION_DECO){
-						valid = true;
-					}
+                    if (level.map[entrance + i] != Terrain.REGION_DECO) {
+                        valid = true;
+                        break;
+                    }
 				}
 				valid = valid && level.findMob(entrance) == null;
 			}

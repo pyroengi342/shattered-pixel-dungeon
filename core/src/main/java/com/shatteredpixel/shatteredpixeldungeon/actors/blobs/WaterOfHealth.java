@@ -22,7 +22,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.blobs;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Healing;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Hunger;
@@ -43,7 +42,6 @@ import com.shatteredpixel.shatteredpixeldungeon.journal.Notes.Landmark;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
-import com.watabou.noosa.audio.Sample;
 
 import network.AudioWrapper;
 
@@ -60,9 +58,9 @@ public class WaterOfHealth extends WellWater {
 		hero.belongings.uncurseEquipped();
 		hero.buff( Hunger.class ).satisfy( Hunger.STARVING );
 
-		if (VialOfBlood.delayBurstHealing()){
+		if (VialOfBlood.delayBurstHealing(hero)){
 			Healing healing = Buff.affect(hero, Healing.class, this);
-			healing.setHeal(hero.HT, 0, VialOfBlood.maxHealPerTurn());
+			healing.setHeal(hero.HT, 0, VialOfBlood.maxHealPerTurn(hero));
 			healing.applyVialEffect();
 		} else {
 			hero.HP = hero.HT;
@@ -78,7 +76,7 @@ public class WaterOfHealth extends WellWater {
 		
 		return true;
 	}
-	
+
 	@Override
 	protected Item affectItem( Item item, int pos ) {
 		if (item instanceof Waterskin && !((Waterskin)item).isFull()) {
@@ -92,10 +90,10 @@ public class WaterOfHealth extends WellWater {
 			AudioWrapper.play( Assets.Sounds.DRINK, pos );
 			return item;
 		} else if (ScrollOfRemoveCurse.uncursable(item)) {
-			if (ScrollOfRemoveCurse.uncurse( null, item )){
-				CellEmitter.get( pos ).start( ShadowParticle.UP, 0.05f, 10 );
+			if (ScrollOfRemoveCurse.uncurse(null, item)) {
+				CellEmitter.get(pos).start(ShadowParticle.UP, 0.05f, 10);
 			}
-			AudioWrapper.play( Assets.Sounds.DRINK, pos );
+			AudioWrapper.play(Assets.Sounds.DRINK, pos);
 			return item;
 		}
 		return null;

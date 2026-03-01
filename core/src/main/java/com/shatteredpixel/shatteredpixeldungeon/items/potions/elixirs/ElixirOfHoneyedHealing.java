@@ -22,7 +22,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.potions.elixirs;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
@@ -33,12 +32,13 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Bee;
 import com.shatteredpixel.shatteredpixeldungeon.items.Honeypot;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHealing;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
-import com.watabou.noosa.audio.Sample;
+
+import network.AudioWrapper;
 
 public class ElixirOfHoneyedHealing extends Elixir {
 	
 	{
-		image = ItemSpriteSheet.ELIXIR_HONEY;
+		setImage(ItemSpriteSheet.ELIXIR_HONEY);
 	}
 	
 	@Override
@@ -52,10 +52,7 @@ public class ElixirOfHoneyedHealing extends Elixir {
 	@Override
 	public void shatter(int cell) {
 		splash( cell );
-				Hero local = Multiplayer.localHero();
-		if (local != null && local.fieldOfView != null && local.fieldOfView[cell]) {
-			Sample.INSTANCE.play( Assets.Sounds.SHATTER );
-		}
+		AudioWrapper.play( Assets.Sounds.SHATTER, cell );
 		
 		Char ch = Actor.findChar(cell);
 		if (ch != null){

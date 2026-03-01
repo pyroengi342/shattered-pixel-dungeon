@@ -23,7 +23,6 @@ package com.shatteredpixel.shatteredpixeldungeon.items.armor;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
@@ -259,7 +258,7 @@ abstract public class ClassArmor extends Armor {
 									// we assume the player wants the glyph on the destination armor
 									// they can always manually detach first if they don't.
 									// otherwise we automate glyph transfer just like upgrades
-									if (armor.glyph == null && seal.canTransferGlyph()){
+									if (armor.glyph == null && seal.canTransferGlyph(hero)){
 										//do nothing, keep our glyph
 									} else {
 										inscribe(armor.glyph);

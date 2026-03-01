@@ -22,7 +22,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
@@ -39,7 +38,7 @@ import com.watabou.utils.Bundle;
 public class Flail extends MeleeWeapon {
 
 	{
-		image = ItemSpriteSheet.FLAIL;
+		setImage(ItemSpriteSheet.FLAIL);
 		hitSound = Assets.Sounds.HIT_CRUSH;
 		hitSoundPitch = 0.8f;
 
@@ -175,7 +174,7 @@ public class Flail extends MeleeWeapon {
 
 		@Override
 		public String desc() {
-			return Messages.get(this, "desc", (int)Math.round((spins/3f)*100f), dispTurns());
+			return Messages.get(this, "desc", Math.round((spins/3f)*100f), dispTurns());
 		}
 
 		public static String SPINS = "spins";

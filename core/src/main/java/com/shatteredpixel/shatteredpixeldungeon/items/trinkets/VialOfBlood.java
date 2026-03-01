@@ -1,15 +1,15 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.trinkets;
 
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
+
 import network.Multiplayer;
 
 public class VialOfBlood extends Trinket {
 
     {
-        image = ItemSpriteSheet.BLOOD_VIAL;
+        setImage(ItemSpriteSheet.BLOOD_VIAL);
     }
 
     @Override

@@ -53,9 +53,10 @@ public class PillarsExitRoom extends PillarsRoom {
 
 			for (int i : PathFinder.NEIGHBOURS4){
 				if (i == -level.width()) continue;
-				if (level.map[exit+i] == Terrain.WALL){
-					valid = false;
-				}
+                if (level.map[exit + i] == Terrain.WALL) {
+                    valid = false;
+                    break;
+                }
 			}
 
 		} while (level.findMob(exit) != null || level.map[exit] == Terrain.WALL || !valid);

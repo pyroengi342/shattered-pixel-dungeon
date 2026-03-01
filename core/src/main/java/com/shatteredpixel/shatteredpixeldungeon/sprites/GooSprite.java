@@ -39,14 +39,14 @@ import java.util.ArrayList;
 
 public class GooSprite extends MobSprite {
 	
-	private Animation pump;
-	private Animation pumpAttack;
+	private final Animation pump;
+	private final Animation pumpAttack;
 
-	private Emitter spray;
+	private final Emitter spray;
 
 	private int pumpUpEmitterDist = 0;
 	private int lastPumpUpPos = -1;
-	private ArrayList<Emitter> pumpUpEmitters = new ArrayList<>();
+	private final ArrayList<Emitter> pumpUpEmitters = new ArrayList<>();
 
 	public GooSprite() {
 		super();

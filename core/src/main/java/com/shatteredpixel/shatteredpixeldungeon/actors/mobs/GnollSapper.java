@@ -24,6 +24,7 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.mobs;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.TargetedCell;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
@@ -201,13 +202,13 @@ public class GnollSapper extends Mob {
 							sprite.parent.add(new TargetedCell(i, 0xFF0000));
 						}
 
-						Dungeon.hero.interrupt();
+						if(enemy instanceof Hero) ((Hero) enemy).interrupt();
 						abilityCooldown = Random.NormalIntRange(4, 6);
 						spend(GameMath.gate(TICK, (int)Math.ceil(enemy.cooldown()), 3*TICK));
 						return true;
 					} else if (GnollGeomancer.prepRockFallAttack(enemy, GnollSapper.this, 2, true)) {
 						lastAbilityWasRockfall = true;
-						Dungeon.hero.interrupt();
+						if (enemy instanceof Hero) ((Hero) enemy).interrupt();
 						spend(GameMath.gate(TICK, (int)Math.ceil(enemy.cooldown()), 3*TICK));
 						abilityCooldown = Random.NormalIntRange(4, 6);
 						return true;

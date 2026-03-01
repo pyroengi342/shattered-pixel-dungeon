@@ -27,7 +27,7 @@ import com.watabou.noosa.Gizmo;
 
 public class GlowBlock extends Gizmo {
 
-	private CharSprite target;
+	private final CharSprite target;
 
 	public GlowBlock(CharSprite target ) {
 		super();

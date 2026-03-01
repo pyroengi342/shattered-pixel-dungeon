@@ -69,7 +69,7 @@ public class MagesStaff extends MeleeWeapon {
 	private static final float STAFF_SCALE_FACTOR = 0.75f;
 
 	{
-		image = ItemSpriteSheet.MAGES_STAFF;
+		setImage(ItemSpriteSheet.MAGES_STAFF);
 		hitSound = Assets.Sounds.HIT;
 		hitSoundPitch = 1.1f;
 
@@ -148,8 +148,7 @@ public class MagesStaff extends MeleeWeapon {
 				return;
 			}
 
-			if (cursed || hasCurseEnchant()) wand.cursed = true;
-			else                             wand.cursed = false;
+            wand.cursed = cursed || hasCurseEnchant();
 			wand.execute(hero, AC_ZAP);
 		}
 	}
@@ -178,7 +177,7 @@ public class MagesStaff extends MeleeWeapon {
 		if (wand != null &&
 				attacker instanceof Hero && ((Hero)attacker).subClass == HeroSubClass.BATTLEMAGE) {
 			if (wand.curCharges < wand.maxCharges) wand.partialCharge += 0.5f;
-			ScrollOfRecharging.charge((Hero)attacker);
+			ScrollOfRecharging.charge(attacker);
 			wand.onHit(this, attacker, defender, damage);
 		}
 

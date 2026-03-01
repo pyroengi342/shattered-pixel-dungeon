@@ -31,6 +31,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.VelvetPouch;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Crossbow;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.plants.Plant;
@@ -50,7 +51,7 @@ public class Dart extends MissileWeapon {
 	{
 		levelKnown = true;
 
-		image = ItemSpriteSheet.DART;
+		setImage(ItemSpriteSheet.DART);
 		hitSound = Assets.Sounds.HIT_ARROW;
 		hitSoundPitch = 1.3f;
 		
@@ -195,7 +196,7 @@ public class Dart extends MissileWeapon {
 						@Override
 						protected boolean act() {
 							if (!ch.isAlive()){
-								bow.onAbilityKill(curUser, ch);
+								MeleeWeapon.onAbilityKill(curUser, ch);
 							}
 							Actor.remove(this);
 							return true;

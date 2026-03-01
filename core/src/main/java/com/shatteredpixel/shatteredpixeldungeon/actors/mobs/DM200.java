@@ -25,6 +25,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.ToxicGas;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
@@ -71,10 +72,10 @@ public class DM200 extends Mob {
 	}
 
 	@Override
-	public float lootChance(){
+	public float lootChance(Hero hero){
 		//each drop makes future drops 1/3 as likely
 		// so loot chance looks like: 1/5, 1/15, 1/45, 1/135, etc.
-		return super.lootChance() * (float)Math.pow(1/3f, Dungeon.LimitedDrops.DM200_EQUIP.count);
+		return super.lootChance(hero) * (float)Math.pow(1/3f, Dungeon.LimitedDrops.DM200_EQUIP.count);
 	}
 
 	public Item createLoot() {
@@ -131,11 +132,8 @@ public class DM200 extends Mob {
 		if (ventCooldown > 0) return false;
 		PathFinder.buildDistanceMap(target, BArray.not(Dungeon.level.solid, null), Dungeon.level.distance(pos, target)+1);
 		//vent can go around blocking terrain, but not through it
-		if (PathFinder.distance[pos] == Integer.MAX_VALUE){
-			return false;
-		}
-		return true;
-	}
+        return PathFinder.distance[pos] != Integer.MAX_VALUE;
+    }
 
 	private class Hunting extends Mob.Hunting{
 

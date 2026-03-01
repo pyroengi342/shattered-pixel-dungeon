@@ -39,9 +39,9 @@ import com.watabou.utils.Random;
 
 public class Explosive extends Weapon.Enchantment {
 
-	private static ItemSprite.Glowing BLACK = new ItemSprite.Glowing( 0x000000 );
-	private static ItemSprite.Glowing WARM = new ItemSprite.Glowing( 0x000000, 0.5f );
-	private static ItemSprite.Glowing HOT = new ItemSprite.Glowing( 0x000000, 0.25f );
+	private static final ItemSprite.Glowing BLACK = new ItemSprite.Glowing( 0x000000 );
+	private static final ItemSprite.Glowing WARM = new ItemSprite.Glowing( 0x000000, 0.5f );
+	private static final ItemSprite.Glowing HOT = new ItemSprite.Glowing( 0x000000, 0.25f );
 	private int durability = 100;
 
 	@Override

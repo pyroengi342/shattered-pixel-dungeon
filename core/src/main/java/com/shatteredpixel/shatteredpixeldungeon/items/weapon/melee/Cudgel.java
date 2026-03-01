@@ -29,7 +29,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 public class Cudgel extends MeleeWeapon {
 
 	{
-		image = ItemSpriteSheet.CUDGEL;
+		setImage(ItemSpriteSheet.CUDGEL);
 		hitSound = Assets.Sounds.HIT_CRUSH;
 		hitSoundPitch = 1.2f;
 

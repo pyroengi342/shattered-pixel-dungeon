@@ -47,14 +47,14 @@ public class CircleArc extends Visual {
 	
 	private boolean lightMode = true;
 	
-	private SmartTexture texture;
+	private final SmartTexture texture;
 
 	protected float[] vertices;
-	private FloatBuffer verticesBuffer;
-	private ShortBuffer indices;
+	private final FloatBuffer verticesBuffer;
+	private final ShortBuffer indices;
 	
-	private int nTris;
-	private float rad;
+	private final int nTris;
+	private final float rad;
 	
 	//more triangles means a more precise visual
 	public CircleArc( int triangles, float radius ) {

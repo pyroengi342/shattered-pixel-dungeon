@@ -10,7 +10,7 @@ import network.Multiplayer;
 public class PetrifiedSeed extends Trinket {
 
     {
-        image = ItemSpriteSheet.PETRIFIED_SEED;
+        setImage(ItemSpriteSheet.PETRIFIED_SEED);
     }
 
     @Override
@@ -23,17 +23,17 @@ public class PetrifiedSeed extends Trinket {
         Hero viewer = Multiplayer.localHero();
         int level = isIdentified() ? buffedLvl() : 0;
         return Messages.get(this, "stats_desc",
-                Messages.decimalFormat("#.##", 100 * stoneInsteadOfSeedChance(level, viewer)),
-                Messages.decimalFormat("#.##", 100 * (grassLootMultiplier(level, viewer) - 1f)));
+                Messages.decimalFormat("#.##", 100 * stoneInsteadOfSeedChance( viewer)),
+                Messages.decimalFormat("#.##", 100 * (grassLootMultiplier( viewer) - 1f)));
     }
 
-    public static float grassLootMultiplier(int level, Hero hero) {
+    public static float grassLootMultiplier(Hero hero) {
         int lvl = trinketLevel(PetrifiedSeed.class, hero);
         if (lvl <= 0) return 1f;
         return 1f + .25f * lvl / 3f;
     }
 
-    public static float stoneInsteadOfSeedChance(int level, Hero hero) {
+    public static float stoneInsteadOfSeedChance(Hero hero) {
         int lvl = trinketLevel(PetrifiedSeed.class, hero);
         switch (lvl) {
             default: return 0;

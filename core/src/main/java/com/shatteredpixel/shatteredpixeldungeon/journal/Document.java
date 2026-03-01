@@ -61,7 +61,7 @@ public enum Document {
 	public static final int NOT_FOUND = 0;
 	public static final int FOUND = 1;
 	public static final int READ = 2;
-	private LinkedHashMap<String, Integer> pagesStates = new LinkedHashMap<>();
+	private final LinkedHashMap<String, Integer> pagesStates = new LinkedHashMap<>();
 	
 	public boolean findPage( String page ) {
 		if (pagesStates.containsKey(page) && pagesStates.get(page) == NOT_FOUND){
@@ -166,8 +166,8 @@ public enum Document {
 		return -1;
 	}
 
-	private int pageSprite;
-	private Icons pageIcon;
+	private final int pageSprite;
+	private final Icons pageIcon;
 	public Image pageSprite(){
 		return pageSprite("");
 	}
@@ -214,7 +214,7 @@ public enum Document {
 		}
 	}
 
-	private boolean loreDocument;
+	private final boolean loreDocument;
 	public boolean isLoreDoc(){
 		return loreDocument;
 	}
@@ -327,7 +327,7 @@ public enum Document {
 		HALLS_KING.pagesStates.put("ritual",                    debug ? READ : NOT_FOUND);
 		HALLS_KING.pagesStates.put("new_king",                  debug ? READ : NOT_FOUND);
 		HALLS_KING.pagesStates.put("thing",                     debug ? READ : NOT_FOUND);
-		HALLS_KING.pagesStates.put(KING_ATTRITION,              debug ? NOT_FOUND : NOT_FOUND);
+		HALLS_KING.pagesStates.put(KING_ATTRITION, NOT_FOUND);
 
 	}
 	

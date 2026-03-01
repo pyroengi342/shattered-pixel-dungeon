@@ -31,6 +31,8 @@ import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundlable;
 import com.watabou.utils.Bundle;
 
+import network.AudioWrapper;
+
 public abstract class Trap implements Bundlable {
 
 	//trap colors
@@ -91,10 +93,7 @@ public abstract class Trap implements Bundlable {
 
 	public void trigger() {
 		if (active) {
-					Hero local = Multiplayer.localHero();
-		if (local != null && local.fieldOfView != null && local.fieldOfView[pos]) {
-				Sample.INSTANCE.play(Assets.Sounds.TRAP);
-			}
+			AudioWrapper.play(Assets.Sounds.TRAP, pos);
 			if (disarmedByActivation) disarm();
 			Dungeon.level.discover(pos);
 			Bestiary.setSeen(getClass());

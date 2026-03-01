@@ -52,7 +52,7 @@ public class Food extends Item {
 	
 	{
 		stackable = true;
-		image = ItemSpriteSheet.RATION;
+		setImage(ItemSpriteSheet.RATION);
 
 		defaultAction = AC_EAT;
 
@@ -98,13 +98,13 @@ public class Food extends Item {
 		Sample.INSTANCE.play( Assets.Sounds.EAT );
 	}
 
-	protected float eatingTime( Hero curUser){
-		if (curUser.hasTalent(Talent.IRON_STOMACH)
-			|| curUser.hasTalent(Talent.ENERGIZING_MEAL)
-			|| curUser.hasTalent(Talent.MYSTICAL_MEAL)
-			|| curUser.hasTalent(Talent.INVIGORATING_MEAL)
-			|| curUser.hasTalent(Talent.FOCUSED_MEAL)
-			|| curUser.hasTalent(Talent.ENLIGHTENING_MEAL)){
+	protected float eatingTime( Hero hero){
+		if (hero.hasTalent(Talent.IRON_STOMACH)
+			|| hero.hasTalent(Talent.ENERGIZING_MEAL)
+			|| hero.hasTalent(Talent.MYSTICAL_MEAL)
+			|| hero.hasTalent(Talent.INVIGORATING_MEAL)
+			|| hero.hasTalent(Talent.FOCUSED_MEAL)
+			|| hero.hasTalent(Talent.ENLIGHTENING_MEAL)){
 			return TIME_TO_EAT - 2;
 		} else {
 			return TIME_TO_EAT;

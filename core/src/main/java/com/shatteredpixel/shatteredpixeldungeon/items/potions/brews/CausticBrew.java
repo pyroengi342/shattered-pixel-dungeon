@@ -27,6 +27,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Ooze;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Splash;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfToxicGas;
@@ -34,25 +35,23 @@ import com.shatteredpixel.shatteredpixeldungeon.items.quest.GooBlob;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.watabou.utils.BArray;
-import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.PathFinder;
 
 import java.util.ArrayList;
 
+import network.AudioWrapper;
+
 public class CausticBrew extends Brew {
 	
 	{
-		image = ItemSpriteSheet.BREW_CAUSTIC;
+		setImage(ItemSpriteSheet.BREW_CAUSTIC);
 	}
 	
 	@Override
 	public void shatter(int cell) {
 
 		splash( cell );
-				Hero local = Multiplayer.localHero();
-		if (local != null && local.fieldOfView != null && local.fieldOfView[cell]) {
-			Sample.INSTANCE.play( Assets.Sounds.SHATTER );
-		}
+		AudioWrapper.play( Assets.Sounds.SHATTER, cell);
 		
 		PathFinder.buildDistanceMap( cell, BArray.not( Dungeon.level.solid, null ), 3 );
 		for (int i = 0; i < PathFinder.distance.length; i++) {
@@ -80,9 +79,9 @@ public class CausticBrew extends Brew {
 		}
 
 		@Override
-		public Item brew(ArrayList<Item> ingredients) {
+		public Item brew(ArrayList<Item> ingredients, Hero hero) {
 			Catalog.countUse(GooBlob.class);
-			return super.brew(ingredients);
+			return super.brew(ingredients, hero);
 		}
 	}
 }

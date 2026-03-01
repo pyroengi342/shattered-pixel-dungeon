@@ -21,7 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.spells;
 
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
@@ -36,6 +35,7 @@ import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
+import com.watabou.utils.Bundle;
 
 public class LifeLinkSpell extends ClericSpell {
 
@@ -65,43 +65,43 @@ public String desc(Hero hero){
 
 	@Override
 	public void onCast(HolyTome tome, Hero hero) {
-
-		int duration = Math.round(6.67f + 3.33f*hero.pointsInTalent(Talent.LIFE_LINK));
+		int duration = Math.round(6.67f + 3.33f * hero.pointsInTalent(Talent.LIFE_LINK));
 
 		Char ally = PowerOfMany.getPoweredAlly();
-
 		if (ally != null) {
 			hero.sprite.zap(ally.pos);
-			hero.sprite.parent.add(
-					new Beam.HealthRay(hero.sprite.center(), ally.sprite.center()));
-
+			hero.sprite.parent.add(new Beam.HealthRay(hero.sprite.center(), ally.sprite.center()));
 			Buff.prolong(hero, LifeLink.class, duration, hero).object = ally.id();
 		} else {
 			ally = Stasis.getStasisAlly(hero);
 			hero.sprite.operate(hero.pos);
-			hero.sprite.parent.add(
-					new Beam.HealthRay(DungeonTilemap.tileCenterToWorld(hero.pos), hero.sprite.center()));
+			hero.sprite.parent.add(new Beam.HealthRay(DungeonTilemap.tileCenterToWorld(hero.pos), hero.sprite.center()));
 		}
 
-		Buff.prolong(ally, LifeLink.class, duration, hero).object = hero.id();
-		Buff.prolong(ally, LifeLinkSpellBuff.class, duration, hero);
+		// Создаём бафф на союзнике
+		LifeLinkSpellBuff buff = Buff.prolong(ally, LifeLinkSpellBuff.class, duration, hero);
+		buff.setOwner(hero);
+		buff.setTotalDuration(duration);   // <-- сохраняем полную длительность
 
-		if (ally == Stasis.getStasisAlly(hero)){
+		if (ally == Stasis.getStasisAlly(hero)) {
 			ally.buff(LifeLink.class).clearTime();
-			ally.buff(LifeLinkSpellBuff.class).clearTime();
+			buff.clearTime();
 		}
 
 		hero.spendAndNext(Actor.TICK);
-
 		onSpellCast(tome, hero);
-
 	}
 
-	public static class LifeLinkSpellBuff extends FlavourBuff{
-
+	public static class LifeLinkSpellBuff extends FlavourBuff {
 		{
 			type = buffType.POSITIVE;
 		}
+		private int ownerID;
+		private float totalDuration;   // <-- новое поле
+
+		public void setOwner(Hero owner) { this.ownerID = owner.id(); }
+		public Hero getOwner() { return (Hero) Actor.findById(ownerID); }
+		public void setTotalDuration(float d) { this.totalDuration = d; }
 
 		@Override
 		public int icon() {
@@ -110,8 +110,21 @@ public String desc(Hero hero){
 
 		@Override
 		public float iconFadePercent() {
-			int duration = Math.round(6.67f + 3.33f*((Hero) target).pointsInTalent(Talent.LIFE_LINK));
-			return Math.max(0, (duration - visualcooldown()) / duration);
+			if (totalDuration == 0) return 0;
+			return Math.max(0, (totalDuration - visualcooldown()) / totalDuration);
+		}
+
+		// при сохранении/загрузке также сохраняем totalDuration
+		private static final String TOTAL_DURATION = "total_duration";
+		@Override
+		public void storeInBundle(Bundle bundle) {
+			super.storeInBundle(bundle);
+			bundle.put(TOTAL_DURATION, totalDuration);
+		}
+		@Override
+		public void restoreFromBundle(Bundle bundle) {
+			super.restoreFromBundle(bundle);
+			totalDuration = bundle.getFloat(TOTAL_DURATION);
 		}
 	}
 }

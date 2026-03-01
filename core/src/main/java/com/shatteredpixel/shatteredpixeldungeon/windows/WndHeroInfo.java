@@ -45,14 +45,14 @@ import java.util.LinkedHashMap;
 
 public class WndHeroInfo extends WndTabbed {
 
-	private HeroInfoTab heroInfo;
-	private TalentInfoTab talentInfo;
+	private final HeroInfoTab heroInfo;
+	private final TalentInfoTab talentInfo;
 	private SubclassInfoTab subclassInfo;
 	private ArmorAbilityInfoTab abilityInfo;
 
-	private static int WIDTH = 120;
-	private static int MIN_HEIGHT = 125;
-	private static int MARGIN = 2;
+	private static final int WIDTH = 120;
+	private static final int MIN_HEIGHT = 125;
+	private static final int MARGIN = 2;
 
 	public WndHeroInfo( HeroClass cl ){
 
@@ -153,9 +153,9 @@ public class WndHeroInfo extends WndTabbed {
 
 	private static class HeroInfoTab extends Component {
 
-		private RenderedTextBlock title;
-		private RenderedTextBlock[] info;
-		private Image[] icons;
+		private final RenderedTextBlock title;
+		private final RenderedTextBlock[] info;
+		private final Image[] icons;
 
 		public HeroInfoTab(HeroClass cls){
 			super();
@@ -240,9 +240,9 @@ public class WndHeroInfo extends WndTabbed {
 
 	private static class TalentInfoTab extends Component {
 
-		private RenderedTextBlock title;
-		private RenderedTextBlock message;
-		private TalentsPane talentPane;
+		private final RenderedTextBlock title;
+		private final RenderedTextBlock message;
+		private final TalentsPane talentPane;
 
 		public TalentInfoTab( HeroClass cls ){
 			super();
@@ -277,10 +277,10 @@ public class WndHeroInfo extends WndTabbed {
 
 	private static class SubclassInfoTab extends Component {
 
-		private RenderedTextBlock title;
-		private RenderedTextBlock message;
-		private RenderedTextBlock[] subClsDescs;
-		private IconButton[] subClsInfos;
+		private final RenderedTextBlock title;
+		private final RenderedTextBlock message;
+		private final RenderedTextBlock[] subClsDescs;
+		private final IconButton[] subClsInfos;
 
 		public SubclassInfoTab( HeroClass cls ){
 			super();
@@ -337,10 +337,10 @@ public class WndHeroInfo extends WndTabbed {
 
 	private static class ArmorAbilityInfoTab extends Component {
 
-		private RenderedTextBlock title;
-		private RenderedTextBlock message;
-		private RenderedTextBlock[] abilityDescs;
-		private IconButton[] abilityInfos;
+		private final RenderedTextBlock title;
+		private final RenderedTextBlock message;
+		private final RenderedTextBlock[] abilityDescs;
+		private final IconButton[] abilityInfos;
 
 		public ArmorAbilityInfoTab(HeroClass cls){
 			super();

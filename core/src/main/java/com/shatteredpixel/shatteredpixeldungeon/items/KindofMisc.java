@@ -1,6 +1,5 @@
 package com.shatteredpixel.shatteredpixeldungeon.items;
 
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
@@ -126,10 +125,10 @@ public abstract class KindofMisc extends EquipableItem {
 
             if (this instanceof Artifact) {
                 if (hero.belongings.artifact == null) hero.belongings.artifact = (Artifact) this;
-                else hero.belongings.misc = (Artifact) this;
+                else hero.belongings.misc = this;
             } else if (this instanceof Ring) {
                 if (hero.belongings.ring == null) hero.belongings.ring = (Ring) this;
-                else hero.belongings.misc = (Ring) this;
+                else hero.belongings.misc = this;
             }
 
             detach(hero.belongings.backpack);

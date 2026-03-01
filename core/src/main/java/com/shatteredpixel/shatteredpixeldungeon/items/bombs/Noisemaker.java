@@ -36,7 +36,7 @@ import com.watabou.utils.Bundle;
 public class Noisemaker extends Bomb {
 	
 	{
-		image = ItemSpriteSheet.NOISEMAKER;
+		setImage(ItemSpriteSheet.NOISEMAKER);
 	}
 
 	@Override

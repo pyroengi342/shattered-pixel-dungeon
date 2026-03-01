@@ -49,7 +49,7 @@ import java.util.HashMap;
 public class UnstableBrew extends Brew {
 
 	{
-		image = ItemSpriteSheet.BREW_UNSTABLE;
+		setImage(ItemSpriteSheet.BREW_UNSTABLE);
 	}
 
 	@Override
@@ -64,7 +64,7 @@ public class UnstableBrew extends Brew {
 		return AC_CHOOSE;
 	}
 
-	private static HashMap<Class<? extends Potion>, Float> potionChances = new HashMap<>();
+	private static final HashMap<Class<? extends Potion>, Float> potionChances = new HashMap<>();
 	static {
 		potionChances.put(PotionOfHealing.class, 3f);
 		potionChances.put(PotionOfMindVision.class, 2f);
@@ -157,7 +157,7 @@ public class UnstableBrew extends Brew {
 		}
 
 		@Override
-		public Item brew(ArrayList<Item> ingredients) {
+		public Item brew(ArrayList<Item> ingredients, Hero hero) {
 
 			for (Item i : ingredients){
 				i.quantity(i.quantity()-1);

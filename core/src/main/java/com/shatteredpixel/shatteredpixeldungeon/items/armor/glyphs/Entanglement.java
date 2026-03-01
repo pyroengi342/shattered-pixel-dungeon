@@ -21,7 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs;
 
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
@@ -37,7 +36,7 @@ import com.watabou.utils.Random;
 
 public class Entanglement extends Glyph {
 	
-	private static ItemSprite.Glowing BROWN = new ItemSprite.Glowing( 0x663300 );
+	private static final ItemSprite.Glowing BROWN = new ItemSprite.Glowing( 0x663300 );
 	
 	@Override
 	public int proc(Armor armor, Char attacker, final Char defender, final int damage ) {
@@ -49,7 +48,7 @@ public class Entanglement extends Glyph {
 
 			float powerMulti = Math.max(1f, procChance);
 
-			Buff.affect( defender, Earthroot.Armor.class , this)level( Math.round((5 + 2 * level)*powerMulti) );
+			Buff.affect( defender, Earthroot.Armor.class , this).level( Math.round((5 + 2 * level)*powerMulti) );
 			CellEmitter.bottom( defender.pos ).start( EarthParticle.FACTORY, 0.05f, 8 );
 			if (defender instanceof Hero) PixelScene.shake( 1, 0.4f );
 			

@@ -1,24 +1,4 @@
-/*
- * Pixel Dungeon
- * Copyright (C) 2012-2015 Oleg Dolya
- *
- * Shattered Pixel Dungeon
- * Copyright (C) 2014-2025 Evan Debenham
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>
- */
-
+// ScrollOfSirensSong.java
 package com.shatteredpixel.shatteredpixeldungeon.items.scrolls.exotic;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
@@ -28,8 +8,10 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AllyBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Charm;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
+import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -39,79 +21,93 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
 
+import network.AudioWrapper;
+import network.Multiplayer;
+
 public class ScrollOfSirensSong extends ExoticScroll {
-	
+
 	{
-		icon = ItemSpriteSheet.Icons.SCROLL_SIREN;
+		setIcon(ItemSpriteSheet.Icons.SCROLL_SIREN);
 	}
 
-	protected static boolean identifiedByUse = false;
-	
+	protected boolean identifiedByUse = false;
+
 	@Override
-	public void doRead() {
+	public void doRead(Hero hero) {
 		if (!isKnown()) {
-			identify();
-			curItem = detach(curUser.belongings.backpack);
+			identify(true);
+			Item detached = detach( hero.belongings.backpack);
+			if (detached == null) return;
 			identifiedByUse = true;
 		} else {
 			identifiedByUse = false;
 		}
-		GameScene.selectCell(targeter);
+		GameScene.selectCell(new SirenTargeter(this, hero));
 	}
 
-	private CellSelector.Listener targeter = new CellSelector.Listener() {
+	private class SirenTargeter extends CellSelector.Listener {
+		private final ScrollOfSirensSong scroll;
+		private final Hero hero;
+
+		SirenTargeter(ScrollOfSirensSong scroll, Hero hero) {
+			this.scroll = scroll;
+			this.hero = hero;
+		}
 
 		@Override
 		public void onSelect(Integer cell) {
-			if (cell == null && isKnown()){
+			if (cell == null && isKnown()) {
 				return;
 			}
 
 			Mob target = null;
-			if (cell != null){
+			if (cell != null) {
 				Char ch = Actor.findChar(cell);
-				if (ch != null && ch.alignment != Char.Alignment.ALLY && ch instanceof Mob){
-					target = (Mob)ch;
+				if (ch != null && ch.alignment != Char.Alignment.ALLY && ch instanceof Mob) {
+					target = (Mob) ch;
 				}
 			}
 
-			if (target == null && !anonymous && !identifiedByUse){
-				GLog.w(Messages.get(ScrollOfSirensSong.class, "cancel"));
-				return;
-
+			if (target == null && !anonymous && !scroll.identifiedByUse) {
+				if (hero == Multiplayer.localHero()) {
+					GLog.w(Messages.get(ScrollOfSirensSong.class, "cancel"));
+				}
 			} else {
 
-				curUser.sprite.centerEmitter().start( Speck.factory( Speck.HEART ), 0.2f, 5 );
-				Sample.INSTANCE.play( Assets.Sounds.CHARMS );
-				Sample.INSTANCE.playDelayed( Assets.Sounds.LULLABY, 0.1f );
+				hero.sprite.centerEmitter().start(Speck.factory(Speck.HEART), 0.2f, 5);
+				AudioWrapper.play(Assets.Sounds.CHARMS, hero.pos);
+				Sample.INSTANCE.playDelayed(Assets.Sounds.LULLABY, 0.1f);
 
-				for (Mob mob : Dungeon.level.mobs.toArray( new Mob[0] )) {
-					if (curUser.fieldOfView[mob.pos] && mob != target && mob.alignment != Char.Alignment.ALLY) {
-						Buff.affect( mob, Charm.class, Charm.DURATION ).object = curUser.id();
-						mob.sprite.centerEmitter().start( Speck.factory( Speck.HEART ), 0.2f, 5 );
+				for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
+					if (hero.fieldOfView[mob.pos] && mob != target && mob.alignment != Char.Alignment.ALLY) {
+						Buff.affect(mob, Charm.class, Charm.DURATION, scroll).object = hero.id();
+						if (hero == Multiplayer.localHero()) {
+							mob.sprite.centerEmitter().start(Speck.factory(Speck.HEART), 0.2f, 5);
+						}
 					}
 				}
 
-				if (target != null){
-					if (!target.isImmune(Enthralled.class)){
-						AllyBuff.affectAndLoot(target, curUser, Enthralled.class);
-
+				if (target != null) {
+					if (!target.isImmune(Enthralled.class)) {
+						AllyBuff.affectAndLoot(target, hero, Enthralled.class);
 					} else {
-						Buff.affect( target, Charm.class, Charm.DURATION ).object = curUser.id();
-
+						Buff.affect(target, Charm.class, Charm.DURATION, scroll).object = hero.id();
 					}
-					target.sprite.centerEmitter().burst( Speck.factory( Speck.HEART ), 10 );
+					if (hero == Multiplayer.localHero()) {
+						target.sprite.centerEmitter().burst(Speck.factory(Speck.HEART), 10);
+					}
 				} else {
-					GLog.w(Messages.get(ScrollOfSirensSong.class, "no_target"));
+					if (hero == Multiplayer.localHero()) {
+						GLog.w(Messages.get(ScrollOfSirensSong.class, "no_target"));
+					}
 				}
 
-				if (!identifiedByUse) {
-					curItem.detach(curUser.belongings.backpack);
+				if (!scroll.identifiedByUse) {
+					scroll.detach( hero.belongings.backpack);
 				}
-				identifiedByUse = false;
+				scroll.identifiedByUse = false;
 
-				readAnimation();
-
+				readAnimation(hero);
 			}
 		}
 
@@ -119,8 +115,7 @@ public class ScrollOfSirensSong extends ExoticScroll {
 		public String prompt() {
 			return Messages.get(ScrollOfSirensSong.class, "prompt");
 		}
-
-	};
+	}
 
 	public static class Enthralled extends AllyBuff {
 
@@ -132,7 +127,7 @@ public class ScrollOfSirensSong extends ExoticScroll {
 		@Override
 		public void fx(boolean on) {
 			if (on) target.sprite.add(CharSprite.State.HEARTS);
-			else    target.sprite.remove(CharSprite.State.HEARTS);
+			else target.sprite.remove(CharSprite.State.HEARTS);
 		}
 
 		@Override
@@ -140,5 +135,4 @@ public class ScrollOfSirensSong extends ExoticScroll {
 			return BuffIndicator.HEART;
 		}
 	}
-	
 }

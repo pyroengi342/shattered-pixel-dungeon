@@ -110,7 +110,6 @@ import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.SkeletonKey;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.TalismanOfForesight;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.TimekeepersHourglass;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.MagicalHolster;
-import com.shatteredpixel.shatteredpixeldungeon.items.food.StewedMeat.threeMeat;
 import com.shatteredpixel.shatteredpixeldungeon.items.journal.Guidebook;
 import com.shatteredpixel.shatteredpixeldungeon.items.keys.CrystalKey;
 import com.shatteredpixel.shatteredpixeldungeon.items.keys.GoldenKey;
@@ -186,11 +185,11 @@ import com.watabou.utils.PathFinder;
 import com.watabou.utils.Point;
 import com.watabou.utils.Random;
 
-import network.Multiplayer;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+
+import network.Multiplayer;
 
 public class Hero extends Char {
 
@@ -438,7 +437,7 @@ public class Hero extends Char {
 	@Override
 	public void hitSound(float pitch) {
 		if (!RingOfForce.fightingUnarmed(this)) {
-			belongings.attackingWeapon().hitSound(pitch);
+			belongings.attackingWeapon().hitSound(pitch, pos);
 		} else if (RingOfForce.getBuffedBonus(this, RingOfForce.Force.class) > 0) {
 			//pitch deepens by 2.5% (additive) per point of strength, down to 75%
 			super.hitSound( pitch * GameMath.gate( 0.75f, 1.25f - 0.025f*STR(), 1f) );
@@ -709,8 +708,8 @@ public class Hero extends Char {
 	}
 
 	//damage rolls that come from the hero can have their RNG influenced by clover
-	public static int heroDamageIntRange(int min, int max ){
-		if (Random.Float() < ThirteenLeafClover.alterHeroDamageChance()){
+	public static int heroDamageIntRange(int min, int max, Hero hero){
+		if (Random.Float() < ThirteenLeafClover.alterHeroDamageChance(hero)){
 			return ThirteenLeafClover.alterDamageRoll(min, max);
 		} else {
 			return Random.NormalIntRange(min, max);
@@ -741,7 +740,7 @@ public class Hero extends Char {
 			speed *= (2f + 0.25f*pointsInTalent(Talent.GROWING_POWER));
 		}
 
-		speed = AscensionChallenge.modifyHeroSpeed(speed, (Hero) this);
+		speed = AscensionChallenge.modifyHeroSpeed(speed, this);
 		
 		return speed;
 		
@@ -1566,7 +1565,7 @@ public class Hero extends Char {
 			}
 			if (buff(HolyWard.HolyArmBuff.class) != null){
 				int blocking = subClass == HeroSubClass.PALADIN ? 3 : 1;
-				damage -= Math.round(blocking * Armor.Glyph.genericProcChanceMultiplier(enemy));
+				damage -= Math.round(blocking * Armor.Glyph.genericProcChanceMultiplier(enemy, null));
 			}
 		}
 
@@ -1895,14 +1894,10 @@ public class Hero extends Char {
 			Dungeon.level.updateFieldOfView( this, fieldOfView );
 		}
 
-		if (!Dungeon.level.visited[cell] && !Dungeon.level.mapped[cell]
-				&& Dungeon.level.traps.get(cell) != null
-				&& Dungeon.level.traps.get(cell).visible
-				&& Dungeon.level.traps.get(cell).active) {
-			walkingToVisibleTrapInFog = true;
-		} else {
-			walkingToVisibleTrapInFog = false;
-		}
+        walkingToVisibleTrapInFog = !Dungeon.level.visited[cell] && !Dungeon.level.mapped[cell]
+                && Dungeon.level.traps.get(cell) != null
+                && Dungeon.level.traps.get(cell).visible
+                && Dungeon.level.traps.get(cell).active;
 		
 		Char ch = Actor.findChar( cell );
 		Heap heap = Dungeon.level.heaps.get( cell );
@@ -2368,7 +2363,7 @@ public class Hero extends Char {
 		
 		if (curAction instanceof HeroAction.Unlock) {
 
-			int doorCell = ((HeroAction.Unlock)curAction).dst;
+			int doorCell = curAction.dst;
 			int door = Dungeon.level.map[doorCell];
 
 			SkeletonKey.keyRecharge skele = buff(SkeletonKey.keyRecharge.class);
@@ -2418,7 +2413,7 @@ public class Hero extends Char {
 			
 		} else if (curAction instanceof HeroAction.OpenChest) {
 			
-			Heap heap = Dungeon.level.heaps.get( ((HeroAction.OpenChest)curAction).dst );
+			Heap heap = Dungeon.level.heaps.get( curAction.dst );
 			SkeletonKey.keyRecharge skele = buff(SkeletonKey.keyRecharge.class);
 			SkeletonKey.KeyReplacementTracker keyUseTrack = buff(SkeletonKey.KeyReplacementTracker.class);
 
@@ -2650,7 +2645,7 @@ public class Hero extends Char {
 			super.next();
 	}
 
-	public static interface Doom {
-		public void onDeath();
+	public interface Doom {
+		void onDeath();
 	}
 }

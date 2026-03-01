@@ -1,24 +1,3 @@
-/*
- * Pixel Dungeon
- * Copyright (C) 2012-2015 Oleg Dolya
- *
- * Shattered Pixel Dungeon
- * Copyright (C) 2014-2025 Evan Debenham
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>
- */
-
 package com.shatteredpixel.shatteredpixeldungeon.items.scrolls;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
@@ -32,62 +11,58 @@ import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
-import com.watabou.noosa.audio.Sample;
-
-import network.Multiplayer;
 
 import java.util.ArrayList;
+
+import network.AudioWrapper;
+import network.Multiplayer;
 
 public class ScrollOfRetribution extends Scroll {
 
 	{
-		icon = ItemSpriteSheet.Icons.SCROLL_RETRIB;
+		setIcon(ItemSpriteSheet.Icons.SCROLL_RETRIB);
 	}
-	
+
 	@Override
-	public void doRead() {
+	public void doRead(Hero hero) {
+		detach(hero.belongings.backpack);
 
-		detach(curUser.belongings.backpack);
-
-	    Hero local = Multiplayer.localHero();
-		if (local == curUser) {
+		// визуальные и звуковые эффекты только для локального героя
+		if (hero == Multiplayer.localHero()) {
 			GameScene.flash(0x80FFFFFF);
 			GLog.i(Messages.get(this, "blast"));
 		}
-		
-		//scales from 0x to 1x power, maxing at ~10% HP
-		float hpPercent = (curUser.HT - curUser.HP)/(float)(curUser.HT);
-		float power = Math.min( 4f, 4.45f*hpPercent);
-		
-		Sample.INSTANCE.play( Assets.Sounds.BLAST );
+
+		// масштабирование от здоровья
+		float hpPercent = (hero.HT - hero.HP) / (float)(hero.HT);
+		float power = Math.min(4f, 4.45f * hpPercent);
+
+		// звук взрыва (глобальный или привязанный к позиции героя? пусть будет глобальный, чтобы все слышали)
+		AudioWrapper.playGlobal(Assets.Sounds.BLAST);
 
 		ArrayList<Mob> targets = new ArrayList<>();
 
-		//calculate targets first, in case damaging/blinding a target affects hero vision
-		for (Mob mob : Dungeon.level.mobs.toArray( new Mob[0] )) {
-			if (curUser.fieldOfView[mob.pos]) {
+		for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
+			if (hero.fieldOfView[mob.pos]) {
 				targets.add(mob);
 			}
 		}
 
 		for (Mob mob : targets){
-			//deals 10%HT, plus 0-90%HP based on scaling
-			mob.damage(Math.round(mob.HT/10f + (mob.HP * power * 0.225f)), this);
+			mob.damage(Math.round(mob.HT / 10f + (mob.HP * power * 0.225f)), this);
 			if (mob.isAlive()) {
 				Buff.prolong(mob, Blindness.class, Blindness.DURATION, this);
 			}
 		}
-		
-		Buff.prolong(curUser, Weakness.class, Weakness.DURATION, this);
-		Buff.prolong(curUser, Blindness.class, Blindness.DURATION, this);
-		Dungeon.observe( curUser );
 
-		identify();
-		
-		readAnimation();
-		
+		Buff.prolong(hero, Weakness.class, Weakness.DURATION, this);
+		Buff.prolong(hero, Blindness.class, Blindness.DURATION, this);
+		Dungeon.observe(hero);
+
+		identify(true);
+		readAnimation(hero);
 	}
-	
+
 	@Override
 	public int value() {
 		return isKnown() ? 40 * quantity : super.value();

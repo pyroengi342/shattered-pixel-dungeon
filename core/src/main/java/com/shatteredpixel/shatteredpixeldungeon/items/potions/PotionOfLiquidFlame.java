@@ -27,32 +27,28 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Fire;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
-import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.PathFinder;
+
+import network.AudioWrapper;
 
 public class PotionOfLiquidFlame extends Potion {
 
 	{
-		icon = ItemSpriteSheet.Icons.POTION_LIQFLAME;
+		setIcon(ItemSpriteSheet.Icons.POTION_LIQFLAME);
 	}
 
 	@Override
 	public void shatter( int cell ) {
 
 		splash( cell );
-				Hero local = Multiplayer.localHero();
-		if (local != null && local.fieldOfView != null && local.fieldOfView[cell]) {
-			identify();
+		identify();
 
-			Sample.INSTANCE.play( Assets.Sounds.SHATTER );
-			Sample.INSTANCE.play( Assets.Sounds.BURNING );
-		}
+		AudioWrapper.play(Assets.Sounds.SHATTER, cell);
+		AudioWrapper.play( Assets.Sounds.BURNING, cell );
 
 		for (int offset : PathFinder.NEIGHBOURS9){
 			if (!Dungeon.level.solid[cell+offset]) {
-
 				GameScene.add(Blob.seed(cell + offset, 2, Fire.class));
-
 			}
 		}
 	}

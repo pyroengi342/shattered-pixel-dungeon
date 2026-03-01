@@ -10,7 +10,7 @@ import network.Multiplayer;
 public class CrackedSpyglass extends Trinket {
 
     {
-        image = ItemSpriteSheet.SPYGLASS;
+        setImage(ItemSpriteSheet.SPYGLASS);
     }
 
     @Override
@@ -24,16 +24,21 @@ public class CrackedSpyglass extends Trinket {
         int level = isIdentified() ? buffedLvl() : 0;
         if (isIdentified() && buffedLvl() >= 2) {
             return Messages.get(this, "stats_desc_upgraded",
-                    Messages.decimalFormat("#.##", 100 * (extraLootChance(level, viewer) - 1f)));
+                    Messages.decimalFormat("#.##", 100 * (extraLootChance() - 1f)));
         } else {
             return Messages.get(this, "stats_desc",
-                    Messages.decimalFormat("#.##", 100 * extraLootChance(level, viewer)));
+                    Messages.decimalFormat("#.##", 100 * extraLootChance()));
         }
     }
 
     // Версия с героем
-    public static float extraLootChance(int level, Hero hero) {
-        int lvl = trinketLevel(CrackedSpyglass.class, hero);
+    public static float extraLootChance() {
+        int lvl = -1;
+        for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+            lvl = trinketLevel(CrackedSpyglass.class, player.hero);
+            if (lvl != -1) break;
+        }
+
         if (lvl == -1) return 0;
         return 0.375f * (lvl + 1);
     }

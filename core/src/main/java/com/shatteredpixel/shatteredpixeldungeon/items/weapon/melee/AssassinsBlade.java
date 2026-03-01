@@ -31,7 +31,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 public class AssassinsBlade extends MeleeWeapon {
 
 	{
-		image = ItemSpriteSheet.ASSASSINS_BLADE;
+		setImage(ItemSpriteSheet.ASSASSINS_BLADE);
 		hitSound = Assets.Sounds.HIT_STAB;
 		hitSoundPitch = 0.9f;
 
@@ -54,10 +54,10 @@ public class AssassinsBlade extends MeleeWeapon {
 				int diff = max() - min();
 				int damage = augment.damageFactor(Hero.heroDamageIntRange(
 						min() + Math.round(diff*0.50f),
-						max()));
+						max(), hero));
 				int exStr = hero.STR() - STRReq();
 				if (exStr > 0) {
-					damage += Hero.heroDamageIntRange(0, exStr);
+					damage += Hero.heroDamageIntRange(0, exStr, hero);
 				}
 				return damage;
 			}

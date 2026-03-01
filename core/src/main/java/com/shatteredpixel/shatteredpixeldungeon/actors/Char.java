@@ -157,12 +157,13 @@ import com.watabou.utils.Bundle;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
-import network.Multiplayer;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
+
+import network.Multiplayer;
 
 public abstract class Char extends Actor {
 	
@@ -193,7 +194,7 @@ public abstract class Char extends Actor {
 	
 	public boolean[] fieldOfView = null;
 	
-	private LinkedHashSet<Buff> buffs = new LinkedHashSet<>();
+	private final LinkedHashSet<Buff> buffs = new LinkedHashSet<>();
 	
 	@Override
 	protected boolean act() {
@@ -233,14 +234,10 @@ public abstract class Char extends Actor {
 	public boolean canInteract(Char c){
 		if (Dungeon.level.adjacent( pos, c.pos )){
 			return true;
-		} else if (c instanceof Hero
-				&& alignment == Alignment.ALLY
-				&& !hasProp(this, Property.IMMOVABLE)
-				&& Dungeon.level.distance(pos, c.pos) <= 2*((Hero) c).pointsInTalent(Talent.ALLY_WARP)){
-			return true;
-		} else {
-			return false;
-		}
+		} else return c instanceof Hero
+                && alignment == Alignment.ALLY
+                && !hasProp(this, Property.IMMOVABLE)
+                && Dungeon.level.distance(pos, c.pos) <= 2 * ((Hero) c).pointsInTalent(Talent.ALLY_WARP);
 	}
 	
 	//swaps places by default
@@ -301,7 +298,7 @@ public abstract class Char extends Actor {
 
 		if (c instanceof Hero){
 			if (((Hero) c).subClass == HeroSubClass.FREERUNNER){
-				Buff.affect((Hero) c, Momentum.class, c).gainStack();
+				Buff.affect(c, Momentum.class, c).gainStack();
 			}
 
             ((Hero) c).busy();
@@ -337,7 +334,7 @@ public abstract class Char extends Actor {
 	protected static final String TAG_HP    = "HP";
 	protected static final String TAG_HT    = "HT";
 	protected static final String TAG_SHLD  = "SHLD";
-	protected static final String BUFFS	    = "buffs";
+	protected static final String BUFFS_STR = "buffs";
 	
 	@Override
 	public void storeInBundle( Bundle bundle ) {
@@ -347,7 +344,7 @@ public abstract class Char extends Actor {
 		bundle.put( POS, pos );
 		bundle.put( TAG_HP, HP );
 		bundle.put( TAG_HT, HT );
-		bundle.put( BUFFS, buffs );
+		bundle.put(BUFFS_STR, buffs );
 	}
 	
 	@Override
@@ -359,7 +356,7 @@ public abstract class Char extends Actor {
 		HP = bundle.getInt( TAG_HP );
 		HT = bundle.getInt( TAG_HT );
 		
-		for (Bundlable b : bundle.getCollection( BUFFS )) {
+		for (Bundlable b : bundle.getCollection(BUFFS_STR)) {
 			if (b != null) {
 				((Buff)b).attachTo( this );
 			}
@@ -412,7 +409,7 @@ public abstract class Char extends Actor {
 			if (prep != null){
 				dmg = prep.damageRoll(this);
 				if (this instanceof Hero && ((Hero) this).hasTalent(Talent.BOUNTY_HUNTER)) {
-					Buff.affect(((Hero) this), Talent.BountyHunterTracker.class, 0.0f);
+					Buff.affect(this, Talent.BountyHunterTracker.class, 0.0f);
 				}
 			} else {
 				dmg = damageRoll();
@@ -470,7 +467,7 @@ public abstract class Char extends Actor {
 			}
 
 			if (((Hero) this).alignment == enemy.alignment
-					&& ((Hero) this).buff(AuraOfProtection.AuraBuff.class) != null
+					&& this.buff(AuraOfProtection.AuraBuff.class) != null
 					&& (Dungeon.level.distance(enemy.pos, ((Hero) this).pos) <= 2 || enemy.buff(LifeLinkSpell.LifeLinkSpellBuff.class) != null)){
 				dmg *= 0.9f - 0.1f*((Hero) this).pointsInTalent(Talent.AURA_OF_PROTECTION);
 			}
@@ -663,12 +660,13 @@ public abstract class Char extends Actor {
 			acuRoll *= buff.evasionAndAccuracyFactor();
 		}
 		acuRoll *= AscensionChallenge.statModifier(attacker);
-		if (Dungeon.hero.heroClass != HeroClass.CLERIC
-				&& Dungeon.hero.hasTalent(Talent.BLESS)
-				&& attacker.alignment == Alignment.ALLY){
-			// + 3%/5%
-			acuRoll *= 1.01f + 0.02f*Dungeon.hero.pointsInTalent(Talent.BLESS);
-		}
+		// TODO remake
+//		if (Dungeon.hero.heroClass != HeroClass.CLERIC
+//				&& Dungeon.hero.hasTalent(Talent.BLESS)
+//				&& attacker.alignment == Alignment.ALLY){
+//			// + 3%/5%
+//			acuRoll *= 1.01f + 0.02f*Dungeon.hero.pointsInTalent(Talent.BLESS);
+//		}
 		acuRoll *= accMulti;
 
 		float defRoll = Random.Float( defStat );
@@ -679,12 +677,13 @@ public abstract class Char extends Actor {
 			defRoll *= buff.evasionAndAccuracyFactor();
 		}
 		defRoll *= AscensionChallenge.statModifier(defender);
-		if (Dungeon.hero.heroClass != HeroClass.CLERIC
+		// TODO remake
+/*		if (Dungeon.hero.heroClass != HeroClass.CLERIC
 				&& Dungeon.hero.hasTalent(Talent.BLESS)
 				&& defender.alignment == Alignment.ALLY){
 			// + 3%/5%
 			defRoll *= 1.01f + 0.02f*Dungeon.hero.pointsInTalent(Talent.BLESS);
-		}
+		}*/
 		defRoll *= FerretTuft.evasionMultiplier();
 
 		if (acuRoll >= defRoll){
@@ -795,14 +794,23 @@ public abstract class Char extends Actor {
 	//Returns the level a glyph is at for a char, or -1 if they are not benefitting from that glyph
 	//This function is needed as (unlike enchantments) many glyphs trigger in a variety of cases
 	public int glyphLevel(Class<? extends Armor.Glyph> cls){
-		if (Dungeon.hero != null && Dungeon.level != null
-				&& this != Dungeon.hero && Dungeon.hero.alignment == alignment
-				&& Dungeon.hero.buff(AuraOfProtection.AuraBuff.class) != null
-				&& (Dungeon.level.distance(pos, Dungeon.hero.pos) <= 2 || buff(LifeLinkSpell.LifeLinkSpellBuff.class) != null)) {
-			return Dungeon.hero.glyphLevel(cls);
-		} else {
-			return -1;
+		// Проверяем наличие баффа ауры защиты
+		AuraOfProtection.AuraBuff aura = buff(AuraOfProtection.AuraBuff.class);
+		if (aura != null) {
+			Hero owner = aura.getOwner();
+			if (owner != null && owner.alignment == alignment) {
+				return owner.glyphLevel(cls);
+			}
 		}
+		// Проверяем связь через LifeLink
+		LifeLinkSpell.LifeLinkSpellBuff link = buff(LifeLinkSpell.LifeLinkSpellBuff.class);
+		if (link != null) {
+			Hero owner = link.getOwner();
+			if (owner != null && owner.alignment == alignment) {
+				return owner.glyphLevel(cls);
+			}
+		}
+		return -1;
 	}
 	
 	public float speed() {
@@ -883,18 +891,42 @@ public abstract class Char extends Actor {
 
 		//if dmg is from a character we already reduced it in Char.attack
 		if (!(src instanceof Char)) {
-			if (Dungeon.hero.alignment == alignment
-					&& Dungeon.hero.buff(AuraOfProtection.AuraBuff.class) != null
-					&& (Dungeon.level.distance(pos, Dungeon.hero.pos) <= 2 || buff(LifeLinkSpell.LifeLinkSpellBuff.class) != null)) {
-				damage *= 0.9f - 0.1f*Dungeon.hero.pointsInTalent(Talent.AURA_OF_PROTECTION);
+			Hero protector = null;
+			// 1. Поиск героя с активной аурой защиты в радиусе 2 от цели
+			for (Multiplayer.PlayerInfo info : Multiplayer.Players.getAll()) {
+				Hero h = info.hero;
+				if (h != null && h.isAlive() && h.alignment == alignment) {
+					AuraOfProtection.AuraBuff aura = h.buff(AuraOfProtection.AuraBuff.class);
+					if (aura != null && Dungeon.level.distance(pos, h.pos) <= 2) {
+						protector = h;
+						break;
+					}
+				}
+			}
+
+			// 2. Если не нашли, проверяем бафф жизненной связи на цели
+			if (protector == null) {
+				LifeLinkSpell.LifeLinkSpellBuff link = buff(LifeLinkSpell.LifeLinkSpellBuff.class);
+				if (link != null) {
+					protector = link.getOwner();
+				}
+			}
+
+			// 3. Применяем уменьшение урона, если найден защитник
+			if (protector != null) {
+				damage *= 0.9f - 0.1f * protector.pointsInTalent(Talent.AURA_OF_PROTECTION);
 			}
 		}
 
 		if (buff(PowerOfMany.PowerBuff.class) != null){
-			if (buff(LifeLinkSpell.LifeLinkSpellBuff.class) != null){
-				damage *= 0.70f - 0.05f*Dungeon.hero.pointsInTalent(Talent.LIFE_LINK);
-			} else {
-				damage *= 0.75f;
+			PowerOfMany.PowerBuff power = buff(PowerOfMany.PowerBuff.class);
+			Hero owner = power.getOwnerId();
+			if (owner != null) {
+				if (buff(LifeLinkSpell.LifeLinkSpellBuff.class) != null){
+					damage *= 0.70f - 0.05f * owner.pointsInTalent(Talent.LIFE_LINK);
+				} else {
+					damage *= 0.75f;
+				}
 			}
 		}
 
@@ -1021,15 +1053,15 @@ public abstract class Char extends Actor {
 
 			//special case for sniper when using ranged attacks
 			if (src instanceof Hero
-					&& Dungeon.hero.subClass == HeroSubClass.SNIPER
-					&& !Dungeon.level.adjacent(Dungeon.hero.pos, pos)
-					&& Dungeon.hero.belongings.attackingWeapon() instanceof MissileWeapon){
+					&& ((Hero) src).subClass == HeroSubClass.SNIPER
+					&& !Dungeon.level.adjacent(((Hero) src).pos, pos)
+					&& ((Hero) src).belongings.attackingWeapon() instanceof MissileWeapon){
 				icon = FloatingText.PHYS_DMG_NO_BLOCK;
 			}
 
 			//special case for monk using unarmed abilities
 			if (src instanceof Hero
-					&& Dungeon.hero.buff(MonkEnergy.MonkAbility.UnarmedAbilityTracker.class) != null){
+					&& ((Hero) src).buff(MonkEnergy.MonkAbility.UnarmedAbilityTracker.class) != null){
 				icon = FloatingText.PHYS_DMG_NO_BLOCK;
 			}
 
@@ -1067,7 +1099,7 @@ public abstract class Char extends Actor {
 	}
 
 	//these are misc. sources of physical damage which do not apply armor, they get a different icon
-	private static HashSet<Class> NO_ARMOR_PHYSICAL_SOURCES = new HashSet<>();
+	private static final HashSet<Class> NO_ARMOR_PHYSICAL_SOURCES = new HashSet<>();
 	{
 		NO_ARMOR_PHYSICAL_SOURCES.add(CrystalSpire.SpireSpike.class);
 		NO_ARMOR_PHYSICAL_SOURCES.add(GnollGeomancer.Boulder.class);
@@ -1408,21 +1440,21 @@ public abstract class Char extends Actor {
 				new HashSet<Class>( Arrays.asList(Burning.class, Blazing.class))),
 		ICY ( new HashSet<Class>( Arrays.asList(WandOfFrost.class, Elemental.FrostElemental.class)),
 				new HashSet<Class>( Arrays.asList(Frost.class, Chill.class))),
-		ACIDIC ( new HashSet<Class>( Arrays.asList(Corrosion.class)),
-				new HashSet<Class>( Arrays.asList(Ooze.class))),
+		ACIDIC ( new HashSet<Class>(List.of(Corrosion.class)),
+				new HashSet<Class>(List.of(Ooze.class))),
 		ELECTRIC ( new HashSet<Class>( Arrays.asList(WandOfLightning.class, Shocking.class, Potential.class,
 										Electricity.class, ShockingDart.class, Elemental.ShockElemental.class )),
 				new HashSet<Class>()),
 		LARGE,
 		IMMOVABLE ( new HashSet<Class>(),
-				new HashSet<Class>( Arrays.asList(Vertigo.class) )),
+				new HashSet<Class>(List.of(Vertigo.class))),
 		//A character that acts in an unchanging manner. immune to AI state debuffs or stuns/slows
 		STATIC( new HashSet<Class>(),
 				new HashSet<Class>( Arrays.asList(AllyBuff.class, Dread.class, Terror.class, Amok.class, Charm.class, Sleep.class,
 									Paralysis.class, Frost.class, Chill.class, Slow.class, Speed.class) ));
 
-		private HashSet<Class> resistances;
-		private HashSet<Class> immunities;
+		private final HashSet<Class> resistances;
+		private final HashSet<Class> immunities;
 		
 		Property(){
 			this(new HashSet<Class>(), new HashSet<Class>());

@@ -21,9 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.ui;
 
-import static network.NetworkManager.getLocalPlayerId;
-
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.SPDAction;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
@@ -53,7 +50,7 @@ public class AttackIndicator extends Tag {
 	private CharSprite sprite = null;
 	
 	private Mob lastTarget;
-	private ArrayList<Mob> candidates = new ArrayList<>();
+	private final ArrayList<Mob> candidates = new ArrayList<>();
 	
 	public AttackIndicator() {
 		super( DangerIndicator.COLOR );

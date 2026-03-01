@@ -21,10 +21,7 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.ui;
 
-import static network.NetworkManager.getLocalPlayerId;
-
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.Ratmogrify;
@@ -163,7 +160,7 @@ public class TalentsPane extends ScrollPane {
 
 	public static class TalentTierPane extends Component {
 
-		private int tier;
+		private final int tier;
 
 		public RenderedTextBlock title;
 		ArrayList<TalentButton> buttons;
@@ -211,14 +208,14 @@ public class TalentsPane extends ScrollPane {
 													break;
 												}
 											}
-										};
-										setupStars();
+										}
+                                        setupStars();
 										TalentTierPane.this.layout();
 									}
 								}
 							});
-						};
-					};
+						}
+                    };
 					add(random);
 				}
 			}

@@ -1,27 +1,7 @@
-/*
- * Pixel Dungeon
- * Copyright (C) 2012-2015 Oleg Dolya
- *
- * Shattered Pixel Dungeon
- * Copyright (C) 2014-2025 Evan Debenham
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>
- */
-
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -54,7 +34,7 @@ import com.watabou.noosa.ColorBlock;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Reflection;
 
-import network.Multiplayer;
+import network.handlers.window.UpgradeHandler;
 
 public class WndUpgrade extends Window {
 
@@ -67,15 +47,33 @@ public class WndUpgrade extends Window {
 	private static final int GAP	= 2;
 	private static final int ITEMSLOT_SIZE = 18;
 
-	private Item upgrader;
-	private boolean force;
+	private final Item upgrader;
+	private final boolean force;
+	private final Hero hero; // герой, совершающий действие
 
-	private RedButton btnUpgrade;
-	private RedButton btnCancel;
+	private final RedButton btnUpgrade;
+	private final RedButton btnCancel;
 
-	public WndUpgrade( Item upgrader, Item toUpgrade, boolean force){
+	// Добавляем метод для выполнения улучшения (без отправки команды)
+	private Item performUpgrade(Hero hero, Item upgrader, Item target, boolean force) {
+		ScrollOfUpgrade.upgrade(hero);
+		Item upgraded = target;
+		if (upgrader instanceof ScrollOfUpgrade){
+			((ScrollOfUpgrade) upgrader).readAnimation(hero);
+			upgraded = ((ScrollOfUpgrade) upgrader).upgradeItem(target, hero);
+			Sample.INSTANCE.play(Assets.Sounds.READ);
+		} else if (upgrader instanceof MagicalInfusion){
+			((MagicalInfusion) upgrader).useAnimation(hero);
+			upgraded = ((MagicalInfusion) upgrader).upgradeItem(target, hero);
+		}
+		if (!force) upgrader.detach(hero.belongings.backpack);
+		return upgraded;
+	}
+
+	public WndUpgrade(Item upgrader, Item toUpgrade, Hero hero, boolean force){
 
 		this.upgrader = upgrader;
+		this.hero = hero;
 		this.force = force;
 
 		IconTitle title = new IconTitle( new ItemSprite(upgrader), Messages.get(this, "title") );
@@ -84,7 +82,7 @@ public class WndUpgrade extends Window {
 		add(title);
 
 		int quantity = upgrader.quantity();
-		Item moreUpgradeItem = Multiplayer.localHero().belongings.getItem(upgrader.getClass());
+		Item moreUpgradeItem = hero.belongings.getItem(upgrader.getClass());
 
 		if (moreUpgradeItem != null && moreUpgradeItem != upgrader){
 			quantity += moreUpgradeItem.quantity();
@@ -113,12 +111,11 @@ public class WndUpgrade extends Window {
 				|| (toUpgrade instanceof Armor && ((Armor) toUpgrade).curseInfusionBonus)
 				|| (toUpgrade instanceof Wand && ((Wand) toUpgrade).curseInfusionBonus);
 
-		if (curseInfused){
-			if (toUpgrade.trueLevel()/6 < (toUpgrade.trueLevel()+1)/6){
+		if (curseInfused && toUpgrade.trueLevel()/6 < (toUpgrade.trueLevel()+1)/6){
 				//new level bracket for curse infusion bonus
 				levelTo++;
 			}
-		}
+
 
 		// *** Sprites, showing item at current level and with +1 ***
 
@@ -221,7 +218,7 @@ public class WndUpgrade extends Window {
 					bottom);
 		}
 
-		if (Multiplayer.localHero() != null && Multiplayer.localHero().heroClass == HeroClass.DUELIST
+		if (hero != null && hero.heroClass == HeroClass.DUELIST
 				&& toUpgrade instanceof MeleeWeapon && ((MeleeWeapon) toUpgrade).upgradeAbilityStat(levelFrom) != null){
 			bottom = fillFields(Messages.get(toUpgrade, "upgrade_ability_stat_name"),
 					((MeleeWeapon) toUpgrade).upgradeAbilityStat(levelFrom),
@@ -231,7 +228,7 @@ public class WndUpgrade extends Window {
 
 		//blocking (armor and shields)
 		if (toUpgrade instanceof Armor){
-			Armor.Augment aug = ((Armor) toUpgrade).augment;
+			// Armor.Augment aug = ((Armor) toUpgrade).augment;
 			bottom = fillFields(Messages.get(this, "blocking"),
 					((Armor) toUpgrade).DRMin(levelFrom) + "-" + (((Armor) toUpgrade).DRMax(levelFrom)),
 					((Armor) toUpgrade).DRMin(levelTo) + "-" +  (((Armor) toUpgrade).DRMax(levelTo)),
@@ -264,13 +261,14 @@ public class WndUpgrade extends Window {
 		//durability
 		if (toUpgrade instanceof MissileWeapon){
 			//missile weapons are always IDed currently, so we always use true level
-			int uses1, uses2;
+			int uses1;
+			int uses2;
 			if (toUpgrade.levelKnown) {
-				uses1 = (int) Math.ceil(100f / ((MissileWeapon) toUpgrade).durabilityPerUse(toUpgrade.level()));
-				uses2 = (int) Math.ceil(100f / ((MissileWeapon) toUpgrade).durabilityPerUse(toUpgrade.level()+1));
+				uses1 = (int) Math.ceil(100f / ((MissileWeapon) toUpgrade).durabilityPerUse(toUpgrade.level(), hero));
+				uses2 = (int) Math.ceil(100f / ((MissileWeapon) toUpgrade).durabilityPerUse(toUpgrade.level()+1, hero));
 			} else {
-				uses1 = (int) Math.ceil(100f / ((MissileWeapon) toUpgrade).durabilityPerUse(0));
-				uses2 = (int) Math.ceil(100f / ((MissileWeapon) toUpgrade).durabilityPerUse(1));
+				uses1 = (int) Math.ceil(100f / ((MissileWeapon) toUpgrade).durabilityPerUse(0, hero));
+				uses2 = (int) Math.ceil(100f / ((MissileWeapon) toUpgrade).durabilityPerUse(1, hero));
 			}
 			bottom = fillFields(Messages.get(this, "durability"),
 					uses1 >= 100 ? "∞" : Integer.toString(uses1),
@@ -322,28 +320,26 @@ public class WndUpgrade extends Window {
 		}
 
 		//Various ring stats (varies by ring)
-		if (toUpgrade instanceof Ring){
-			if (((Ring) toUpgrade).isKnown()) {
-				if (((Ring) toUpgrade).upgradeStat1(levelFrom) != null) {
-					bottom = fillFields(Messages.get(toUpgrade, "upgrade_stat_name_1"),
-							((Ring) toUpgrade).upgradeStat1(levelFrom),
-							((Ring) toUpgrade).upgradeStat1(levelTo),
-							bottom);
-				}
-				if (((Ring) toUpgrade).upgradeStat2(levelFrom) != null) {
-					bottom = fillFields(Messages.get(toUpgrade, "upgrade_stat_name_2"),
-							((Ring) toUpgrade).upgradeStat2(levelFrom),
-							((Ring) toUpgrade).upgradeStat2(levelTo),
-							bottom);
-				}
-				if (((Ring) toUpgrade).upgradeStat3(levelFrom) != null) {
-					bottom = fillFields(Messages.get(toUpgrade, "upgrade_stat_name_3"),
-							((Ring) toUpgrade).upgradeStat3(levelFrom),
-							((Ring) toUpgrade).upgradeStat3(levelTo),
-							bottom);
-				}
-			}
-		}
+        if (toUpgrade instanceof Ring && ((Ring) toUpgrade).isKnown()) {
+            if (((Ring) toUpgrade).upgradeStat1(levelFrom) != null) {
+                bottom = fillFields(Messages.get(toUpgrade, "upgrade_stat_name_1"),
+                        ((Ring) toUpgrade).upgradeStat1(levelFrom),
+                        ((Ring) toUpgrade).upgradeStat1(levelTo),
+                        bottom);
+            }
+            if (((Ring) toUpgrade).upgradeStat2(levelFrom) != null) {
+                bottom = fillFields(Messages.get(toUpgrade, "upgrade_stat_name_2"),
+                        ((Ring) toUpgrade).upgradeStat2(levelFrom),
+                        ((Ring) toUpgrade).upgradeStat2(levelTo),
+                        bottom);
+            }
+            if (((Ring) toUpgrade).upgradeStat3(levelFrom) != null) {
+                bottom = fillFields(Messages.get(toUpgrade, "upgrade_stat_name_3"),
+                        ((Ring) toUpgrade).upgradeStat3(levelFrom),
+                        ((Ring) toUpgrade).upgradeStat3(levelTo),
+                        bottom);
+            }
+        }
 
 		//visual separators for each column
 		ColorBlock sep = new ColorBlock(1, 1, 0xFF222222);
@@ -380,8 +376,8 @@ public class WndUpgrade extends Window {
 					lossChance = Math.min(100, 10 * (int) Math.pow(2, levelFrom - 6));
 				} else {
 					lossChance = Math.min(100, 10 * (int) Math.pow(2, levelFrom - 4));
-					if (Multiplayer.localHero() != null && Multiplayer.localHero().heroClass != HeroClass.WARRIOR && Multiplayer.localHero().hasTalent(Talent.RUNIC_TRANSFERENCE)){
-						if (levelFrom < 5+Multiplayer.localHero().pointsInTalent(Talent.RUNIC_TRANSFERENCE)){
+					if (hero != null && hero.heroClass != HeroClass.WARRIOR && hero.hasTalent(Talent.RUNIC_TRANSFERENCE)){
+						if (levelFrom < 5 + hero.pointsInTalent(Talent.RUNIC_TRANSFERENCE)){
 							lossChance = 0;
 						}
 					}
@@ -439,26 +435,16 @@ public class WndUpgrade extends Window {
 			@Override
 			protected void onClick() {
 				super.onClick();
-
-				ScrollOfUpgrade.upgrade(Multiplayer.localHero());
-
-				Item upgraded = toUpgrade;
-				if (upgrader instanceof ScrollOfUpgrade){
-					((ScrollOfUpgrade) upgrader).readAnimation();
-					upgraded = ((ScrollOfUpgrade) upgrader).upgradeItem(toUpgrade);
-					Sample.INSTANCE.play( Assets.Sounds.READ );
-				} else if (upgrader instanceof MagicalInfusion){
-					((MagicalInfusion) upgrader).useAnimation();
-					upgraded = ((MagicalInfusion) upgrader).upgradeItem(toUpgrade);
-				}
-
-				if (!force) upgrader.detach(Multiplayer.localHero().belongings.backpack);
-				Item moreUpgradeItem = Multiplayer.localHero().belongings.getItem(upgrader.getClass());
-
+				Item upgraded = performUpgrade(hero, upgrader, toUpgrade, force);
 				hide();
 
+				if (network.Multiplayer.isMultiplayer) {
+					UpgradeHandler.sendUpgrade(upgrader, toUpgrade, force);
+				}
+
+				Item moreUpgradeItem = hero.belongings.getItem(upgrader.getClass());
 				if (moreUpgradeItem != null && toUpgrade.isUpgradable()){
-					GameScene.show(new WndUpgrade(moreUpgradeItem, upgraded, false));
+					GameScene.show(new WndUpgrade(moreUpgradeItem, upgraded, hero, false));
 				}
 			}
 		};
@@ -471,9 +457,9 @@ public class WndUpgrade extends Window {
 				super.onClick();
 				hide();
 				if (upgrader instanceof ScrollOfUpgrade) {
-					((ScrollOfUpgrade) upgrader).reShowSelector(force);
+					((ScrollOfUpgrade) upgrader).reShowSelector(hero, force);
 				} else if (upgrader instanceof MagicalInfusion){
-					((MagicalInfusion)upgrader).reShowSelector();
+					((MagicalInfusion)upgrader).reShowSelector(hero);
 				}
 			}
 
@@ -481,7 +467,7 @@ public class WndUpgrade extends Window {
 		btnCancel.setRect(btnUpgrade.right()+1, bottom+2*GAP, WIDTH/2f, 16);
 		add(btnCancel);
 
-		btnUpgrade.enable(Multiplayer.localHero().ready);
+		btnUpgrade.enable(hero.ready);
 
 		btnUpgrade.icon(new ItemSprite(upgrader));
 		btnCancel.icon(Icons.EXIT.get());
@@ -495,7 +481,7 @@ public class WndUpgrade extends Window {
 	@Override
 	public synchronized void update() {
 		super.update();
-		if (!btnUpgrade.active && Multiplayer.localHero().ready){
+		if (!btnUpgrade.active && hero.ready){
 			btnUpgrade.enable(true);
 		}
 	}
@@ -504,9 +490,9 @@ public class WndUpgrade extends Window {
 	public void onBackPressed() {
 		super.onBackPressed();
 		if (upgrader instanceof ScrollOfUpgrade) {
-			((ScrollOfUpgrade) upgrader).reShowSelector(force);
+			((ScrollOfUpgrade) upgrader).reShowSelector(hero, force);
 		} else if (upgrader instanceof MagicalInfusion){
-			((MagicalInfusion)upgrader).reShowSelector();
+			((MagicalInfusion)upgrader).reShowSelector(hero);
 		}
 	}
 

@@ -21,7 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.effects.particles;
 
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap;
 import com.watabou.noosa.particles.Emitter;
 import com.watabou.noosa.particles.Emitter.Factory;
@@ -78,7 +77,7 @@ public class WindParticle extends PixelParticle {
 
 	public static class Wind extends Emitter {
 		
-		private int pos;
+		private final int pos;
 		
 		public Wind( int pos ) {
 			super();

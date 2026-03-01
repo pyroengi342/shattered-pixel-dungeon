@@ -49,7 +49,7 @@ import com.watabou.utils.Random;
 public class WandOfCorrosion extends Wand {
 
 	{
-		image = ItemSpriteSheet.WAND_CORROSION;
+		setImage(ItemSpriteSheet.WAND_CORROSION);
 
 		collisionProperties = Ballistica.STOP_TARGET | Ballistica.STOP_SOLID;
 	}

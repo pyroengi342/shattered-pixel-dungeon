@@ -41,7 +41,7 @@ import java.util.List;
 public class DelayedRockFall extends FlavourBuff {
 
 	private int[] rockPositions;
-	private ArrayList<Emitter> rockEmitters = new ArrayList<>();
+	private final ArrayList<Emitter> rockEmitters = new ArrayList<>();
 
 	public void setRockPositions( List<Integer> rockPositions ) {
 		this.rockPositions = new int[rockPositions.size()];

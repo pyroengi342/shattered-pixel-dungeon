@@ -40,7 +40,7 @@ import com.watabou.utils.Callback;
 public class Spear extends MeleeWeapon {
 
 	{
-		image = ItemSpriteSheet.SPEAR;
+		setImage(ItemSpriteSheet.SPEAR);
 		hitSound = Assets.Sounds.HIT_STAB;
 		hitSoundPitch = 0.9f;
 
@@ -117,7 +117,7 @@ public class Spear extends MeleeWeapon {
 						//knock them back along that ballistica
 						WandOfBlastWave.throwChar(enemy, trajectory, 1, true, false, hero, hero);
 					} else if (!enemy.isAlive()) {
-						wep.onAbilityKill(hero, enemy);
+						onAbilityKill(hero, enemy);
 					}
 					Sample.INSTANCE.play(Assets.Sounds.HIT_STRONG);
 				}

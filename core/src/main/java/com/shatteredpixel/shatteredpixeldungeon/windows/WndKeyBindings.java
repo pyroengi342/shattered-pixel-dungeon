@@ -53,8 +53,8 @@ public class WndKeyBindings extends Window {
 	private static final int COL3_CENTER = 7*WIDTH/10;
 	private static final int COL4_CENTER = 9*WIDTH/10;
 
-	private Component bindingsList;
-	private ArrayList<BindingItem> listItems = new ArrayList<>();
+	private final Component bindingsList;
+	private final ArrayList<BindingItem> listItems = new ArrayList<>();
 
 	private LinkedHashMap<Integer, GameAction> changedBindings;
 
@@ -62,7 +62,7 @@ public class WndKeyBindings extends Window {
 
 	public WndKeyBindings(Boolean controller) {
 
-		this.controller = controller;
+		WndKeyBindings.controller = controller;
 
 		changedBindings = controller ? KeyBindings.getAllControllerBindings() : KeyBindings.getAllBindings();
 
@@ -233,24 +233,24 @@ public class WndKeyBindings extends Window {
 		private static final int UNBOUND = 0x888888;
 		private static final int UNBOUND_CHANGED = 0x888822;
 
-		private GameAction gameAction;
+		private final GameAction gameAction;
 		private int key1;
 		private int key2;
 		private int key3;
 
-		private int origKey1;
-		private int origKey2;
-		private int origKey3;
+		private final int origKey1;
+		private final int origKey2;
+		private final int origKey3;
 
-		private RenderedTextBlock actionName;
-		private RenderedTextBlock key1Name;
-		private RenderedTextBlock key2Name;
-		private RenderedTextBlock key3Name;
+		private final RenderedTextBlock actionName;
+		private final RenderedTextBlock key1Name;
+		private final RenderedTextBlock key2Name;
+		private final RenderedTextBlock key3Name;
 
-		private ColorBlock sep1;
-		private ColorBlock sep2;
-		private ColorBlock sep3;
-		private ColorBlock sep4;
+		private final ColorBlock sep1;
+		private final ColorBlock sep2;
+		private final ColorBlock sep3;
+		private final ColorBlock sep4;
 
 		public BindingItem( GameAction action ){
 			gameAction = action;
@@ -380,18 +380,18 @@ public class WndKeyBindings extends Window {
 
 	private class WndChangeBinding extends Window {
 
-		private int curKeyCode;
-		private int otherBoundKey1;
-		private int otherBoundKey2;
+		private final int curKeyCode;
+		private final int otherBoundKey1;
+		private final int otherBoundKey2;
 		private int changedKeyCode = -1;
 
 		private BindingItem changedAction;
-		private RenderedTextBlock changedKey;
-		private RenderedTextBlock warnErr;
+		private final RenderedTextBlock changedKey;
+		private final RenderedTextBlock warnErr;
 
-		private RedButton btnUnbind;
-		private RedButton btnConfirm;
-		private RedButton btnCancel;
+		private final RedButton btnUnbind;
+		private final RedButton btnConfirm;
+		private final RedButton btnCancel;
 
 		public WndChangeBinding(GameAction action, BindingItem listItem, int keyAssigning, int curKeyCode, int otherBoundKey1, int otherBoundKey2 ){
 

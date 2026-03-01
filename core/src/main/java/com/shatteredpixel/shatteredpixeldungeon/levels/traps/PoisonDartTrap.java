@@ -112,7 +112,7 @@ public class PoisonDartTrap extends Trap {
 					if (local != null && local.fieldOfView != null &&
 							(local.fieldOfView[pos] || local.fieldOfView[target.pos])) {
 						((MissileSprite) ShatteredPixelDungeon.scene().recycle(MissileSprite.class)).
-								reset(pos, finalTarget.sprite, new PoisonDart(), new Callback() {
+								reset(null, pos, finalTarget.sprite, new PoisonDart(), new Callback() {
 									@Override
 									public void call() {
 										int dmg = Random.NormalIntRange(4, 8) - finalTarget.drRoll();

@@ -45,10 +45,9 @@ import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
-import network.Multiplayer;
-
 import java.util.ArrayList;
-import java.util.List;
+
+import network.Multiplayer;
 
 public class CrystalMimic extends Mimic {
 
@@ -170,7 +169,7 @@ public class CrystalMimic extends Mimic {
 			if (!item.stackable) {
 				hero.quickslot.convertToPlaceholder(item);
 			}
-			item.updateQuickslot();
+			Item.updateQuickslot();
 
 			if (item instanceof Honeypot){
 				items.add(((Honeypot)item).shatter(this, this.pos));

@@ -44,7 +44,7 @@ import java.util.ArrayList;
 public class ElixirOfAquaticRejuvenation extends Elixir {
 	
 	{
-		image = ItemSpriteSheet.ELIXIR_AQUA;
+		setImage(ItemSpriteSheet.ELIXIR_AQUA);
 	}
 	
 	@Override
@@ -162,9 +162,9 @@ public class ElixirOfAquaticRejuvenation extends Elixir {
 		}
 
 		@Override
-		public Item brew(ArrayList<Item> ingredients) {
+		public Item brew(ArrayList<Item> ingredients, Hero hero) {
 			Catalog.countUse(GooBlob.class);
-			return super.brew(ingredients);
+			return super.brew(ingredients, hero);
 		}
 	}
 	

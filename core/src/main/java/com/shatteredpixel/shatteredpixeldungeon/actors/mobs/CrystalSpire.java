@@ -57,6 +57,8 @@ import com.watabou.utils.Random;
 
 import java.util.ArrayList;
 
+import network.Multiplayer;
+
 public class CrystalSpire extends Mob {
 
 	{
@@ -82,7 +84,7 @@ public class CrystalSpire extends Mob {
 	private float abilityCooldown;
 	private static final int ABILITY_CD = 15;
 
-	private ArrayList<ArrayList<Integer>> targetedCells = new ArrayList<>();
+	private final ArrayList<ArrayList<Integer>> targetedCells = new ArrayList<>();
 
 	@Override
 	protected boolean act() {
@@ -98,7 +100,12 @@ public class CrystalSpire extends Mob {
 		sprite.hideLost();
 
 		//mob logic
-		enemy = Dungeon.hero;
+		enemy = chooseEnemy();
+		if (enemy == null) {
+			spend(TICK);
+			return true;
+		}
+		enemySeen = enemy.isAlive() && fieldOfView[enemy.pos];
 
 		//crystal can still track an invisible hero
 		enemySeen = enemy.isAlive() && fieldOfView[enemy.pos];
@@ -141,7 +148,7 @@ public class CrystalSpire extends Mob {
 					if (ch instanceof CrystalGuardian){
 						for (int j : PathFinder.NEIGHBOURS8){
 							if (!Dungeon.level.solid[i+j] && Actor.findChar(i+j) == null &&
-									Dungeon.level.trueDistance(i+j, Dungeon.hero.pos) > Dungeon.level.trueDistance(movePos, Dungeon.hero.pos)){
+									Dungeon.level.trueDistance(i+j, enemy.pos) > Dungeon.level.trueDistance(movePos, enemy.pos)){
 								movePos = i+j;
 							}
 						}
@@ -197,8 +204,8 @@ public class CrystalSpire extends Mob {
 
 				abilityCooldown += ABILITY_CD;
 
-				spend(GameMath.gate(TICK, (int)Math.ceil(Dungeon.hero.cooldown()), 3*TICK));
-				Dungeon.hero.interrupt();
+				spend(GameMath.gate(TICK, (int)Math.ceil(enemy.cooldown()), 3*TICK));
+				Multiplayer.interruptAll();
 			} else {
 				abilityCooldown -= 1;
 				spend(TICK);
@@ -215,7 +222,7 @@ public class CrystalSpire extends Mob {
 		targetedCells.clear();
 
 		ArrayList<Integer> aoeCells = new ArrayList<>();
-		aoeCells.add(Dungeon.hero.pos);
+		aoeCells.add(enemy.pos);
 		aoeCells.addAll(spreadDiamondAOE(aoeCells));
 		targetedCells.add(new ArrayList<>(aoeCells));
 
@@ -246,7 +253,7 @@ public class CrystalSpire extends Mob {
 		targetedCells.clear();
 
 		ArrayList<Integer> lineCells = new ArrayList<>();
-		Ballistica aim = new Ballistica(pos, Dungeon.hero.pos, Ballistica.WONT_STOP);
+		Ballistica aim = new Ballistica(pos, enemy.pos, Ballistica.WONT_STOP);
 		for (int i : aim.subPath(1, 7)){
 			if (!Dungeon.level.solid[i] || Dungeon.level.map[i] == Terrain.MINE_CRYSTAL){
 				lineCells.add(i);
@@ -259,8 +266,8 @@ public class CrystalSpire extends Mob {
 		if (HP < 2*HT/3f){
 			lineCells.addAll(spreadDiamondAOE(lineCells));
 			targetedCells.add(new ArrayList<>(lineCells));
-			if (HP < HT/3f) {;
-				lineCells.addAll(spreadDiamondAOE(lineCells));
+			if (HP < HT/3f) {
+                lineCells.addAll(spreadDiamondAOE(lineCells));
 				targetedCells.add(lineCells);
 			}
 		}

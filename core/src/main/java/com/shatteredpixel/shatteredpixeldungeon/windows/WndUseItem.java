@@ -21,9 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
-import static network.NetworkManager.getLocalPlayerId;
-
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.ui.InventoryPane;
 import com.shatteredpixel.shatteredpixeldungeon.ui.ItemJournalButton;
@@ -33,6 +30,7 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import java.util.ArrayList;
 
 import network.Multiplayer;
+import network.handlers.window.ItemUseHandler;
 
 public class WndUseItem extends WndInfoItem {
 
@@ -68,6 +66,11 @@ public class WndUseItem extends WndInfoItem {
 						Item.updateQuickslot();
 						if (action.equals(item.defaultAction()) && item.usesTargeting && owner == null) {
 							InventoryPane.useTargeting();
+						}
+						// Отправка в мультиплеере
+						if (Multiplayer.isMultiplayer) {
+							// Для действий без цели передаём null, для targeting потребуется дополнительная логика
+							ItemUseHandler.sendItemUse(item, action, null);
 						}
 					}
 				};

@@ -33,14 +33,13 @@ import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.Image;
-import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
-import network.AudioWrapper;
-
 import java.util.ArrayList;
+
+import network.AudioWrapper;
 
 public class GravityChaosTracker extends Buff {
 
@@ -93,7 +92,7 @@ public class GravityChaosTracker extends Buff {
 				Ballistica path = new Ballistica(ch.pos, ch.pos + PathFinder.NEIGHBOURS8[idx], Ballistica.MAGIC_BOLT);
 				if (!(path.dist == 1 && Actor.findChar(path.collisionPos) != null)){
 					if (ch instanceof Hero) ((Hero) ch).interrupt();
-					WandOfBlastWave.throwChar(ch, path, 3, false, false, this);
+					WandOfBlastWave.throwChar(ch, path, 3, false, false, this, (Hero) ch);
 					blocked.remove(ch);
 					blockedremoved = true;
 				}
@@ -128,7 +127,7 @@ public class GravityChaosTracker extends Buff {
 					blocked.add(ch);
 				} else {
 					if (ch instanceof Hero) ((Hero) ch).interrupt();
-					WandOfBlastWave.throwChar(ch, path, 3, false, false, this);
+					WandOfBlastWave.throwChar(ch, path, 3, false, false, this, (Hero) ch);
 				}
 			}
 		}

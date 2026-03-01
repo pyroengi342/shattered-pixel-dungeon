@@ -74,9 +74,10 @@ public class MineEntrance extends CaveRoom {
 			valid = false;
 			entrance = level.pointToCell(random(3));
 			for (int i : PathFinder.NEIGHBOURS9){
-				if (level.map[entrance+i] != Terrain.WALL){
-					valid = true;
-				}
+                if (level.map[entrance + i] != Terrain.WALL) {
+                    valid = true;
+                    break;
+                }
 			}
 			if (height() == 7 && width() == 7){
 				valid = true;

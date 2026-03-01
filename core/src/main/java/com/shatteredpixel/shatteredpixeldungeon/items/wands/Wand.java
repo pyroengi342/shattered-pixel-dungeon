@@ -2,7 +2,6 @@ package com.shatteredpixel.shatteredpixeldungeon.items.wands;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
@@ -10,7 +9,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Blindness;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Degrade;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.LostInventory;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicImmune;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Recharging;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Regeneration;
@@ -21,9 +19,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.mage.WildMagic;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.spells.DivineSense;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.spells.GuidingLight;
-import com.shatteredpixel.shatteredpixeldungeon.effects.Flare;
 import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
 import com.shatteredpixel.shatteredpixeldungeon.effects.MagicMissile;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -40,19 +36,17 @@ import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.ui.QuickSlotButton;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
-import com.watabou.utils.Bundle;
 import com.watabou.utils.Callback;
 import com.watabou.utils.PointF;
 import com.watabou.utils.Random;
 
-import network.Multiplayer;
-
 import java.util.ArrayList;
+
+import network.Multiplayer;
 
 public abstract class Wand extends Item {
 
@@ -169,7 +163,7 @@ public abstract class Wand extends Item {
 		if (super.collect( container )) {
 			if (container.owner != null) {
 				if (container instanceof MagicalHolster)
-					charge( container.owner, ((MagicalHolster) container).HOLSTER_SCALE_FACTOR );
+					charge( container.owner, MagicalHolster.HOLSTER_SCALE_FACTOR);
 				else
 					charge( container.owner );
 			}
@@ -211,12 +205,12 @@ public abstract class Wand extends Item {
         if (curUser.hasTalent(Talent.ARCANE_VISION)) {
             int dur = 5 + 5 * curUser.pointsInTalent(Talent.ARCANE_VISION);
             Buff.append(curUser, TalismanOfForesight.CharAwareness.class, dur).charID = target.id();
-    }
+    	}
 
         if (target != curUser &&
                 curUser.subClass == HeroSubClass.WARLOCK &&
                 Random.Float() > (Math.pow(0.92f, (wandLevel * chargesUsed) + 1) - 0.07f)) {
-            SoulMark.prolong(target, SoulMark.class, SoulMark.DURATION + wandLevel, this);
+            SoulMark.prolong(target, SoulMark.class, SoulMark.DURATION + wandLevel, curUser);
         }
 
         if (curUser.subClass == HeroSubClass.PRIEST && target.buff(GuidingLight.Illuminated.class) != null) {
@@ -536,7 +530,7 @@ public abstract class Wand extends Item {
 
     public static class PlaceHolder extends Wand {
 		{
-			image = ItemSpriteSheet.WAND_HOLDER;
+			setImage(ItemSpriteSheet.WAND_HOLDER);
 		}
 
 		@Override

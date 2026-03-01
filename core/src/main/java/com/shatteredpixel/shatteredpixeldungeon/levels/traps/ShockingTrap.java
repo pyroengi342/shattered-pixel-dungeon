@@ -32,6 +32,8 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.PathFinder;
 
+import network.AudioWrapper;
+
 public class ShockingTrap extends Trap {
 
 	{
@@ -41,11 +43,8 @@ public class ShockingTrap extends Trap {
 
 	@Override
 	public void activate() {
-		
-				Hero local = Multiplayer.localHero();
-		if (local != null && local.fieldOfView != null && local.fieldOfView[pos]) {
-			Sample.INSTANCE.play( Assets.Sounds.LIGHTNING );
-		}
+
+		AudioWrapper.play( Assets.Sounds.LIGHTNING, pos );
 		
 		for( int i : PathFinder.NEIGHBOURS9) {
 			if (!Dungeon.level.solid[pos + i]) {

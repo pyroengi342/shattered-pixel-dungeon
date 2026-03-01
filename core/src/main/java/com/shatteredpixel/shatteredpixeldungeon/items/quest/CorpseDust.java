@@ -46,7 +46,7 @@ import java.util.ArrayList;
 public class CorpseDust extends Item {
 	
 	{
-		image = ItemSpriteSheet.DUST;
+		setImage(ItemSpriteSheet.DUST);
 		
 		cursed = true;
 		cursedKnown = true;
@@ -73,7 +73,7 @@ public class CorpseDust extends Item {
 	public boolean doPickUp(Hero hero, int pos) {
 		if (super.doPickUp(hero, pos)){
 			GLog.n( Messages.get( this, "chill") );
-			Buff.affect(hero, DustGhostSpawner.class);
+			Buff.affect(hero, DustGhostSpawner.class, this);
 			return true;
 		}
 		return false;
@@ -106,29 +106,22 @@ public class CorpseDust extends Item {
 			}
 
 			spawnPower++;
-			int wraiths = 1; //we include the wraith we're trying to spawn
+			int wraiths = 1;
 			for (Mob mob : Dungeon.level.mobs){
 				if (mob instanceof DustWraith){
 					wraiths++;
 				}
 			}
 
-			//summoning a new wraith requires 1/4/9/16/25/36/49/49/... turns of energy
-			//note that logic for summoning wraiths kind of has an odd, undocumented balance history:
-			//v0.3.1-v0.6.5: wraith every 1/4/9/16/25/25... turns, basically guaranteed
-			//v0.7.0-v2.1.4: bugged, same rate as above but high (often >50%) chance that spawning fails. failed spawning resets delay!
-			//v2.2.0+: fixed bug, increased summon delay cap to counteract a bit, wraiths also now have to spawn at a slight distance
 			int powerNeeded = Math.min(49, wraiths*wraiths);
 			if (powerNeeded <= spawnPower){
 				ArrayList<Integer> candidates = new ArrayList<>();
-				//min distance scales based on hero's view distance
-				// wraiths must spawn at least 4/3/2/1 tiles away at view distance of 8(default)/7/4/1
-				int minDist = Math.round(curUser.viewDistance/3f);
+				int minDist = Math.round(target.viewDistance/3f);
 				for (int i = 0; i < Dungeon.level.length(); i++){
-					if (curUser.fieldOfView[i]
+					if (target.fieldOfView[i]
 							&& !Dungeon.level.solid[i]
 							&& Actor.findChar( i ) == null
-							&& Dungeon.level.distance(i, curUser.pos) > minDist){
+							&& Dungeon.level.distance(i, target.pos) > minDist){
 						candidates.add(i);
 					}
 				}
@@ -137,7 +130,6 @@ public class CorpseDust extends Item {
 					Sample.INSTANCE.play(Assets.Sounds.CURSED);
 					spawnPower -= powerNeeded;
 				} else {
-					//prevents excessive spawn power buildup
 					spawnPower = Math.min(spawnPower, 2*wraiths);
 				}
 			}
@@ -168,7 +160,7 @@ public class CorpseDust extends Item {
 			});
 		}
 
-		private static String SPAWNPOWER = "spawnpower";
+		private static final String SPAWNPOWER = "spawnpower";
 
 		@Override
 		public void storeInBundle(Bundle bundle) {

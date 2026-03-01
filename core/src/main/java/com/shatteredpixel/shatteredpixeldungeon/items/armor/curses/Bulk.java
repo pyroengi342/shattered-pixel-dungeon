@@ -23,6 +23,7 @@ package com.shatteredpixel.shatteredpixeldungeon.items.armor.curses;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShadowParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
@@ -30,7 +31,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 
 public class Bulk extends Armor.Glyph {
 	
-	private static ItemSprite.Glowing BLACK = new ItemSprite.Glowing( 0x000000 );
+	private static final ItemSprite.Glowing BLACK = new ItemSprite.Glowing( 0x000000 );
 	
 	@Override
 	public int proc(Armor armor, Char attacker, Char defender, int damage) {
@@ -47,7 +48,7 @@ public class Bulk extends Armor.Glyph {
 			if (owner.sprite != null){
 				owner.sprite.emitter().startDelayed(ShadowParticle.UP, 0.02f, 5, 0.05f);
 			}
-			return 1/3f * genericProcChanceMultiplier(owner);
+			return 1/3f * genericProcChanceMultiplier(owner, (Hero) owner);
 		}
 	}
 	

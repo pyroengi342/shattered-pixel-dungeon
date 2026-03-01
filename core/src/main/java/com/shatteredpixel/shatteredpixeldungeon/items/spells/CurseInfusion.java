@@ -23,6 +23,7 @@ package com.shatteredpixel.shatteredpixeldungeon.items.spells;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShadowParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem;
@@ -44,7 +45,7 @@ import java.util.ArrayList;
 public class CurseInfusion extends InventorySpell {
 	
 	{
-		image = ItemSpriteSheet.CURSE_INFUSE;
+		setImage(ItemSpriteSheet.CURSE_INFUSE);
 
 		talentChance = 1/(float)Recipe.OUT_QUANTITY;
 	}
@@ -55,7 +56,7 @@ public class CurseInfusion extends InventorySpell {
 	}
 
 	@Override
-	protected void onItemSelected(Item item) {
+	protected void onItemSelected(Item item, Hero hero) {
 		
 		CellEmitter.get(curUser.pos).burst(ShadowParticle.UP, 5);
 		Sample.INSTANCE.play(Assets.Sounds.CURSED);
@@ -121,9 +122,9 @@ public class CurseInfusion extends InventorySpell {
 		}
 
 		@Override
-		public Item brew(ArrayList<Item> ingredients) {
+		public Item brew(ArrayList<Item> ingredients, Hero hero) {
 			Catalog.countUse(MetalShard.class);
-			return super.brew(ingredients);
+			return super.brew(ingredients, hero);
 		}
 	}
 }

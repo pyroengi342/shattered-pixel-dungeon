@@ -22,7 +22,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.buffs;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
@@ -36,7 +35,6 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
 import com.watabou.noosa.BitmapText;
 import com.watabou.noosa.Image;
 import com.watabou.noosa.Visual;
-import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.GameMath;
 
@@ -223,7 +221,7 @@ public class Momentum extends Buff implements ActionIndicator.Action {
 	@Override
 	public Visual secondaryVisual() {
 		BitmapText txt = new BitmapText(PixelScene.pixelFont);
-		txt.text(Integer.toString((int)momentumStacks) );
+		txt.text(Integer.toString(momentumStacks) );
 		txt.hardlight(CharSprite.POSITIVE);
 		txt.measure();
 		return txt;

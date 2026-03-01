@@ -117,7 +117,6 @@ import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.watabou.utils.Bundle;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 
@@ -399,7 +398,7 @@ public enum Catalog {
 			}
 		}
 		if (bundle.contains(CATALOG_ITEMS)) {
-			for (Class<?> cls : Arrays.asList(bundle.getClassArray(CATALOG_ITEMS))){
+			for (Class<?> cls : bundle.getClassArray(CATALOG_ITEMS)){
 				for (Catalog cat : values()) {
 					if (cat.seen.containsKey(cls)) {
 						cat.seen.put(cls, true);

@@ -29,7 +29,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 public class Gloves extends MeleeWeapon {
 
 	{
-		image = ItemSpriteSheet.GLOVES;
+		setImage(ItemSpriteSheet.GLOVES);
 		hitSound = Assets.Sounds.HIT;
 		hitSoundPitch = 1.3f;
 

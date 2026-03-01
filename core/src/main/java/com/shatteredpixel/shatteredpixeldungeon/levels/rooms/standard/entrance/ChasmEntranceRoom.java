@@ -66,9 +66,10 @@ public class ChasmEntranceRoom extends ChasmRoom {
 			} else {
 				valid = false;
 				for (int i : PathFinder.NEIGHBOURS4){
-					if (level.map[entrance+i] != Terrain.CHASM){
-						valid = true;
-					}
+                    if (level.map[entrance + i] != Terrain.CHASM) {
+                        valid = true;
+                        break;
+                    }
 				}
 				valid = valid && level.findMob(entrance) == null;
 			}

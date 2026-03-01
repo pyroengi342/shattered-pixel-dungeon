@@ -31,7 +31,7 @@ import com.watabou.noosa.Image;
 public class Shuriken extends MissileWeapon {
 
 	{
-		image = ItemSpriteSheet.SHURIKEN;
+		setImage(ItemSpriteSheet.SHURIKEN);
 		hitSound = Assets.Sounds.HIT_STAB;
 		hitSoundPitch = 1.2f;
 		

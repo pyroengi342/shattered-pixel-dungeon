@@ -29,9 +29,13 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bleeding;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Blindness;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Cripple;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.watabou.noosa.audio.Sample;
+
+import network.AudioWrapper;
+import network.Multiplayer;
 
 public class FlashingTrap extends Trap {
 
@@ -61,11 +65,11 @@ public class FlashingTrap extends Trap {
 			}
 		}
 		
-				Hero local = Multiplayer.localHero();
+		Hero local = Multiplayer.localHero();
 		if (local != null && local.fieldOfView != null && local.fieldOfView[pos]) {
 			GameScene.flash(0x80FFFFFF);
-			Sample.INSTANCE.play( Assets.Sounds.BLAST );
 		}
+		AudioWrapper.play( Assets.Sounds.BLAST,pos );
 		
 	}
 

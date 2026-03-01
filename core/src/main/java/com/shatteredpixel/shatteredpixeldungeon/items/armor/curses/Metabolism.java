@@ -35,7 +35,7 @@ import com.watabou.utils.Random;
 
 public class Metabolism extends Glyph {
 
-	private static ItemSprite.Glowing BLACK = new ItemSprite.Glowing( 0x000000 );
+	private static final ItemSprite.Glowing BLACK = new ItemSprite.Glowing( 0x000000 );
 	
 	@Override
 	public int proc( Armor armor, Char attacker, Char defender, int damage) {
@@ -48,7 +48,7 @@ public class Metabolism extends Glyph {
 
 			if (healing > 0) {
 				
-				Hunger hunger = Buff.affect(defender, Hunger.class);
+				Hunger hunger = Buff.affect(defender, Hunger.class, this);
 				
 				if (!hunger.isStarving()) {
 					

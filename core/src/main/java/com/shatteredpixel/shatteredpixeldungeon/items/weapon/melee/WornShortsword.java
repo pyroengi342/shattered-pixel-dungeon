@@ -30,7 +30,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 public class WornShortsword extends MeleeWeapon {
 
 	{
-		image = ItemSpriteSheet.WORN_SHORTSWORD;
+		setImage(ItemSpriteSheet.WORN_SHORTSWORD);
 		hitSound = Assets.Sounds.HIT_SLASH;
 		hitSoundPitch = 1.1f;
 

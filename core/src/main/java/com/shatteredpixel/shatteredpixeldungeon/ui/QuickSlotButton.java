@@ -28,6 +28,7 @@ import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.Waterskin;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -44,31 +45,33 @@ import com.watabou.utils.PathFinder;
 import network.Multiplayer;
 
 public class QuickSlotButton extends Button {
-	
+
 	private static QuickSlotButton[] instance = new QuickSlotButton[QuickSlot.SIZE];
-	private int slotNum;
+	private final int slotNum;
 
 	private ItemSlot slot;
-	
+
 	private Image crossB;
 	private Image crossM;
-	
+
 	public static int targetingSlot = -1;
 	public static Char lastTarget = null;
 
 	// Вспомогательный метод для доступа к быстрым слотам локального героя
 	private static QuickSlot quickslot() {
-		return Multiplayer.localHero().quickslot;
+		Hero hero = Multiplayer.localHero();
+		if (hero == null) return null;
+		return hero.quickslot;
 	}
-	
+
 	public QuickSlotButton( int slotNum ) {
 		super();
 		this.slotNum = slotNum;
 		item( select( slotNum ) );
-		
+
 		instance[slotNum] = this;
 	}
-	
+
 	@Override
 	public void destroy() {
 		super.destroy();
@@ -80,14 +83,16 @@ public class QuickSlotButton extends Button {
 		lastTarget = null;
 		targetingSlot = -1;
 	}
-	
+
 	@Override
 	protected void createChildren() {
 		super.createChildren();
-		
+
 		slot = new ItemSlot() {
 			@Override
 			protected void onClick() {
+				Hero hero = Multiplayer.localHero();
+				if (hero == null || !hero.isAlive() || !hero.ready) return;
 				// Используем локального героя
 				if (!Multiplayer.localHero().isAlive() || !Multiplayer.localHero().ready){
 					return;
@@ -154,21 +159,21 @@ public class QuickSlotButton extends Button {
 		};
 		slot.showExtraInfo( false );
 		add( slot );
-		
+
 		crossB = Icons.TARGET.get();
 		crossB.visible = false;
 		add( crossB );
-		
+
 		crossM = new Image();
 		crossM.copy( crossB );
 	}
-	
+
 	@Override
 	protected void layout() {
 		super.layout();
-		
+
 		slot.fill( this );
-		
+
 		crossB.x = x + (width - crossB.width) / 2;
 		crossB.y = y + (height - crossB.height) / 2;
 		PixelScene.align(crossB);
@@ -219,7 +224,7 @@ public class QuickSlotButton extends Button {
 			return super.hoverText();
 		}
 	}
-	
+
 	@Override
 	protected void onClick() {
 		if (Multiplayer.localHero().ready && !GameScene.cancel()) {
@@ -243,7 +248,7 @@ public class QuickSlotButton extends Button {
 		return true;
 	}
 
-	private WndBag.ItemSelector itemSelector = new WndBag.ItemSelector() {
+	private final WndBag.ItemSelector itemSelector = new WndBag.ItemSelector() {
 
 		@Override
 		public String textPrompt() {
@@ -265,7 +270,9 @@ public class QuickSlotButton extends Button {
 
 	public static int lastVisible = instance.length;
 
-	public static void set(Item item){
+	public static void set(Item item) {
+		QuickSlot qs = quickslot();
+		if (qs == null) return;
 		for (int i = 0; i < lastVisible; i++) {
 			if (select(i) == null || select(i) == item) {
 				set(i, item);
@@ -275,12 +282,13 @@ public class QuickSlotButton extends Button {
 		set(0, item);
 	}
 
-	public static void set(int slotNum, Item item){
-		quickslot().setSlot( slotNum , item );
+	public static void set(int slotNum, Item item) {
+		QuickSlot qs = quickslot();
+		if (qs == null) return;
+		qs.setSlot(slotNum, item);
 		refresh();
 
-		//Remember if the player adds the waterskin as one of their first actions.
-		if (Statistics.duration + Actor.now() <= 10){
+		if (Statistics.duration + Actor.now() <= 10) {
 			boolean containsWaterskin = false;
 			for (int i = 0; i < instance.length; i++) {
 				if (select(i) instanceof Waterskin) containsWaterskin = true;
@@ -289,10 +297,12 @@ public class QuickSlotButton extends Button {
 		}
 	}
 
-	private static Item select(int slotNum){
-		return quickslot().getItem( slotNum );
+	private static Item select(int slotNum) {
+		QuickSlot qs = quickslot();
+		if (qs == null) return null;
+		return qs.getItem(slotNum);
 	}
-	
+
 	public void item( Item item ) {
 		slot.item( item );
 		enableSlot();
@@ -306,10 +316,16 @@ public class QuickSlotButton extends Button {
 			slot.enable( false );
 		}
 	}
-	
+
 	private void enableSlot() {
-		slot.enable( quickslot().isNonePlaceholder( slotNum )
-				&& (!Multiplayer.localHero().belongings.lostInventory() || quickslot().getItem(slotNum).keptThroughLostInventory()) );
+		QuickSlot qs = quickslot();
+		Hero hero = Multiplayer.localHero();
+		if (qs == null || hero == null) {
+			slot.enable(false);
+			return;
+		}
+		slot.enable(qs.isNonePlaceholder(slotNum)
+				&& (!hero.belongings.lostInventory() || qs.getItem(slotNum).keptThroughLostInventory()));
 	}
 
 	public void slotMargins( int left, int top, int right, int bottom){
@@ -321,7 +337,8 @@ public class QuickSlotButton extends Button {
 	}
 
 	private void useTargeting() {
-
+		Hero hero = Multiplayer.localHero();
+		if (hero == null) return;
 		if (lastTarget != null &&
 				Actor.chars().contains( lastTarget ) &&
 				lastTarget.isAlive() &&
@@ -349,6 +366,8 @@ public class QuickSlotButton extends Button {
 	}
 
 	public static int autoAim(Char target){
+		Hero hero = Multiplayer.localHero();
+		if (hero == null || target == null) return -1;
 		//will use generic projectile logic if no item is specified
 		return autoAim(target, new Item());
 	}
@@ -395,16 +414,16 @@ public class QuickSlotButton extends Button {
 			if (!containsWaterskin) SPDSettings.quickslotWaterskin(false);
 		}
 	}
-	
+
 	public static void target( Char target ) {
 		if (target != null && target.alignment != Char.Alignment.ALLY) {
 			lastTarget = target;
-			
+
 			TargetHealthIndicator.instance.target( target );
 			InventoryPane.lastTarget = target;
 		}
 	}
-	
+
 	public static void cancel() {
 		if (targetingSlot != -1) {
 			for (QuickSlotButton btn : instance) {

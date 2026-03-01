@@ -52,9 +52,10 @@ public class PillarsEntranceRoom extends PillarsRoom {
 
 			for (int i : PathFinder.NEIGHBOURS4){
 				if (i == -level.width()) continue;
-				if (level.map[entrance+i] == Terrain.WALL){
-					valid = false;
-				}
+                if (level.map[entrance + i] == Terrain.WALL) {
+                    valid = false;
+                    break;
+                }
 			}
 
 		} while (level.findMob(entrance) != null || level.map[entrance] == Terrain.WALL || !valid);

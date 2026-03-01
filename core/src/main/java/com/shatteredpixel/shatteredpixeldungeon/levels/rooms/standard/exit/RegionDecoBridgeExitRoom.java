@@ -60,9 +60,10 @@ public class RegionDecoBridgeExitRoom extends RegionDecoBridgeRoom {
 				valid = false;
 			} else {
 				for (int i : PathFinder.NEIGHBOURS8){
-					if (level.map[exit+i] == Terrain.REGION_DECO_ALT){
-						valid = false;
-					}
+                    if (level.map[exit + i] == Terrain.REGION_DECO_ALT) {
+                        valid = false;
+                        break;
+                    }
 				}
 			}
 

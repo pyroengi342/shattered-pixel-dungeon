@@ -35,7 +35,7 @@ import java.util.ArrayList;
 public class ElixirOfArcaneArmor extends Elixir {
 	
 	{
-		image = ItemSpriteSheet.ELIXIR_ARCANE;
+		setImage(ItemSpriteSheet.ELIXIR_ARCANE);
 	}
 	
 	@Override
@@ -56,9 +56,9 @@ public class ElixirOfArcaneArmor extends Elixir {
 		}
 
 		@Override
-		public Item brew(ArrayList<Item> ingredients) {
+		public Item brew(ArrayList<Item> ingredients, Hero hero) {
 			Catalog.countUse(GooBlob.class);
-			return super.brew(ingredients);
+			return super.brew(ingredients, hero);
 		}
 	}
 }

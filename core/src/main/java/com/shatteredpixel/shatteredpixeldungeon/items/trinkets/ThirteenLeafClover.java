@@ -11,7 +11,7 @@ import network.Multiplayer;
 public class ThirteenLeafClover extends Trinket {
 
     {
-        image = ItemSpriteSheet.CLOVER;
+        setImage(ItemSpriteSheet.CLOVER);
     }
 
     @Override
@@ -22,13 +22,13 @@ public class ThirteenLeafClover extends Trinket {
     @Override
     public String statsDesc() {
         Hero viewer = Multiplayer.localHero();
-        int level = isIdentified() ? buffedLvl() : 0;
+//        int level = isIdentified() ? buffedLvl() : 0;
         return Messages.get(this, "stats_desc",
-                Math.round(MAX_CHANCE * 100 * alterHeroDamageChance(level, viewer)),
-                Math.round((1f - MAX_CHANCE) * 100 * alterHeroDamageChance(level, viewer)));
+                Math.round(MAX_CHANCE * 100 * alterHeroDamageChance( viewer)),
+                Math.round((1f - MAX_CHANCE) * 100 * alterHeroDamageChance( viewer)));
     }
 
-    public static float alterHeroDamageChance(int level, Hero hero) {
+    public static float alterHeroDamageChance( Hero hero) {
         int lvl = trinketLevel(ThirteenLeafClover.class, hero);
         if (lvl == -1) return 0;
         return 0.25f + 0.25f * lvl;

@@ -31,7 +31,7 @@ import java.util.ArrayList;
 
 public class ScrollingListPane extends ScrollPane {
 
-	private ArrayList<Component> items = new ArrayList<>();
+	private final ArrayList<Component> items = new ArrayList<>();
 
 	private static final int ITEM_HEIGHT	= 18;
 

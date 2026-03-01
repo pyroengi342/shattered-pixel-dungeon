@@ -30,6 +30,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.ArmorAbility;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.LeafParticle;
+import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClassArmor;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
@@ -51,7 +52,7 @@ public class NaturesPower extends ArmorAbility {
 		hero.sprite.emitter().burst(LeafParticle.GENERAL, 10);
 
 		armor.charge -= chargeUse(hero);
-		armor.updateQuickslot();
+		Item.updateQuickslot();
 		Invisibility.dispel(hero);
 		hero.spendAndNext(Actor.TICK);
 

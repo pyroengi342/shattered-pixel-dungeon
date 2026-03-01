@@ -60,12 +60,11 @@ import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 import com.watabou.utils.Reflection;
 
-import network.Multiplayer;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
+
+import network.Multiplayer;
 
 public class YogDzewa extends Mob {
 
@@ -107,8 +106,8 @@ public class YogDzewa extends Mob {
 		return null;
 	}
 
-	private ArrayList<Class> fistSummons = new ArrayList<>();
-	private ArrayList<Class> challengeSummons = new ArrayList<>();
+	private final ArrayList<Class> fistSummons = new ArrayList<>();
+	private final ArrayList<Class> challengeSummons = new ArrayList<>();
 	{
 		//offset seed slightly to avoid output patterns
 		Random.pushGenerator(Dungeon.seedCurDepth()+1);
@@ -129,7 +128,7 @@ public class YogDzewa extends Mob {
 		Random.popGenerator();
 	}
 
-	private ArrayList<Class> regularSummons = new ArrayList<>();
+	private final ArrayList<Class> regularSummons = new ArrayList<>();
 	{
 		if (Dungeon.isChallenged(Challenges.STRONGER_BOSSES)){
 			for (int i = 0; i < 6; i++){
@@ -153,7 +152,7 @@ public class YogDzewa extends Mob {
 		Random.shuffle(regularSummons);
 	}
 
-	private ArrayList<Integer> targetedCells = new ArrayList<>();
+	private final ArrayList<Integer> targetedCells = new ArrayList<>();
 
 	@Override
 	public int attackSkill(Char target) {
@@ -467,12 +466,13 @@ public class YogDzewa extends Mob {
 
 		}
 
-		LockedFloor lock = Dungeon.hero.buff(LockedFloor.class);
-		if (lock != null && !isImmune(src.getClass()) && !isInvulnerable(src.getClass())){
-			if (Dungeon.isChallenged(Challenges.STRONGER_BOSSES))   lock.addTime(dmgTaken/3f);
-			else                                                    lock.addTime(dmgTaken/2f);
+		for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+			LockedFloor lock = player.hero.buff(LockedFloor.class);
+			if (lock != null && !isImmune(src.getClass()) && !isInvulnerable(src.getClass())){
+				if (Dungeon.isChallenged(Challenges.STRONGER_BOSSES))   lock.addTime(dmgTaken/3f);
+				else                                                    lock.addTime(dmgTaken/2f);
+			}
 		}
-
 	}
 
 	public void addFist(YogFist fist){

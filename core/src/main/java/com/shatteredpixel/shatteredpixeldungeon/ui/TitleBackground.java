@@ -49,7 +49,7 @@ public class TitleBackground extends Component {
 	private static ArrayList<Image> archs;
 
 	//Cluster far layer
-	private static TextureFilm CLUSTER_FILM = new TextureFilm(Assets.Splashes.Title.BACK_CLUSTERS, 450, 250);
+	private static final TextureFilm CLUSTER_FILM = new TextureFilm(Assets.Splashes.Title.BACK_CLUSTERS, 450, 250);
 	private static ArrayList<Image> clusters;
 	private static Group clusterLayer;
 
@@ -57,12 +57,12 @@ public class TitleBackground extends Component {
 	private static Group clustersFarLayer;
 
 	//Small far layer
-	private static TextureFilm SMALL_FILM = new TextureFilm(Assets.Splashes.Title.FRONT_SMALL, 112, 116);
+	private static final TextureFilm SMALL_FILM = new TextureFilm(Assets.Splashes.Title.FRONT_SMALL, 112, 116);
 	private static ArrayList<Image> smallFars;
 	private static Group smallFarLayer;
 
 	//Mixed Item middle layer 1
-	private static TextureFilm MID_FILM = new TextureFilm(Assets.Splashes.Title.MID_MIXED, 273, 242);
+	private static final TextureFilm MID_FILM = new TextureFilm(Assets.Splashes.Title.MID_MIXED, 273, 242);
 	private static ArrayList<Image> mids1;
 	private static Group mids1Layer;
 	//Mixed Item middle layer 2
@@ -470,7 +470,7 @@ public class TitleBackground extends Component {
 	private static final float[] INIT_MID_CHANCES = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
 	private static float[] mid_chances = INIT_MID_CHANCES.clone();
 
-	private static ArrayList<Integer> lastMids = new ArrayList<>();
+	private static final ArrayList<Integer> lastMids = new ArrayList<>();
 
 	public RectF getMidFrame(){
 
@@ -606,7 +606,7 @@ public class TitleBackground extends Component {
 	private static final float[] INIT_SMALL_CHANCES = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
 	private static float[] small_chances = INIT_SMALL_CHANCES.clone();
 
-	private static ArrayList<Integer> lastSmalls = new ArrayList<>();
+	private static final ArrayList<Integer> lastSmalls = new ArrayList<>();
 
 	public RectF getSmallFrame(){
 

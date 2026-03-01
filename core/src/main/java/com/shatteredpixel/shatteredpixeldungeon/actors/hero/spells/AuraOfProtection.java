@@ -21,10 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.spells;
 
-import static network.NetworkManager.getLocalPlayerId;
-
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FlavourBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
@@ -36,8 +34,6 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.noosa.particles.Emitter;
-
-import network.Multiplayer;
 
 public class AuraOfProtection extends ClericSpell {
 
@@ -67,22 +63,21 @@ public class AuraOfProtection extends ClericSpell {
 
 	@Override
 	public void onCast(HolyTome tome, Hero hero) {
-
-		Buff.affect(hero,AuraBuff.class, AuraBuff.DURATION);
-
+		AuraBuff buff = Buff.affect(hero, AuraBuff.class, AuraBuff.DURATION);
+		buff.setOwner(hero);   // <-- добавить эту строку
 		Sample.INSTANCE.play(Assets.Sounds.READ);
-
-		hero.spend( 1f );
+		hero.spend(1f);
 		hero.busy();
 		hero.sprite.operate(hero.pos);
-
 		onSpellCast(tome, hero);
-
 	}
 
 	public static class AuraBuff extends FlavourBuff {
 
 		public static float DURATION = 20f;
+		private int ownerID;
+		public void setOwner(Hero owner) { this.ownerID = owner.id(); }
+		public Hero getOwner() { return (Hero) Actor.findById(ownerID); }
 
 		private Emitter particles;
 

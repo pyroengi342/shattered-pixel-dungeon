@@ -21,8 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.mage;
 
-import static network.NetworkManager.getLocalPlayerId;
-
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Challenges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
@@ -54,6 +52,7 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.MagicMissile;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.effects.SpellSprite;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShadowParticle;
+import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClassArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfMagicMapping;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
@@ -272,7 +271,7 @@ public class ElementalBlast extends ArmorAbility {
 
 							//### Deal damage ###
 							Char mob = Actor.findChar(cell);
-							int damage = Math.round(Hero.heroDamageIntRange(15, 25)
+							int damage = Math.round(Hero.heroDamageIntRange(15, 25, hero)
 									* effectMulti
 									* damageFactors.get(finalWandCls));
 
@@ -292,7 +291,7 @@ public class ElementalBlast extends ArmorAbility {
 								//*** Wand of Fireblast ***
 								} else if (finalWandCls == WandOfFireblast.class){
 									if (mob.isAlive() && mob.alignment != Char.Alignment.ALLY) {
-										Buff.affect( mob, Burning.class , this).reignite( mob , this);
+										Buff.affect( mob, Burning.class , this).reignite( mob);
 									}
 
 								//*** Wand of Corrosion ***
@@ -313,7 +312,7 @@ public class ElementalBlast extends ArmorAbility {
 												knockback,
 												true,
 												true,
-												ElementalBlast.this);
+												ElementalBlast.this, hero);
 									}
 
 								//*** Wand of Frost ***
@@ -343,7 +342,7 @@ public class ElementalBlast extends ArmorAbility {
 										int shielding = (mob.HP + healing) - mob.HT;
 										if (shielding > 0){
 											healing -= shielding;
-											Buff.affect(mob, Barrier.class).setShield(shielding);
+											Buff.affect(mob, Barrier.class, this).setShield(shielding);
 										} else {
 											shielding = 0;
 										}
@@ -364,7 +363,7 @@ public class ElementalBlast extends ArmorAbility {
 											charm.ignoreHeroAllies = true;
 											mob.sprite.centerEmitter().start(Speck.factory(Speck.HEART), 0.2f, 3);
 										} else {
-											damage = Math.round(Hero.heroDamageIntRange(15, 25) * effectMulti);
+											damage = Math.round(Hero.heroDamageIntRange(15, 25, hero) * effectMulti);
 											mob.damage(damage, Reflection.newInstance(finalWandCls));
 											mob.sprite.emitter().start(ShadowParticle.UP, 0.05f, 10);
 										}
@@ -425,7 +424,7 @@ public class ElementalBlast extends ArmorAbility {
 						if (charsHit > 0 && hero.hasTalent(Talent.REACTIVE_BARRIER)){
 							int shielding = Math.round(charsHit*2.5f*hero.pointsInTalent(Talent.REACTIVE_BARRIER));
 							hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(shielding), FloatingText.SHIELDING);
-							Buff.affect(hero, Barrier.class).setShield(shielding);
+							Buff.affect(hero, Barrier.class, this).setShield(shielding);
 						}
 
 						hero.spendAndNext(Actor.TICK);
@@ -438,7 +437,7 @@ public class ElementalBlast extends ArmorAbility {
 		hero.busy();
 
 		armor.charge -= chargeUse(hero);
-		armor.updateQuickslot();
+		Item.updateQuickslot();
 
 		Sample.INSTANCE.play( Assets.Sounds.CHARGEUP );
 

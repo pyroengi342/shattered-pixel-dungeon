@@ -48,7 +48,7 @@ import java.util.ArrayList;
 public class FlashBangBomb extends Bomb {
 	
 	{
-		image = ItemSpriteSheet.FLASHBANG;
+		setImage(ItemSpriteSheet.FLASHBANG);
 	}
 
 	@Override

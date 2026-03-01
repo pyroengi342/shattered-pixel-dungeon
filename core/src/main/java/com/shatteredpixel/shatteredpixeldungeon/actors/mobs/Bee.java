@@ -27,7 +27,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AllyBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Amok;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.stones.StoneOfAggression;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.BeeSprite;
@@ -60,27 +59,27 @@ public class Bee extends Mob {
 	//-1 for no owner
 	private int potHolder;
 	
-	private static final String LEVEL	    = "level";
-	private static final String POTPOS	    = "potpos";
-	private static final String POTHOLDER	= "potholder";
-	private static final String ALIGMNENT   = "alignment";
+	private static final String LEVEL_STR = "level";
+	private static final String POTPOS_STR = "potpos";
+	private static final String POTHOLDER_STR = "potholder";
+	private static final String ALIGNMENT = "alignment";
 	
 	@Override
 	public void storeInBundle( Bundle bundle ) {
 		super.storeInBundle( bundle );
-		bundle.put( LEVEL, level );
-		bundle.put( POTPOS, potPos );
-		bundle.put( POTHOLDER, potHolder );
-		bundle.put( ALIGMNENT, alignment);
+		bundle.put(LEVEL_STR, level );
+		bundle.put(POTPOS_STR, potPos );
+		bundle.put(POTHOLDER_STR, potHolder );
+		bundle.put(ALIGNMENT, alignment);
 	}
 	
 	@Override
 	public void restoreFromBundle( Bundle bundle ) {
 		super.restoreFromBundle( bundle );
-		spawn( bundle.getInt( LEVEL ) );
-		potPos = bundle.getInt( POTPOS );
-		potHolder = bundle.getInt( POTHOLDER );
-		if (bundle.contains(ALIGMNENT)) alignment = bundle.getEnum( ALIGMNENT, Alignment.class);
+		spawn( bundle.getInt(LEVEL_STR) );
+		potPos = bundle.getInt(POTPOS_STR);
+		potHolder = bundle.getInt(POTHOLDER_STR);
+		if (bundle.contains(ALIGNMENT)) alignment = bundle.getEnum(ALIGNMENT, Alignment.class);
 	}
 
 	@Override
@@ -183,7 +182,7 @@ public class Bee extends Mob {
 				//target closest potential enemy near the pot
 				Char closest = null;
 				for (Mob mob : Dungeon.level.mobs) {
-					if (!(mob == this)
+					if (mob != this
 							&& Dungeon.level.distance(mob.pos, potPos) <= 3
 							&& mob.alignment != Alignment.NEUTRAL
 							&& !mob.isInvulnerable(getClass())

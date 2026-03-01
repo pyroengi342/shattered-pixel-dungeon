@@ -37,7 +37,7 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 public class PhaseShift extends TargetedSpell {
 	
 	{
-		image = ItemSpriteSheet.PHASE_SHIFT;
+		setImage(ItemSpriteSheet.PHASE_SHIFT);
 
 		usesTargeting = true;
 
@@ -63,7 +63,7 @@ public class PhaseShift extends TargetedSpell {
 		} else {
 			GLog.w( Messages.get(this, "no_target") );
 		}
-		onSpellused();
+		onSpellUsed(curUser);
 	}
 	
 	@Override

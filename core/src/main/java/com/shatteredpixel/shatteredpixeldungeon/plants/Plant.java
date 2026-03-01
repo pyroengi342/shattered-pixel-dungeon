@@ -21,8 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.plants;
 
-import static network.NetworkManager.getLocalPlayerId;
-
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Challenges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
@@ -243,7 +241,7 @@ public abstract class Plant implements Bundlable {
 		public static class PlaceHolder extends Seed {
 			
 			{
-				image = ItemSpriteSheet.SEED_HOLDER;
+				setImage(ItemSpriteSheet.SEED_HOLDER);
 			}
 			
 			@Override

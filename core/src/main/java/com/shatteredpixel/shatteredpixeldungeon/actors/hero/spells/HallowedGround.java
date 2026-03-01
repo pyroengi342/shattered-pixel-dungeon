@@ -21,8 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.spells;
 
-import static network.NetworkManager.getLocalPlayerId;
-
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
@@ -194,7 +192,7 @@ public class HallowedGround extends TargetedClericSpell {
             Hero owner = null;
             // Получаем героя-владельца по ID
             for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
-                if (player.id == getOwnerId())
+                if (player.hero.id() == getOwnerId())
                 {
                     owner = player.hero;
                 }

@@ -18,17 +18,16 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndBag;
-import com.watabou.noosa.audio.Sample;
+
+import java.util.ArrayList;
 
 import network.AudioWrapper;
 import network.Multiplayer;
 
-import java.util.ArrayList;
-
 public class LiquidMetal extends Item {
 
     {
-        image = ItemSpriteSheet.LIQUID_METAL;
+        setImage(ItemSpriteSheet.LIQUID_METAL);
         stackable = true;
         defaultAction = AC_APPLY;
         bones = true;
@@ -85,8 +84,8 @@ public class LiquidMetal extends Item {
 
     // Внутренний класс, реализующий ItemSelector с сохранённым героем
     private class LiquidMetalSelector extends WndBag.ItemSelector {
-        private Hero hero;
-        private LiquidMetal item;
+        private final Hero hero;
+        private final LiquidMetal item;
 
         LiquidMetalSelector(Hero hero, LiquidMetal item) {
             this.hero = hero;
@@ -121,7 +120,7 @@ public class LiquidMetal extends Item {
                 float percentDurabilityLost = 0.999f - (m.durabilityLeft() / 100f);
                 int toUse = (int) Math.ceil(maxToUse * percentDurabilityLost);
                 if (toUse == 0 ||
-                        Math.ceil(m.durabilityLeft() / m.durabilityPerUse()) >= Math.ceil(m.MAX_DURABILITY / m.durabilityPerUse())) {
+                        Math.ceil(m.durabilityLeft() / m.durabilityPerUse()) >= Math.ceil(MissileWeapon.MAX_DURABILITY / m.durabilityPerUse())) {
 
                     if (m.quantity() < m.defaultQuantity()) {
                         if (item.quantity() * durabilityPerMetal >= m.durabilityPerUse()) {

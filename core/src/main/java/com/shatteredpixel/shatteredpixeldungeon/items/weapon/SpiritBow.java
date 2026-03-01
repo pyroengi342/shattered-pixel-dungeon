@@ -59,7 +59,7 @@ public class SpiritBow extends Weapon {
 	public static final String AC_SHOOT		= "SHOOT";
 	
 	{
-		image = ItemSpriteSheet.SPIRIT_BOW;
+		setImage(ItemSpriteSheet.SPIRIT_BOW);
 		
 		defaultAction = AC_SHOOT;
 		usesTargeting = true;
@@ -93,7 +93,7 @@ public class SpiritBow extends Weapon {
 		}
 	}
 
-	private static Class[] harmfulPlants = new Class[]{
+	private static final Class[] harmfulPlants = new Class[]{
 			Blindweed.class, Firebloom.class, Icecap.class, Sorrowmoss.class,  Stormvine.class
 	};
 
@@ -214,7 +214,7 @@ public class SpiritBow extends Weapon {
 		if (owner instanceof Hero) {
 			int exStr = ((Hero)owner).STR() - STRReq();
 			if (exStr > 0) {
-				damage += Hero.heroDamageIntRange( 0, exStr );
+				damage += Hero.heroDamageIntRange( 0, exStr, (Hero) owner);
 			}
 		}
 
@@ -292,7 +292,7 @@ public class SpiritBow extends Weapon {
 	public class SpiritArrow extends MissileWeapon {
 		
 		{
-			image = ItemSpriteSheet.SPIRIT_ARROW;
+			setImage(ItemSpriteSheet.SPIRIT_ARROW);
 
 			hitSound = Assets.Sounds.HIT_ARROW;
 
@@ -475,7 +475,7 @@ public class SpiritBow extends Weapon {
 		}
 	}
 	
-	private CellSelector.Listener shooter = new CellSelector.Listener() {
+	private final CellSelector.Listener shooter = new CellSelector.Listener() {
 		@Override
 		public void onSelect( Integer target ) {
 			if (target != null) {

@@ -28,12 +28,13 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
-import com.watabou.noosa.audio.Sample;
+
+import network.AudioWrapper;
 
 public class PotionOfInvisibility extends Potion {
 
 	{
-		icon = ItemSpriteSheet.Icons.POTION_INVIS;
+		setIcon(ItemSpriteSheet.Icons.POTION_INVIS);
 	}
 
 	@Override
@@ -41,7 +42,7 @@ public class PotionOfInvisibility extends Potion {
 		identify();
 		Buff.prolong( hero, Invisibility.class, Invisibility.DURATION , this);
 		GLog.i( Messages.get(this, "invisible") );
-		Sample.INSTANCE.play( Assets.Sounds.MELD );
+		AudioWrapper.play( Assets.Sounds.MELD, hero.pos );
 	}
 	
 	@Override

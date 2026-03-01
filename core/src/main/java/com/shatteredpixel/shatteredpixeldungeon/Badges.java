@@ -21,8 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon;
 
-import static network.NetworkManager.getLocalPlayerId;
-
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AscensionChallenge;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
@@ -50,6 +48,7 @@ import com.watabou.utils.FileUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -301,7 +300,7 @@ public class Badges {
 		addReplacedBadges(badges);
 
 		int count = 0;
-		String names[] = new String[badges.size()];
+		String[] names = new String[badges.size()];
 		
 		for (Badge badge:badges) {
 			names[count++] = badge.name();
@@ -806,7 +805,7 @@ public class Badges {
 		}
 	}
 
-	private static LinkedHashMap<HeroClass, Badge> firstBossClassBadges = new LinkedHashMap<>();
+	private static final LinkedHashMap<HeroClass, Badge> firstBossClassBadges = new LinkedHashMap<>();
 	static {
 		firstBossClassBadges.put(HeroClass.WARRIOR, Badge.BOSS_SLAIN_1_WARRIOR);
 		firstBossClassBadges.put(HeroClass.MAGE, Badge.BOSS_SLAIN_1_MAGE);
@@ -816,7 +815,7 @@ public class Badges {
 		firstBossClassBadges.put(HeroClass.CLERIC, Badge.BOSS_SLAIN_1_CLERIC);
 	}
 
-	private static LinkedHashMap<HeroClass, Badge> victoryClassBadges = new LinkedHashMap<>();
+	private static final LinkedHashMap<HeroClass, Badge> victoryClassBadges = new LinkedHashMap<>();
 	static {
 		victoryClassBadges.put(HeroClass.WARRIOR, Badge.VICTORY_WARRIOR);
 		victoryClassBadges.put(HeroClass.MAGE, Badge.VICTORY_MAGE);
@@ -826,7 +825,7 @@ public class Badges {
 		victoryClassBadges.put(HeroClass.CLERIC, Badge.VICTORY_CLERIC);
 	}
 
-	private static LinkedHashMap<HeroSubClass, Badge> thirdBossSubclassBadges = new LinkedHashMap<>();
+	private static final LinkedHashMap<HeroSubClass, Badge> thirdBossSubclassBadges = new LinkedHashMap<>();
 	static {
 		thirdBossSubclassBadges.put(HeroSubClass.BERSERKER, Badge.BOSS_SLAIN_3_BERSERKER);
 		thirdBossSubclassBadges.put(HeroSubClass.GLADIATOR, Badge.BOSS_SLAIN_3_GLADIATOR);
@@ -1358,9 +1357,7 @@ public class Badges {
 	private static void addLower( Collection<Badge> list, Badge...badges ) {
 		for (int i=badges.length-1; i > 0; i--) {
 			if (list.contains( badges[i])) {
-				for (int j=0; j < i; j++) {
-					list.add( badges[j] );
-				}
+                list.addAll(Arrays.asList(badges).subList(0, i));
 				break;
 			}
 		}

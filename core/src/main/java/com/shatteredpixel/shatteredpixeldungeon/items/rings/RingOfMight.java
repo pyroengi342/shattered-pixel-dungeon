@@ -22,7 +22,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.rings;
 
 
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -32,7 +31,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 public class RingOfMight extends Ring {
 
 	{
-		icon = ItemSpriteSheet.Icons.RING_MIGHT;
+		setIcon(ItemSpriteSheet.Icons.RING_MIGHT);
 		buffClass = Might.class;
 	}
 

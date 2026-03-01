@@ -21,7 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.items.food;
 
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Hunger;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
@@ -34,7 +33,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 public class SupplyRation extends Food {
 
 	{
-		image = ItemSpriteSheet.SUPPLY_RATION;
+		setImage(ItemSpriteSheet.SUPPLY_RATION);
 		energy = 2*Hunger.HUNGRY/3f; //200 food value
 
 		bones = false;

@@ -35,6 +35,8 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.levels.traps.Trap;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 
+import network.Multiplayer;
+
 public class Blindweed extends Plant {
 	
 	{
@@ -67,7 +69,7 @@ public class Blindweed extends Plant {
 	
 	public static class Seed extends Plant.Seed {
 		{
-			image = ItemSpriteSheet.SEED_BLINDWEED;
+			setImage(ItemSpriteSheet.SEED_BLINDWEED);
 
 			plantClass = Blindweed.class;
 		}

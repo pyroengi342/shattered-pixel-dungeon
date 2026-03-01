@@ -1,24 +1,4 @@
-/*
- * Pixel Dungeon
- * Copyright (C) 2012-2015 Oleg Dolya
- *
- * Shattered Pixel Dungeon
- * Copyright (C) 2014-2025 Evan Debenham
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>
- */
-
+// ScrollOfLullaby.java
 package com.shatteredpixel.shatteredpixeldungeon.items.scrolls;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
@@ -31,48 +11,37 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
-import com.watabou.noosa.audio.Sample;
 
-import network.Multiplayer;
+import network.AudioWrapper;
 
 public class ScrollOfLullaby extends Scroll {
 
 	{
-		icon = ItemSpriteSheet.Icons.SCROLL_LULLABY;
+		setIcon(ItemSpriteSheet.Icons.SCROLL_LULLABY);
 	}
 
 	@Override
-	public void doRead() {
-		detach(curUser.belongings.backpack);
+	public void doRead(Hero hero) {
+		detach(hero.belongings.backpack);
 
-		Hero local = Multiplayer.localHero();
-
-		// Эффекты на герое и звук только для локального игрока, если это он читает
-		if (local == curUser) {
-			curUser.sprite.centerEmitter().start(Speck.factory(Speck.NOTE), 0.3f, 5);
-			Sample.INSTANCE.play(Assets.Sounds.LULLABY);
-		}
+		hero.sprite.centerEmitter().start(Speck.factory(Speck.NOTE), 0.3f, 5);
+		AudioWrapper.play(Assets.Sounds.LULLABY, hero.pos);
 
 		for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
-			if (curUser.fieldOfView[mob.pos]) {
+			if (hero.fieldOfView[mob.pos]) {
 				Buff.affect(mob, Drowsy.class, Drowsy.DURATION);
-				// Показываем частицы на мобе, если локальный игрок его видит
-				if (local != null && local.fieldOfView != null && local.fieldOfView[mob.pos]) {
-					mob.sprite.centerEmitter().start(Speck.factory(Speck.NOTE), 0.3f, 5);
-				}
+				mob.sprite.centerEmitter().start(Speck.factory(Speck.NOTE), 0.3f, 5);
 			}
 		}
 
-		Buff.affect(curUser, Drowsy.class, Drowsy.DURATION);
+		Buff.affect(hero, Drowsy.class, Drowsy.DURATION);
 
-		if (local == curUser) {
-			GLog.i(Messages.get(this, "sooth"));
-		}
+		GLog.i(Messages.get(this, "sooth"));
 
-		identify();
-		readAnimation();
+		identify(true);
+		readAnimation(hero);
 	}
-	
+
 	@Override
 	public int value() {
 		return isKnown() ? 40 * quantity : super.value();

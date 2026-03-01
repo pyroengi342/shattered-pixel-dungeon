@@ -42,16 +42,16 @@ import com.watabou.utils.Callback;
 public class TelekineticGrab extends TargetedSpell {
 
 	{
-		image = ItemSpriteSheet.TELE_GRAB;
+		setImage(ItemSpriteSheet.TELE_GRAB);
 
 		talentChance = 1/(float)Recipe.OUT_QUANTITY;
 	}
 
 	@Override
-	protected void fx(Ballistica bolt, Callback callback) {
-		MagicMissile.boltFromChar( curUser.sprite.parent,
+	protected void fx(Hero hero, Ballistica bolt, Callback callback) {
+		MagicMissile.boltFromChar( hero.sprite.parent,
 				MagicMissile.BEACON,
-				curUser.sprite,
+				hero.sprite,
 				bolt.collisionPos,
 				callback);
 		Sample.INSTANCE.play( Assets.Sounds.ZAP );
@@ -134,7 +134,7 @@ public class TelekineticGrab extends TargetedSpell {
 			hero.spend(Actor.TICK);
 		}
 
-		onSpellused();
+		onSpellUsed(curUser);
 	}
 
 	@Override

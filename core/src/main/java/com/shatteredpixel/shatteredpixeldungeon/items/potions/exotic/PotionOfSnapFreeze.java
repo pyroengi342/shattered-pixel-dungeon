@@ -29,25 +29,23 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Freezing;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Roots;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
-import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.PathFinder;
+
+import network.AudioWrapper;
 
 public class PotionOfSnapFreeze extends ExoticPotion {
 	
 	{
-		icon = ItemSpriteSheet.Icons.POTION_SNAPFREEZ;
+		setIcon(ItemSpriteSheet.Icons.POTION_SNAPFREEZ);
 	}
 	
 	@Override
 	public void shatter(int cell) {
 
 		splash( cell );
-				Hero local = Multiplayer.localHero();
-		if (local != null && local.fieldOfView != null && local.fieldOfView[cell]) {
 			identify();
 
-			Sample.INSTANCE.play( Assets.Sounds.SHATTER );
-		}
+			AudioWrapper.play(Assets.Sounds.SHATTER, cell);
 		
 		for (int offset : PathFinder.NEIGHBOURS9){
 			if (!Dungeon.level.solid[cell+offset]) {

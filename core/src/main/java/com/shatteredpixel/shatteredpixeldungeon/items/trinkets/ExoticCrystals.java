@@ -10,7 +10,7 @@ import network.Multiplayer;
 public class ExoticCrystals extends Trinket {
 
     {
-        image = ItemSpriteSheet.EXOTIC_CRYSTALS;
+        setImage(ItemSpriteSheet.EXOTIC_CRYSTALS);
     }
 
     @Override
@@ -23,11 +23,15 @@ public class ExoticCrystals extends Trinket {
         Hero viewer = Multiplayer.localHero();
         int level = isIdentified() ? buffedLvl() : 0;
         return Messages.get(this, "stats_desc",
-                Messages.decimalFormat("#.##", 100 * consumableExoticChance(level, viewer)));
+                Messages.decimalFormat("#.##", 100 * consumableExoticChance()));
     }
 
-    public static float consumableExoticChance(int level, Hero hero) {
-        int lvl = trinketLevel(ExoticCrystals.class, hero);
+    public static float consumableExoticChance() {
+        int lvl = -1;
+        for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+            lvl = trinketLevel(ExoticCrystals.class, player.hero);
+            if (lvl != -1) break;
+        }
         if (lvl == -1) return 0f;
         return 0.125f + 0.125f * lvl;
     }

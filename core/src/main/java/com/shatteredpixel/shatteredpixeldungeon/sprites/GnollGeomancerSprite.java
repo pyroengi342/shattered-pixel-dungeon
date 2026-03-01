@@ -51,7 +51,7 @@ public class GnollGeomancerSprite extends MobSprite {
 		if (ch instanceof GnollGeomancer && ((GnollGeomancer) ch).hasSapper()){
 			setupArmor();
 		}
-		if (ch != null && (ch.buff(GnollGeomancer.RockArmor.class) != null != isStatue)){
+		if (ch != null && (ch.buff(GnollGeomancer.RockArmor.class) == null == isStatue)){
 			isStatue = !isStatue;
 			updateAnims();
 		}
@@ -63,13 +63,13 @@ public class GnollGeomancerSprite extends MobSprite {
 
 		int ofs = isStatue ? 21 : 0;
 		idle = new Animation( isStatue ? 1 : 2, true );
-		idle.frames( frames, ofs+0, ofs+0, ofs+0, ofs+1, ofs+0, ofs+0, ofs+1, ofs+1 );
+		idle.frames( frames, ofs, ofs, ofs, ofs+1, ofs, ofs, ofs+1, ofs+1 );
 
 		run = new Animation( 12, true );
 		run.frames( frames, ofs+4, ofs+5, ofs+6, ofs+7 );
 
 		attack = new Animation( 12, false );
-		attack.frames( frames, ofs+2, ofs+3, ofs+0 );
+		attack.frames( frames, ofs+2, ofs+3, ofs);
 
 		zap = attack.clone();
 
@@ -138,7 +138,7 @@ public class GnollGeomancerSprite extends MobSprite {
 	@Override
 	public void idle() {
 		super.idle();
-		if (ch != null && ch.buff(GnollGeomancer.RockArmor.class) != null != isStatue){
+		if (ch != null && ch.buff(GnollGeomancer.RockArmor.class) == null == isStatue){
 			isStatue = !isStatue;
 			updateAnims();
 		}

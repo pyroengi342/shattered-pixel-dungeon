@@ -45,9 +45,9 @@ import com.watabou.utils.Bundle;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
-import network.Multiplayer;
-
 import java.util.ArrayList;
+
+import network.Multiplayer;
 
 public class Pylon extends Mob {
 
@@ -214,10 +214,13 @@ public class Pylon extends Mob {
 			dmg = 14 + (int)(Math.sqrt(8*(dmg - 14) + 1) - 1)/2;
 		}
 
-		LockedFloor lock = Dungeon.hero.buff(LockedFloor.class);
-		if (lock != null && !isImmune(src.getClass()) && !isInvulnerable(src.getClass())){
-			if (Dungeon.isChallenged(Challenges.STRONGER_BOSSES))   lock.addTime(dmg/2f);
-			else                                                    lock.addTime(dmg);
+		for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+			LockedFloor lock = player.hero.buff(LockedFloor.class);
+			if (lock != null && !isImmune(src.getClass()) && !isInvulnerable(src.getClass())){
+				if (Dungeon.isChallenged(Challenges.STRONGER_BOSSES))   lock.addTime(dmg/2f);
+				else                                                    lock.addTime(dmg);
+				break;
+			}
 		}
 		super.damage(dmg, src);
 	}

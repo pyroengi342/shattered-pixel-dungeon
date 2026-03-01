@@ -21,7 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.items.rings;
 
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
@@ -32,7 +31,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 public class RingOfEnergy extends Ring {
 
 	{
-		icon = ItemSpriteSheet.Icons.RING_ENERGY;
+		setIcon(ItemSpriteSheet.Icons.RING_ENERGY);
 		buffClass = Energy.class;
 	}
 

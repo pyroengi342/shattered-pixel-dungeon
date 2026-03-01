@@ -47,7 +47,7 @@ public abstract class CrystalSpireSprite extends MobSprite {
 		int c = texOffset();
 
 		idle = new Animation(1, true);
-		idle.frames( frames, 0+c );
+		idle.frames( frames, c);
 
 		run = idle.clone();
 		attack = idle.clone();
@@ -68,7 +68,7 @@ public abstract class CrystalSpireSprite extends MobSprite {
 		TextureFilm frames = new TextureFilm( texture, 24, 41 );
 
 		if (hpPercent > 0.9f){
-			idle.frames( frames, 0+texOffset() );
+			idle.frames( frames, texOffset());
 		} else if (hpPercent > 0.67f){
 			idle.frames( frames, 1+texOffset() );
 		} else if (hpPercent > 0.33f){

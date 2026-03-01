@@ -21,7 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
@@ -37,6 +36,9 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.RedButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.watabou.utils.Random;
+
+import network.Multiplayer;
+import network.handlers.window.SubclassHandler;
 
 public class WndChooseSubclass extends Window {
 	
@@ -70,6 +72,9 @@ public class WndChooseSubclass extends Window {
 							HeroSubClass cls = Random.oneOf(hero.heroClass.subClasses());
 							tome.choose(cls);
 							GameScene.show(new WndInfoSubclass(hero.heroClass, cls));
+							if (Multiplayer.isMultiplayer) {
+								SubclassHandler.send(cls);
+							}
 						}
 					}
 				});
@@ -106,6 +111,9 @@ public class WndChooseSubclass extends Window {
 								WndChooseSubclass.this.hide();
 								tome.choose( subCls );
 								Statistics.qualifiedForRandomVictoryBadge = false;
+								if (Multiplayer.isMultiplayer) {
+									SubclassHandler.send(subCls);
+								}
 							}
 						}
 					});

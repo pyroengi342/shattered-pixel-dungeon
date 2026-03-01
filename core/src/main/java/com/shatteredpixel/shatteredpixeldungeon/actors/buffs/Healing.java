@@ -77,8 +77,8 @@ public class Healing extends Buff {
 		int heal = (int)GameMath.gate(1,
 				Math.round(healingLeft * percentHealPerTick) + flatHealPerTick,
 				healingLeft);
-		if (healingLimited && heal > VialOfBlood.maxHealPerTurn()){
-			heal = VialOfBlood.maxHealPerTurn();
+		if (healingLimited && heal > VialOfBlood.maxHealPerTurn((Hero) target)){
+			heal = VialOfBlood.maxHealPerTurn((Hero) target);
 		}
 		return heal;
 	}
@@ -91,9 +91,9 @@ public class Healing extends Buff {
 	}
 
 	public void applyVialEffect(){
-		healingLimited = VialOfBlood.delayBurstHealing();
+		healingLimited = VialOfBlood.delayBurstHealing((Hero) target);
 		if (healingLimited){
-			healingLeft = Math.round(healingLeft*VialOfBlood.totalHealMultiplier());
+			healingLeft = Math.round(healingLeft*VialOfBlood.totalHealMultiplier((Hero) target));
 		}
 	}
 	

@@ -1,24 +1,4 @@
-/*
- * Pixel Dungeon
- * Copyright (C) 2012-2015 Oleg Dolya
- *
- * Shattered Pixel Dungeon
- * Copyright (C) 2014-2025 Evan Debenham
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>
- */
-
+// ScrollOfMagicMapping.java
 package com.shatteredpixel.shatteredpixeldungeon.items.scrolls;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
@@ -32,19 +12,19 @@ import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
-import com.watabou.noosa.audio.Sample;
 
+import network.AudioWrapper;
 import network.Multiplayer;
 
 public class ScrollOfMagicMapping extends Scroll {
 
 	{
-		icon = ItemSpriteSheet.Icons.SCROLL_MAGICMAP;
+		setIcon(ItemSpriteSheet.Icons.SCROLL_MAGICMAP);
 	}
 
 	@Override
-	public void doRead() {
-		detach(curUser.belongings.backpack);
+	public void doRead(Hero hero) {
+		detach(hero.belongings.backpack);
 		int length = Dungeon.level.length();
 		int[] map = Dungeon.level.map;
 		boolean[] mapped = Dungeon.level.mapped;
@@ -64,7 +44,6 @@ public class ScrollOfMagicMapping extends Scroll {
 					globalNoticed = true;
 					if (local != null && local.fieldOfView != null && local.fieldOfView[i]) {
 						GameScene.discoverTile(i, terr);
-						// Здесь можно добавить вызов для журнала открытий, например ScrollOfMagicMapping.discover(i)
 						localNoticed = true;
 					}
 				}
@@ -72,32 +51,30 @@ public class ScrollOfMagicMapping extends Scroll {
 		}
 		GameScene.updateFog();
 
-		if (local == curUser) {
+		if (local == hero) {
 			GLog.i(Messages.get(this, "layout"));
 		}
 
 		if (localNoticed) {
-			Sample.INSTANCE.play(Assets.Sounds.SECRET);
+			AudioWrapper.play(Assets.Sounds.SECRET, hero.pos); // звук секрета – локальный
 		}
 
-		if (local != null && (local == curUser || local.fieldOfView[curUser.pos])) {
-			SpellSprite.show(curUser, SpellSprite.MAP);
+		if (local != null && (local == hero || local.fieldOfView[hero.pos])) {
+			SpellSprite.show(hero, SpellSprite.MAP);
 		}
 
-		if (local != null && (local == curUser || local.fieldOfView[curUser.pos])) {
-			Sample.INSTANCE.play(Assets.Sounds.READ);
-		}
+		AudioWrapper.playGlobal(Assets.Sounds.READ);
 
-		identify();
-		readAnimation();
+		identify(true);
+		readAnimation(hero);
 	}
-	
+
 	@Override
 	public int value() {
 		return isKnown() ? 40 * quantity : super.value();
 	}
-	
-	public static void discover( int cell ) {
-		CellEmitter.get( cell ).start( Speck.factory( Speck.DISCOVER ), 0.1f, 4 );
+
+	public static void discover(int cell) {
+		CellEmitter.get(cell).start(Speck.factory(Speck.DISCOVER), 0.1f, 4);
 	}
 }

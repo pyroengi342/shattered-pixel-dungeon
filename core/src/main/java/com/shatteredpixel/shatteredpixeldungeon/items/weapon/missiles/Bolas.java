@@ -30,7 +30,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 public class Bolas extends MissileWeapon {
 	
 	{
-		image = ItemSpriteSheet.BOLAS;
+		setImage(ItemSpriteSheet.BOLAS);
 		hitSound = Assets.Sounds.HIT;
 		hitSoundPitch = 1f;
 		
@@ -41,7 +41,7 @@ public class Bolas extends MissileWeapon {
 	@Override
 	public int min(int lvl) {
 		return  2 * (tier-1) +                  //4 base, down from 6
-				0*lvl;                          //0 scaling, down from 1
+                0;                          //0 scaling, down from 1
 	}
 
 	@Override

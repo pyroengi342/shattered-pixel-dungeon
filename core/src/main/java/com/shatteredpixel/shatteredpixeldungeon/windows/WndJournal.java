@@ -21,8 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
-import static network.NetworkManager.getLocalPlayerId;
-
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
@@ -99,11 +97,11 @@ public class WndJournal extends WndTabbed {
 	
 	private static final int ITEM_HEIGHT	= 18;
 	
-	private GuideTab guideTab;
-	private AlchemyTab alchemyTab;
-	private NotesTab notesTab;
-	private CatalogTab catalogTab;
-	private BadgesTab badgesTab;
+	private final GuideTab guideTab;
+	private final AlchemyTab alchemyTab;
+	private final NotesTab notesTab;
+	private final CatalogTab catalogTab;
+	private final BadgesTab badgesTab;
 	
 	public static int last_index = 0;
 
@@ -311,7 +309,7 @@ public class WndJournal extends WndTabbed {
 		private RenderedTextBlock body;
 		
 		private ScrollPane list;
-		private ArrayList<QuickRecipe> recipes = new ArrayList<>();
+		private final ArrayList<QuickRecipe> recipes = new ArrayList<>();
 		
 		@Override
 		protected void createChildren() {
@@ -575,7 +573,7 @@ public class WndJournal extends WndTabbed {
 		private static final int NUM_BUTTONS = 4;
 
 		public static int currentItemIdx   = 0;
-		private static float[] scrollPositions = new float[NUM_BUTTONS];
+		private static final float[] scrollPositions = new float[NUM_BUTTONS];
 		
 		//sprite locations
 		private static final int EQUIP_IDX = 0;
@@ -750,8 +748,8 @@ public class WndJournal extends WndTabbed {
 	private static void addGridItems( ScrollingGridPane grid, Collection<Class<?>> classes) {
 		for (Class<?> itemClass : classes) {
 
-			boolean seen = Catalog.isSeen(itemClass);;
-			ItemSprite sprite = null;
+			boolean seen = Catalog.isSeen(itemClass);
+            ItemSprite sprite = null;
 			Image secondIcon = null;
 			String title = "";
 			String desc = "";
@@ -770,7 +768,7 @@ public class WndJournal extends WndTabbed {
 					}
 				}
 
-				sprite = new ItemSprite(item.image, seen ? item.glowing() : null);
+				sprite = new ItemSprite(item.getImage(), seen ? item.glowing() : null);
 				if (!seen)  {
 					if (item instanceof ExoticPotion){
 						sprite.frame(ItemSpriteSheet.POTION_CRIMSON);
@@ -809,9 +807,9 @@ public class WndJournal extends WndTabbed {
 						sprite.frame(frame);
 					}
 
-					if (item.icon != -1) {
+					if (item.getIcon() != -1) {
 						secondIcon = new Image(Assets.Sprites.ITEM_ICONS);
-						secondIcon.frame(ItemSpriteSheet.Icons.film.get(item.icon));
+						secondIcon.frame(ItemSpriteSheet.Icons.film.get(item.getIcon()));
 					}
 				}
 
@@ -1013,9 +1011,9 @@ public class WndJournal extends WndTabbed {
 			}
 			grid.addItem(gridItem);
 		}
-	};
+	}
 
-	private static void addGridDocuments( ScrollingGridPane grid, Document doc ){
+    private static void addGridDocuments( ScrollingGridPane grid, Document doc ){
 		for (String page : doc.pageNames()){
 
 			Image sprite = doc.pageSprite(page);

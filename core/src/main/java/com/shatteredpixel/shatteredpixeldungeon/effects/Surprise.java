@@ -21,8 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.effects;
 
-import static network.NetworkManager.getLocalPlayerId;
-
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap;

@@ -22,7 +22,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.cleric;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
@@ -133,21 +132,21 @@ public class Trinity extends ArmorAbility {
 								Sample.INSTANCE.play(Assets.Sounds.TELEPORT);
 								Weapon w = new WornShortsword();
 								if (hero.belongings.weapon() != null) {
-									w.image = hero.belongings.weapon().image;
+									w.setImage(hero.belongings.weapon().getImage());
 								}
 								w.enchant((Weapon.Enchantment) bodyForm);
 								Enchanting.show(hero, w);
 								hero.sprite.operate(hero.pos);
 								hero.spendAndNext(1f);
 								armor.charge -= trinityChargeUsePerEffect(bodyForm.getClass(), hero);
-								armor.updateQuickslot();
+								Item.updateQuickslot();
 								Invisibility.dispel(hero);
 								hide();
 							}
 						}
 					};
 					if (hero.belongings.weapon() != null) {
-						btnBody.icon(new ItemSprite(hero.belongings.weapon().image, ((Weapon.Enchantment) bodyForm).glowing()));
+						btnBody.icon(new ItemSprite(hero.belongings.weapon().getImage(), ((Weapon.Enchantment) bodyForm).glowing()));
 					} else {
 						btnBody.icon(new ItemSprite(ItemSpriteSheet.WORN_SHORTSWORD, ((Weapon.Enchantment) bodyForm).glowing()));
 					}
@@ -167,21 +166,21 @@ public class Trinity extends ArmorAbility {
 								Sample.INSTANCE.play(Assets.Sounds.TELEPORT);
 								Armor a = new ClothArmor();
 								if (hero.belongings.armor() != null) {
-									a.image = hero.belongings.armor().image;
+									a.setImage(hero.belongings.armor().getImage());
 								}
 								a.inscribe((Armor.Glyph) bodyForm);
 								Enchanting.show(hero, a);
 								hero.sprite.operate(hero.pos);
 								hero.spendAndNext(1f);
 								armor.charge -= trinityChargeUsePerEffect(bodyForm.getClass(), hero);
-								armor.updateQuickslot();
+								Item.updateQuickslot();
 								Invisibility.dispel(hero);
 								hide();
 							}
 						}
 					};
 					if (hero.belongings.armor() != null) {
-						btnBody.icon(new ItemSprite(hero.belongings.armor().image, ((Armor.Glyph) bodyForm).glowing()));
+						btnBody.icon(new ItemSprite(hero.belongings.armor().getImage(), ((Armor.Glyph) bodyForm).glowing()));
 					} else {
 						btnBody.icon(new ItemSprite(ItemSpriteSheet.ARMOR_CLOTH, ((Armor.Glyph) bodyForm).glowing()));
 					}
@@ -253,7 +252,7 @@ public class Trinity extends ArmorAbility {
 						Enchanting.show(hero, (Item) spiritForm);
 						hero.sprite.operate(hero.pos);
 						armor.charge -= trinityChargeUsePerEffect(spiritForm.getClass(), hero);
-						armor.updateQuickslot();
+						Item.updateQuickslot();
 						hide();
 					}
 				};
@@ -368,7 +367,7 @@ public class Trinity extends ArmorAbility {
 						}
 					};
 					if (hero.belongings.weapon() != null){
-						w.image = hero.belongings.weapon().image;
+						w.setImage(hero.belongings.weapon().getImage());
 					}
 					w.enchant((Weapon.Enchantment) Reflection.newInstance(cls));
 					w.cursedKnown = true;
@@ -382,7 +381,7 @@ public class Trinity extends ArmorAbility {
 						}
 					};
 					if (hero.belongings.armor() != null){
-						a.image = hero.belongings.armor().image;
+						a.setImage(hero.belongings.armor().getImage());
 					}
 					a.inscribe((Armor.Glyph) Reflection.newInstance(cls));
 					a.cursedKnown = true;

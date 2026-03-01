@@ -10,7 +10,7 @@ import network.Multiplayer;
 public class MimicTooth extends Trinket {
 
     {
-        image = ItemSpriteSheet.MIMIC_TOOTH;
+        setImage(ItemSpriteSheet.MIMIC_TOOTH);
     }
 
     @Override
@@ -21,25 +21,38 @@ public class MimicTooth extends Trinket {
     @Override
     public String statsDesc() {
         Hero viewer = Multiplayer.localHero();
-        int level = isIdentified() ? buffedLvl() : 0;
+//        int level = isIdentified() ? buffedLvl() : 0;
         return Messages.get(this, "stats_desc",
-                Messages.decimalFormat("#.##", mimicChanceMultiplier(level, viewer)),
-                Messages.decimalFormat("#.##", 100 * ebonyMimicChance(level, viewer)));
+                Messages.decimalFormat("#.##", mimicChanceMultiplier()),
+                Messages.decimalFormat("#.##", 100 * ebonyMimicChance()));
     }
 
     // Новые методы с героем
-    public static float mimicChanceMultiplier(int level, Hero hero) {
-        int lvl = trinketLevel(MimicTooth.class, hero);
+    public static float mimicChanceMultiplier() {
+        int lvl = -1;
+        for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+            lvl = trinketLevel(MimicTooth.class, player.hero);
+            if (lvl != -1) break;
+        }
         if (lvl == -1) return 1f;
         return 1.5f + 0.5f * lvl;
     }
 
-    public static boolean stealthyMimics(Hero hero) {
-        return trinketLevel(MimicTooth.class, hero) >= 0;
+    public static boolean stealthyMimics() {
+        int lvl = -1;
+        for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+            lvl = trinketLevel(MimicTooth.class, player.hero);
+            if (lvl != -1) break;
+        }
+        return lvl >= 0;
     }
 
-    public static float ebonyMimicChance(int level, Hero hero) {
-        int lvl = trinketLevel(MimicTooth.class, hero);
+    public static float ebonyMimicChance() {
+        int lvl = -1;
+        for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+            lvl = trinketLevel(MimicTooth.class, player.hero);
+            if (lvl != -1) break;
+        }
         if (lvl >= 0) return 0.125f + 0.125f * lvl;
         else return 0;
     }

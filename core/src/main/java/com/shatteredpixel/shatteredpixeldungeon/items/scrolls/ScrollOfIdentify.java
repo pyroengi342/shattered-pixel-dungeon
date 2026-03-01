@@ -1,27 +1,7 @@
-/*
- * Pixel Dungeon
- * Copyright (C) 2012-2015 Oleg Dolya
- *
- * Shattered Pixel Dungeon
- * Copyright (C) 2014-2025 Evan Debenham
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>
- */
-
 package com.shatteredpixel.shatteredpixeldungeon.items.scrolls;
 
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Identification;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
@@ -33,53 +13,72 @@ import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 
+import network.Multiplayer;
+
 public class ScrollOfIdentify extends InventoryScroll {
 
 	{
-		icon = ItemSpriteSheet.Icons.SCROLL_IDENTIFY;
-
+		setIcon(ItemSpriteSheet.Icons.SCROLL_IDENTIFY);
 		bones = true;
 	}
 
 	@Override
-	protected boolean usableOnItem(Item item) {
+	protected boolean usableOnItem(Item item, Hero hero) {
 		return !item.isIdentified();
 	}
 
 	@Override
-	protected void onItemSelected( Item item ) {
-		
-		curUser.sprite.parent.add( new Identification( curUser.sprite.center().offset( 0, -16 ) ) );
-
-		IDItem(item);
+	protected void onItemSelected(Item item, Hero hero) {
+		if (hero == Multiplayer.localHero()) {
+			hero.sprite.parent.add(new Identification(hero.sprite.center().offset(0, -16)));
+		}
+		IDItem(item, hero);
 	}
-
-	public static void IDItem( Item item ){
-		if (ShardOfOblivion.passiveIDDisabled()) {
-			if (item instanceof Weapon){
+	public static void IDItem(Item item) {
+		IDItem(item, null);
+	}
+	public static void IDItem(Item item, Hero hero) {
+		if (ShardOfOblivion.passiveIDDisabled(hero)) {
+			if (item instanceof Weapon) {
 				((Weapon) item).setIDReady();
-				GLog.p(Messages.get(ShardOfOblivion.class, "identify_ready"), item.name());
+				if (hero == Multiplayer.localHero()) {
+					GLog.p(Messages.get(ShardOfOblivion.class, "identify_ready"), item.name());
+				}
 				return;
-			} else if (item instanceof Armor){
+			} else if (item instanceof Armor) {
 				((Armor) item).setIDReady();
-				GLog.p(Messages.get(ShardOfOblivion.class, "identify_ready"), item.name());
+				if (hero == Multiplayer.localHero()) {
+					GLog.p(Messages.get(ShardOfOblivion.class, "identify_ready"), item.name());
+				}
 				return;
-			} else if (item instanceof Ring){
+			} else if (item instanceof Ring) {
 				((Ring) item).setIDReady();
-				GLog.p(Messages.get(ShardOfOblivion.class, "identify_ready"), item.name());
+				if (hero == Multiplayer.localHero()) {
+					GLog.p(Messages.get(ShardOfOblivion.class, "identify_ready"), item.name());
+				}
 				return;
-			} else if (item instanceof Wand){
+			} else if (item instanceof Wand) {
 				((Wand) item).setIDReady();
-				GLog.p(Messages.get(ShardOfOblivion.class, "identify_ready"), item.name());
+				if (hero == Multiplayer.localHero()) {
+					GLog.p(Messages.get(ShardOfOblivion.class, "identify_ready"), item.name());
+				}
 				return;
+			} else {
+				item.identify();
+				if (hero != null && hero == Multiplayer.localHero()) {
+					GLog.i(Messages.get(ScrollOfIdentify.class, "it_is", item.title()));
+					Badges.validateItemLevelAquired(item);
+				}
 			}
 		}
 
 		item.identify();
-		GLog.i(Messages.get(ScrollOfIdentify.class, "it_is", item.title()));
-		Badges.validateItemLevelAquired( item );
+		if (hero == Multiplayer.localHero()) {
+			GLog.i(Messages.get(ScrollOfIdentify.class, "it_is", item.title()));
+			Badges.validateItemLevelAquired(item);
+		}
 	}
-	
+
 	@Override
 	public int value() {
 		return isKnown() ? 30 * quantity : super.value();

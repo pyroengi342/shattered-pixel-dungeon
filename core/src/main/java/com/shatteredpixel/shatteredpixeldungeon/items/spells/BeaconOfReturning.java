@@ -53,7 +53,7 @@ import java.util.ArrayList;
 public class BeaconOfReturning extends Spell {
 	
 	{
-		image = ItemSpriteSheet.RETURN_BEACON;
+		setImage(ItemSpriteSheet.RETURN_BEACON);
 
 		talentChance = 1/(float)Recipe.OUT_QUANTITY;
 	}
@@ -123,7 +123,7 @@ public class BeaconOfReturning extends Spell {
 					hero.buff(BeaconTracker.class).returnDepth);
 		}
 
-		BeaconTracker tracker = Buff.affect(hero, BeaconTracker.class);
+		BeaconTracker tracker = Buff.affect(hero, BeaconTracker.class, this);
 		tracker.returnDepth = Dungeon.depth;
 		tracker.returnBranch = Dungeon.branch;
 		tracker.returnPos = hero.pos;

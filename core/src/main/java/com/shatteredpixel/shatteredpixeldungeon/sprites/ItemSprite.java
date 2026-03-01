@@ -271,7 +271,7 @@ public class ItemSprite extends MovieClip {
 		emitter = null;
 	}
 
-	private float[] shadowMatrix = new float[16];
+	private final float[] shadowMatrix = new float[16];
 
 	@Override
 	protected void updateMatrix() {

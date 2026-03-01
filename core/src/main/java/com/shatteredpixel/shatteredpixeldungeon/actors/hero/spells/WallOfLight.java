@@ -235,7 +235,7 @@ public String desc(Hero hero){
 
 			Char ch = Actor.findChar(pos);
 			if (ch != null && ch.alignment == Char.Alignment.ENEMY){
-				WandOfBlastWave.throwChar(ch, new Ballistica(pos, pos+knockbackDIR, Ballistica.PROJECTILE), 1, false, false, WallOfLight.INSTANCE);
+				WandOfBlastWave.throwChar(ch, new Ballistica(pos, pos+knockbackDIR, Ballistica.PROJECTILE), 1, false, false, WallOfLight.INSTANCE, null);
 				Buff.affect(ch, Paralysis.class, ch.cooldown());
 			}
 		}

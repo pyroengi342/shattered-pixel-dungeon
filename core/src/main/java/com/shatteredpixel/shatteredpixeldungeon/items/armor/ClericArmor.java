@@ -26,7 +26,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 public class ClericArmor extends ClassArmor {
 
 	{
-		image = ItemSpriteSheet.ARMOR_CLERIC;
+		setImage(ItemSpriteSheet.ARMOR_CLERIC);
 	}
 
 }

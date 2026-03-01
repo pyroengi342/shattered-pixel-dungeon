@@ -1,7 +1,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.stones;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
@@ -27,14 +26,14 @@ import com.shatteredpixel.shatteredpixeldungeon.windows.IconTitle;
 import com.watabou.noosa.Image;
 import com.watabou.utils.Reflection;
 
-import network.Multiplayer;
-
 import java.util.ArrayList;
+
+import network.Multiplayer;
 
 public class StoneOfIntuition extends InventoryStone {
 	
 	{
-		image = ItemSpriteSheet.STONE_INTUITION;
+		setImage(ItemSpriteSheet.STONE_INTUITION);
 	}
 
 	@Override
@@ -68,9 +67,9 @@ public class StoneOfIntuition extends InventoryStone {
 		return text;
 	}
 
-	public static class IntuitionUseTracker extends Buff {{ revivePersists = true; }};
-	
-	public class WndGuess extends Window {
+	public static class IntuitionUseTracker extends Buff {{ revivePersists = true; }}
+
+    public class WndGuess extends Window {
 		
 		private static final int WIDTH = 120;
 		private static final int BTN_SIZE = 20;
@@ -187,7 +186,7 @@ public class StoneOfIntuition extends InventoryStone {
 					}
 				};
 				Image im = new Image(Assets.Sprites.ITEM_ICONS);
-				im.frame(ItemSpriteSheet.Icons.film.get(Reflection.newInstance(i).icon));
+				im.frame(ItemSpriteSheet.Icons.film.get(Reflection.newInstance(i).getIcon()));
 				im.scale.set(2f);
 				btn.icon(im);
 				btn.setRect(left + placed*BTN_SIZE, top, BTN_SIZE, BTN_SIZE);

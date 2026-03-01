@@ -43,7 +43,7 @@ public abstract class Runestone extends Item {
 	//useful for stones which are only spawned for their effects
 	protected boolean anonymous = false;
 	public void anonymize(){
-		image = ItemSpriteSheet.STONE_HOLDER;
+		setImage(ItemSpriteSheet.STONE_HOLDER);
 		anonymous = true;
 	}
 
@@ -92,7 +92,7 @@ public abstract class Runestone extends Item {
 	public static class PlaceHolder extends Runestone {
 		
 		{
-			image = ItemSpriteSheet.STONE_HOLDER;
+			setImage(ItemSpriteSheet.STONE_HOLDER);
 		}
 		
 		@Override

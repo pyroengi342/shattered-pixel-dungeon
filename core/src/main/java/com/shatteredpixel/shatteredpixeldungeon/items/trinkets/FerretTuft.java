@@ -10,7 +10,7 @@ import network.Multiplayer;
 public class FerretTuft extends Trinket {
 
     {
-        image = ItemSpriteSheet.FERRET_TUFT;
+        setImage(ItemSpriteSheet.FERRET_TUFT);
     }
 
     @Override
@@ -21,13 +21,17 @@ public class FerretTuft extends Trinket {
     @Override
     public String statsDesc() {
         Hero viewer = Multiplayer.localHero();
-        int level = isIdentified() ? buffedLvl() : 0;
+//        int level = isIdentified() ? buffedLvl() : 0;
         return Messages.get(this, "stats_desc",
-                Messages.decimalFormat("#.##", 100 * (evasionMultiplier(level, viewer) - 1f)));
+                Messages.decimalFormat("#.##", 100 * (evasionMultiplier() - 1f)));
     }
 
-    public static float evasionMultiplier(int level, Hero hero) {
-        int lvl = trinketLevel(FerretTuft.class, hero);
+    public static float evasionMultiplier() {
+        int lvl = -1;
+        for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+            lvl = trinketLevel(FerretTuft.class, player.hero);
+            if (lvl != -1) break;
+        }
         if (lvl <= -1) return 1;
         return 1 + 0.125f * (lvl + 1);
     }

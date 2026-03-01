@@ -46,13 +46,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import network.Multiplayer;
+
 public class UnstableSpell extends Spell {
 
 	{
-		image = ItemSpriteSheet.UNSTABLE_SPELL;
+		setImage(ItemSpriteSheet.UNSTABLE_SPELL);
 	}
 	
-	private static HashMap<Class<? extends Scroll>, Float> scrollChances = new HashMap<>();
+	private static final HashMap<Class<? extends Scroll>, Float> scrollChances = new HashMap<>();
 	static{
 		scrollChances.put( ScrollOfIdentify.class,      3f );
 		scrollChances.put( ScrollOfRemoveCurse.class,   2f );
@@ -67,7 +69,7 @@ public class UnstableSpell extends Spell {
 		scrollChances.put( ScrollOfTransmutation.class, 1f );
 	}
 
-	private static HashSet<Class<? extends Scroll>> nonCombatScrolls = new HashSet<>();
+	private static final HashSet<Class<? extends Scroll>> nonCombatScrolls = new HashSet<>();
 	static {
 		nonCombatScrolls.add( ScrollOfIdentify.class );
 		nonCombatScrolls.add( ScrollOfRemoveCurse.class );
@@ -78,7 +80,7 @@ public class UnstableSpell extends Spell {
 		nonCombatScrolls.add( ScrollOfTransmutation.class );
 	}
 
-	private static HashSet<Class<? extends Scroll>> combatScrolls = new HashSet<>();
+	private static final HashSet<Class<? extends Scroll>> combatScrolls = new HashSet<>();
 	static {
 		combatScrolls.add( ScrollOfMirrorImage.class );
 		combatScrolls.add( ScrollOfRecharging.class );
@@ -88,33 +90,32 @@ public class UnstableSpell extends Spell {
 		combatScrolls.add( ScrollOfTeleportation.class );
 		combatScrolls.add( ScrollOfTerror.class );
 	}
-	
+
 	@Override
 	protected void onCast(Hero hero) {
-		
-		detach( curUser.belongings.backpack );
+		detach(hero.belongings.backpack);
 		updateQuickslot();
-		
+
 		Scroll s = Reflection.newInstance(Random.chances(scrollChances));
 
-		//reroll the scroll until it is relevant for the situation (whether there are visible enemies)
-		if (hero.visibleEnemies() == 0){
-			while (!nonCombatScrolls.contains(s.getClass())){
+		if (hero.visibleEnemies() == 0) {
+			while (!nonCombatScrolls.contains(s.getClass())) {
 				s = Reflection.newInstance(Random.chances(scrollChances));
 			}
 		} else {
-			while (!combatScrolls.contains(s.getClass())){
+			while (!combatScrolls.contains(s.getClass())) {
 				s = Reflection.newInstance(Random.chances(scrollChances));
 			}
 		}
 
 		s.anonymize();
 		s.talentChance = s.talentFactor = 1;
-		curItem = s;
-		s.doRead();
+		s.setCurrent(hero); // устанавливаем пользователя для свитка, если требуется
+		s.doRead(hero); // предполагаем, что doRead() использует curUser
 
-		Catalog.countUse(getClass());
-		//don't trigger talents, as they'll be triggered by the scroll
+		if (hero == Multiplayer.localHero()) {
+			Catalog.countUse(getClass());
+		}
 	}
 
 	//lower values, as it's cheaper to make
@@ -154,12 +155,10 @@ public class UnstableSpell extends Spell {
 		}
 
 		@Override
-		public Item brew(ArrayList<Item> ingredients) {
-
-			for (Item i : ingredients){
-				i.quantity(i.quantity()-1);
+		public Item brew(ArrayList<Item> ingredients, Hero hero) {
+			for (Item i : ingredients) {
+				i.quantity(i.quantity() - 1);
 			}
-
 			return sampleOutput(null);
 		}
 

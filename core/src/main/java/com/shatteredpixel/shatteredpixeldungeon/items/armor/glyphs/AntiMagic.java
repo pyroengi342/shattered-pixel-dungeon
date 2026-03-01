@@ -28,6 +28,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Hex;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicalSleep;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Vulnerable;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Weakness;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.duelist.ElementalStrike;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.mage.ElementalBlast;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.mage.WarpBeacon;
@@ -74,7 +75,7 @@ import java.util.HashSet;
 
 public class AntiMagic extends Armor.Glyph {
 
-	private static ItemSprite.Glowing TEAL = new ItemSprite.Glowing( 0x88EEFF );
+	private static final ItemSprite.Glowing TEAL = new ItemSprite.Glowing( 0x88EEFF );
 	
 	public static final HashSet<Class> RESISTS = new HashSet<>();
 	static {
@@ -144,8 +145,8 @@ public class AntiMagic extends Armor.Glyph {
 			return 0;
 		} else {
 			return Random.NormalIntRange(
-					Math.round(level * genericProcChanceMultiplier(owner)),
-					Math.round((3 + (level * 1.5f)) * genericProcChanceMultiplier(owner)));
+					Math.round(level * genericProcChanceMultiplier(owner, (Hero) owner)),
+					Math.round((3 + (level * 1.5f)) * genericProcChanceMultiplier(owner, (Hero) owner)));
 		}
 	}
 

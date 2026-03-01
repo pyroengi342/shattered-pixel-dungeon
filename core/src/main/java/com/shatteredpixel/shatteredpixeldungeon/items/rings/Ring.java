@@ -1,29 +1,6 @@
-/*
- * Pixel Dungeon
- * Copyright (C) 2012-2015 Oleg Dolya
- *
- * Shattered Pixel Dungeon
- * Copyright (C) 2014-2025 Evan Debenham
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>
- */
-
 package com.shatteredpixel.shatteredpixeldungeon.items.rings;
 
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
-import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.EnhancedRings;
@@ -36,19 +13,20 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.ItemStatusHandler;
 import com.shatteredpixel.shatteredpixeldungeon.items.KindofMisc;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ShardOfOblivion;
-import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Random;
 
+import network.Multiplayer;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 
 public class Ring extends KindofMisc {
-	
+
 	protected Buff buff;
 	protected Class<? extends RingBuff> buffClass;
 
@@ -68,14 +46,13 @@ public class Ring extends KindofMisc {
 			put("diamond",ItemSpriteSheet.RING_DIAMOND);
 		}
 	};
-	
+
 	private static ItemStatusHandler<Ring> handler;
-	
+
 	private String gem;
-	
-	//rings cannot be 'used' like other equipment, so they ID purely based on exp
+
 	private float levelsToID = 1;
-	
+
 	@SuppressWarnings("unchecked")
 	public static void initGems() {
 		handler = new ItemStatusHandler<>( (Class<? extends Ring>[])Generator.Category.RING.classes, gems );
@@ -84,7 +61,7 @@ public class Ring extends KindofMisc {
 	public static void clearGems(){
 		handler = null;
 	}
-	
+
 	public static void save( Bundle bundle ) {
 		handler.save( bundle );
 	}
@@ -92,38 +69,35 @@ public class Ring extends KindofMisc {
 	public static void saveSelectively( Bundle bundle, ArrayList<Item> items ) {
 		handler.saveSelectively( bundle, items );
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public static void restore( Bundle bundle ) {
 		handler = new ItemStatusHandler<>( (Class<? extends Ring>[])Generator.Category.RING.classes, gems, bundle );
 	}
-	
+
 	public Ring() {
 		super();
 		reset();
 	}
 
-	//anonymous rings are always IDed, do not affect ID status,
-	//and their sprite is replaced by a placeholder if they are not known,
-	//useful for items that appear in UIs, or which are only spawned for their effects
 	protected boolean anonymous = false;
 	public void anonymize(){
-		if (!isKnown()) image = ItemSpriteSheet.RING_HOLDER;
+		if (!isKnown()) setImage(ItemSpriteSheet.RING_HOLDER);
 		anonymous = true;
 	}
-	
+
 	public void reset() {
 		super.reset();
 		levelsToID = 1;
 		if (handler != null && handler.contains(this)){
-			image = handler.image(this);
+			setImage(handler.image(this));
 			gem = handler.label(this);
 		} else {
-			image = ItemSpriteSheet.RING_GARNET;
+			setImage(ItemSpriteSheet.RING_GARNET);
 			gem = "garnet";
 		}
 	}
-	
+
 	public void activate( Char ch ) {
 		if (buff != null){
 			buff.detach();
@@ -150,24 +124,18 @@ public class Ring extends KindofMisc {
 
 		}
 	}
-	
+
 	public boolean isKnown() {
 		return anonymous || (handler != null && handler.isKnown( this ));
 	}
-	
-	public void setKnown() {
-		if (!anonymous) {
-			if (!isKnown()) {
-				handler.know(this);
-			}
 
-			if (curUser.isAlive()) {
-				Catalog.setSeen(getClass());
-				Statistics.itemTypesDiscovered.add(getClass());
-			}
+	public void setKnown() {
+		if (!anonymous && !isKnown()) {
+			handler.know(this);
+			updateQuickslot();
 		}
 	}
-	
+
 	@Override
 	public String name() {
 		return isKnown() ? super.name() : Messages.get(Ring.class, gem);
@@ -177,37 +145,34 @@ public class Ring extends KindofMisc {
 	public String desc() {
 		return isKnown() ? super.desc() : Messages.get(this, "unknown_desc");
 	}
-	
+
 	@Override
 	public String info(){
 
-		//skip custom notes if anonymized and un-Ided
 		String desc;
 		if (anonymous && (handler == null || !handler.isKnown( this ))){
 			desc = desc();
-
 		} else {
 			desc = super.info();
 		}
 
-		if (cursed && isEquipped( curUser )) {
+		Hero viewer = Multiplayer.localHero();
+		// Проверка проклятия – для локального игрока, если он видит кольцо (в инвентаре или на себе)
+		if (cursed && viewer != null && isEquipped(viewer)) {
 			desc += "\n\n" + Messages.get(Ring.class, "cursed_worn");
-			
 		} else if (cursed && cursedKnown) {
 			desc += "\n\n" + Messages.get(Ring.class, "curse_known");
-			
-		} else if (!isIdentified() && cursedKnown){
+		} else if (!isIdentified() && cursedKnown) {
 			desc += "\n\n" + Messages.get(Ring.class, "not_cursed");
-			
 		}
-		
+
 		if (isKnown()) {
 			desc += "\n\n" + statsInfo();
 		}
-		
+
 		return desc;
 	}
-	
+
 	protected String statsInfo(){
 		return "";
 	}
@@ -223,25 +188,25 @@ public class Ring extends KindofMisc {
 	public String upgradeStat3(int level){
 		return null;
 	}
-	
+
 	@Override
 	public Item upgrade() {
 		super.upgrade();
-		
+
 		if (Random.Int(3) == 0) {
 			cursed = false;
 		}
-		
+
 		return this;
 	}
-	
+
 	@Override
 	public boolean isIdentified() {
 		return super.isIdentified() && isKnown();
 	}
-	
+
 	@Override
-	public Item identify( boolean byHero ) {
+	public Item identify(boolean byHero) {
 		setKnown();
 		levelsToID = 0;
 		return super.identify(byHero);
@@ -254,12 +219,9 @@ public class Ring extends KindofMisc {
 	public boolean readyToIdentify(){
 		return !isIdentified() && levelsToID <= 0;
 	}
-	
+
 	@Override
 	public Item random() {
-		//+0: 66.67% (2/3)
-		//+1: 26.67% (4/15)
-		//+2: 6.67%  (1/15)
 		int n = 0;
 		if (Random.Int(3) == 0) {
 			n++;
@@ -268,27 +230,26 @@ public class Ring extends KindofMisc {
 			}
 		}
 		level(n);
-		
-		//30% chance to be cursed
+
 		if (Random.Float() < 0.3f) {
 			cursed = true;
 		}
-		
+
 		return this;
 	}
-	
+
 	public static HashSet<Class<? extends Ring>> getKnown() {
 		return handler.known();
 	}
-	
+
 	public static HashSet<Class<? extends Ring>> getUnknown() {
 		return handler.unknown();
 	}
-	
+
 	public static boolean allKnown() {
 		return handler != null && handler.known().size() == Generator.Category.RING.classes.length;
 	}
-	
+
 	@Override
 	public int value() {
 		int price = 75;
@@ -307,7 +268,7 @@ public class Ring extends KindofMisc {
 		}
 		return price;
 	}
-	
+
 	protected RingBuff buff() {
 		return null;
 	}
@@ -325,22 +286,23 @@ public class Ring extends KindofMisc {
 		super.restoreFromBundle( bundle );
 		levelsToID = bundle.getFloat( LEVELS_TO_ID );
 	}
-	
+
 	public void onHeroGainExp( float levelPercent, Hero hero ){
 		if (isIdentified() || !isEquipped(hero)) return;
 		levelPercent *= Talent.itemIDSpeedFactor(hero, this);
-		//becomes IDed after 1 level
 		levelsToID -= levelPercent;
 		if (levelsToID <= 0){
 			if (ShardOfOblivion.passiveIDDisabled(hero)){
-				if (levelsToID > -1){
+				if (levelsToID > -1 && hero == Multiplayer.localHero()){
 					GLog.p(Messages.get(ShardOfOblivion.class, "identify_ready"), name());
 				}
 				setIDReady();
 			} else {
-				identify();
-				GLog.p(Messages.get(Ring.class, "identify"));
-				Badges.validateItemLevelAquired(this);
+				identify(true);
+				if (hero == Multiplayer.localHero()) {
+					GLog.p(Messages.get(Ring.class, "identify"));
+					Badges.validateItemLevelAquired(this);
+				}
 			}
 		}
 	}
@@ -348,7 +310,7 @@ public class Ring extends KindofMisc {
 	@Override
 	public int buffedLvl() {
 		int lvl = super.buffedLvl();
-		if (curUser.buff(EnhancedRings.class) != null){
+		if (curUser != null && isEquipped(curUser) && curUser.buff(EnhancedRings.class) != null){
 			lvl++;
 		}
 		return lvl;
@@ -385,7 +347,6 @@ public class Ring extends KindofMisc {
 		return bonus;
 	}
 
-	//just used for ring descriptions
 	public int soloBonus(){
 		if (cursed){
 			return Math.min( 0, Ring.this.level()-2 );
@@ -394,7 +355,6 @@ public class Ring extends KindofMisc {
 		}
 	}
 
-	//just used for ring descriptions
 	public int soloBuffedBonus(){
 		if (cursed){
 			return Math.min( 0, Ring.this.buffedLvl()-2 );
@@ -403,7 +363,6 @@ public class Ring extends KindofMisc {
 		}
 	}
 
-	//just used for ring descriptions
 	public int combinedBonus(Hero hero){
 		int bonus = 0;
 		if (hero.belongings.ring() != null && hero.belongings.ring().getClass() == getClass()){
@@ -415,7 +374,6 @@ public class Ring extends KindofMisc {
 		return bonus;
 	}
 
-	//just used for ring descriptions
 	public int combinedBuffedBonus(Hero hero){
 		int bonus = 0;
 		if (hero.belongings.ring() != null && hero.belongings.ring().getClass() == getClass()){
@@ -432,7 +390,6 @@ public class Ring extends KindofMisc {
 		@Override
 		public boolean attachTo( Char target ) {
 			if (super.attachTo( target )) {
-				//if we're loading in and the hero has partially spent a turn, delay for 1 turn
 				if (target instanceof Hero && curUser == null && cooldown() == 0 && target.cooldown() > 0) {
 					spend(TICK);
 				}
@@ -454,6 +411,5 @@ public class Ring extends KindofMisc {
 		public int buffedLvl(){
 			return Ring.this.soloBuffedBonus();
 		}
-
 	}
 }

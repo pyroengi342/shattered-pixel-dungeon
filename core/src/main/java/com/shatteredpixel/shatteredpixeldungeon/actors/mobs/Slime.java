@@ -24,6 +24,7 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.mobs;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AscensionChallenge;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
@@ -67,10 +68,10 @@ public class Slime extends Mob {
 	}
 
 	@Override
-	public float lootChance(){
+	public float lootChance(Hero hero){
 		//each drop makes future drops 1/4 as likely
 		// so loot chance looks like: 1/5, 1/20, 1/80, 1/320, etc.
-		return super.lootChance() * (float)Math.pow(1/4f, Dungeon.LimitedDrops.SLIME_WEP.count);
+		return super.lootChance(hero) * (float)Math.pow(1/4f, Dungeon.LimitedDrops.SLIME_WEP.count);
 	}
 	
 	@Override

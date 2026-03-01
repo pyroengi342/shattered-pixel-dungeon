@@ -330,11 +330,7 @@ public class Blacksmith extends NPC {
 					freePickaxe = node.getBoolean(FREE_PICKAXE);
 				} else {
 					//some for pre-3.1 saves, some from incorrect values from v3.1-BETA-1.0
-					if (favor >= 2500){
-						freePickaxe = true;
-					} else {
-						freePickaxe = false;
-					}
+                    freePickaxe = favor >= 2500;
 				}
 				reforges = node.getInt( REFORGES );
 				hardens = node.getInt( HARDENS );
@@ -417,7 +413,7 @@ public class Blacksmith extends NPC {
 			smithGlyph = Armor.Glyph.random();
 
 			float enchantRoll = Random.Float();
-			if (enchantRoll > 0.3f * ParchmentScrap.enchantChanceMultiplier()){
+			if (enchantRoll > 0.3f * ParchmentScrap.enchantChanceMultiplier(null)){
 				smithEnchant = null;
 				smithGlyph = null;
 			}

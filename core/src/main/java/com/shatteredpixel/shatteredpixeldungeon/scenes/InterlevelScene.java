@@ -45,9 +45,9 @@ import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.ui.GameLog;
 import com.shatteredpixel.shatteredpixeldungeon.ui.IconButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Icons;
-import com.shatteredpixel.shatteredpixeldungeon.ui.TitleBackground;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.shatteredpixel.shatteredpixeldungeon.ui.StyledButton;
+import com.shatteredpixel.shatteredpixeldungeon.ui.TitleBackground;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndError;
 import com.watabou.gltextures.TextureCache;
 import com.watabou.input.KeyEvent;
@@ -66,6 +66,8 @@ import com.watabou.utils.Signal;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+
+import network.Multiplayer;
 
 public class InterlevelScene extends PixelScene {
 	
@@ -120,22 +122,19 @@ public class InterlevelScene extends PixelScene {
 	@Override
 	public void create() {
 		super.create();
-		
+
 		String loadingAsset;
 		int loadingDepth;
 		fadeTime = NORM_FADE;
 
 		long seed = Dungeon.seed;
 		switch (mode){
-			default:
-				loadingDepth = Dungeon.depth;
-				break;
-			case CONTINUE:
+            case CONTINUE:
 				loadingDepth = GamesInProgress.check(GamesInProgress.curSlot).depth;
 				seed = GamesInProgress.check(GamesInProgress.curSlot).seed;
 				break;
 			case DESCEND:
-				if (Dungeon.hero == null){
+				if (Multiplayer.localHero() == null){
 					loadingDepth = 1;
 					fadeTime = SLOW_FADE;
 				} else {
@@ -160,7 +159,10 @@ public class InterlevelScene extends PixelScene {
 			case RETURN:
 				loadingDepth = returnDepth;
 				break;
-		}
+            default:
+                loadingDepth = Dungeon.depth;
+                break;
+        }
 
 		//flush the texture cache whenever moving between regions, helps reduce memory load
 		int region = (int)Math.ceil(loadingDepth / 5f);
@@ -203,11 +205,13 @@ public class InterlevelScene extends PixelScene {
 						case 1: loadingCenter = 485; break; //focus on center pathway
 					}
 					break;
-				case 5: default:
+				case 5:
+					default:
 					loadingAsset = Assets.Splashes.HALLS;
 					switch (Random.Int(3)){
 						case 0: loadingCenter = 145; break; //focus on left arches
 						case 1: loadingCenter = 400; break; //focus on ripper demon
+						default: break;
 					}
 					break;
 			}
@@ -256,7 +260,7 @@ public class InterlevelScene extends PixelScene {
 				if (lastRegion == 6)                aa = 1;
 				else if (phase == Phase.FADE_IN)    aa = Math.max( 0, 2*(timeLeft - (fadeTime - 0.333f)));
 				else if (phase == Phase.FADE_OUT)   aa = Math.max( 0, 2*(0.333f - timeLeft));
-				//else                                aa = 0;
+				else                                aa = 0;
 			}
 		};
 		im.angle = 90;
@@ -276,7 +280,7 @@ public class InterlevelScene extends PixelScene {
 		add(loadingText);
 
 		if (mode == Mode.DESCEND && lastRegion <= 5 && !DeviceCompat.isDebug()){
-			if (Dungeon.hero == null || (loadingDepth > Statistics.deepestFloor && loadingDepth % 5 == 1)){
+			if (Multiplayer.localHero() == null || (loadingDepth > Statistics.deepestFloor && loadingDepth % 5 == 1)){
 					storyMessage = PixelScene.renderTextBlock(Document.INTROS.pageBody(region), 6);
 					storyMessage.maxWidth( PixelScene.landscape() ? 180 : 125);
 					storyMessage.setPos(insets.left+(w-storyMessage.width())/2f, insets.top+(h-storyMessage.height())/2f);
@@ -620,7 +624,7 @@ public class InterlevelScene extends PixelScene {
 
 	private void descend() throws IOException {
 
-		if (Dungeon.hero == null) {
+		if (Multiplayer.localHero() == null) {
 			Mob.clearHeldAllies();
 			Dungeon.init();
 			GameLog.wipe();
@@ -650,7 +654,7 @@ public class InterlevelScene extends PixelScene {
 				//FIXME avoids holding allies when entering city quest area, this is very sloppy though
 				// perhaps holding allies could be a property of the transition?
 			} else {
-				Mob.holdAllies(Dungeon.level);
+				Mob.holdAllies(Dungeon.level, Multiplayer.localHero());
 			}
 			Dungeon.saveAll();
 
@@ -674,9 +678,9 @@ public class InterlevelScene extends PixelScene {
 	//TODO atm falling always just increments depth by 1, do we eventually want to roll it into the transition system?
 	private void fall() throws IOException {
 		
-		Mob.holdAllies( Dungeon.level );
+		Mob.holdAllies( Dungeon.level, Multiplayer.localHero());
 		
-		Buff.affect( Dungeon.hero, Chasm.Falling.class );
+		Buff.affect( Multiplayer.localHero(), Chasm.Falling.class, this);
 		Dungeon.saveAll();
 
 		Level level;
@@ -694,7 +698,7 @@ public class InterlevelScene extends PixelScene {
 			//FIXME avoids holding allies when entering city quest area, this is very sloppy though
 			// perhaps holding allies could be a property of the transition?
 		} else {
-			Mob.holdAllies(Dungeon.level);
+			Mob.holdAllies(Dungeon.level, Multiplayer.localHero());
 		}
 		Dungeon.saveAll();
 
@@ -714,7 +718,7 @@ public class InterlevelScene extends PixelScene {
 	}
 	
 	private void returnTo() throws IOException {
-		Mob.holdAllies( Dungeon.level );
+		Mob.holdAllies( Dungeon.level, Multiplayer.localHero());
 		Dungeon.saveAll();
 
 		Level level;
@@ -741,22 +745,22 @@ public class InterlevelScene extends PixelScene {
 			Dungeon.switchLevel( Dungeon.loadLevel( GamesInProgress.curSlot ), -1 );
 		} else {
 			Level level = Dungeon.loadLevel( GamesInProgress.curSlot );
-			Dungeon.switchLevel( level, Dungeon.hero.pos );
+			Dungeon.switchLevel( level, Multiplayer.localHero().pos );
 		}
 	}
 	
 	private void resurrect() {
 		
-		Mob.holdAllies( Dungeon.level );
+		Mob.holdAllies( Dungeon.level, Multiplayer.localHero() );
 
 		Level level;
 		if (Dungeon.level.locked) {
 			ArrayList<Item> preservedItems = Dungeon.level.getItemsToPreserveFromSealedResurrect();
 
-			Dungeon.hero.resurrect();
+			Multiplayer.localHero().resurrect();
 			level = Dungeon.newLevel();
-			Dungeon.hero.pos = level.randomRespawnCell(Dungeon.hero);
-			if (Dungeon.hero.pos == -1) Dungeon.hero.pos = level.entrance();
+			Multiplayer.localHero().pos = level.randomRespawnCell(Multiplayer.localHero());
+			if (Multiplayer.localHero().pos == -1) Multiplayer.localHero().pos = level.entrance();
 
 			for (Item i : preservedItems){
 				int pos = level.randomRespawnCell(null);
@@ -768,42 +772,41 @@ public class InterlevelScene extends PixelScene {
 			level.drop(new LostBackpack(), pos);
 
 			//need to reset key replacement tracking as well
-			if (Dungeon.hero.buff(SkeletonKey.KeyReplacementTracker.class) != null){
-				Dungeon.hero.buff(SkeletonKey.KeyReplacementTracker.class).clearDepth();
+			if (Multiplayer.localHero().buff(SkeletonKey.KeyReplacementTracker.class) != null){
+				Multiplayer.localHero().buff(SkeletonKey.KeyReplacementTracker.class).clearDepth();
 			}
 
 		} else {
 			level = Dungeon.level;
-			BArray.setFalse(level.heroFOV);
 			BArray.setFalse(level.visited);
 			BArray.setFalse(level.mapped);
-			int invPos = Dungeon.hero.pos;
+			int invPos = Multiplayer.localHero().pos;
 			int tries = 0;
 			do {
-				Dungeon.hero.pos = level.randomRespawnCell(Dungeon.hero);
+				Multiplayer.localHero().pos = level.randomRespawnCell(Multiplayer.localHero());
 				tries++;
 
 			//prevents spawning on traps or plants, prefers farther locations first
-			} while (level.traps.get(Dungeon.hero.pos) != null
-					|| (level.plants.get(Dungeon.hero.pos) != null && tries < 500)
-					|| level.trueDistance(invPos, Dungeon.hero.pos) <= 30 - (tries/10));
+			} while (level.traps.get(Multiplayer.localHero().pos) != null
+					|| (level.plants.get(Multiplayer.localHero().pos) != null && tries < 500)
+					|| level.trueDistance(invPos, Multiplayer.localHero().pos) <= 30 - (tries/10));
 
 			//directly trample grass
-			if (level.map[Dungeon.hero.pos] == Terrain.HIGH_GRASS || level.map[Dungeon.hero.pos] == Terrain.FURROWED_GRASS){
-				level.map[Dungeon.hero.pos] = Terrain.GRASS;
+			if (level.map[Multiplayer.localHero().pos] == Terrain.HIGH_GRASS || level.map[Multiplayer.localHero().pos] == Terrain.FURROWED_GRASS){
+				level.map[Multiplayer.localHero().pos] = Terrain.GRASS;
 			}
-			Dungeon.hero.resurrect();
+			Multiplayer.localHero().resurrect();
 			level.drop(new LostBackpack(), invPos);
 		}
 
 		Notes.add(Notes.Landmark.LOST_PACK);
 
-		Dungeon.switchLevel( level, Dungeon.hero.pos );
+		Dungeon.switchLevel( level, Multiplayer.localHero().pos );
 	}
 
 	private void reset() throws IOException {
 		
-		Mob.holdAllies( Dungeon.level );
+		Mob.holdAllies( Dungeon.level, Multiplayer.localHero() );
 
 		SpecialRoom.resetPitRoom(Dungeon.depth+1);
 

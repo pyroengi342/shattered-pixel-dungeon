@@ -29,7 +29,7 @@ import com.watabou.noosa.TextureFilm;
 
 public abstract class CrystalGuardianSprite extends MobSprite {
 
-	private Animation crumple;
+	private final Animation crumple;
 
 	public CrystalGuardianSprite() {
 		super();
@@ -41,7 +41,7 @@ public abstract class CrystalGuardianSprite extends MobSprite {
 		int c = texOffset();
 
 		idle = new MovieClip.Animation( 2, true );
-		idle.frames( frames, 0+c, 0+c, 0+c, 0+c, 0+c, 1+c, 1+c );
+		idle.frames( frames, c, c, c, c, c, 1+c, 1+c );
 
 		run = new MovieClip.Animation( 15, true );
 		run.frames( frames, 2+c, 3+c, 4+c, 5+c, 6+c, 7+c );

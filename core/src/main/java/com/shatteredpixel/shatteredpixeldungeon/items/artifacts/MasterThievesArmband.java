@@ -55,7 +55,7 @@ import java.util.ArrayList;
 public class MasterThievesArmband extends Artifact {
 
 	{
-		image = ItemSpriteSheet.ARTIFACT_ARMBAND;
+		setImage(ItemSpriteSheet.ARTIFACT_ARMBAND);
 
 		levelCap = 10;
 
@@ -116,8 +116,7 @@ public class MasterThievesArmband extends Artifact {
 		public void onSelect(Integer target) {
 
 			if (target == null) {
-				return;
-			} else if (!Dungeon.level.adjacent(curUser.pos, target) || Actor.findChar(target) == null){
+            } else if (!Dungeon.level.adjacent(curUser.pos, target) || Actor.findChar(target) == null){
 				GLog.w( Messages.get(MasterThievesArmband.class, "no_target") );
 			} else {
 				Char ch = Actor.findChar(target);
@@ -147,7 +146,7 @@ public class MasterThievesArmband extends Artifact {
 								exp += 2;
 							}
 
-							float lootChance = ((Mob) ch).lootChance() * lootMultiplier;
+							float lootChance = ((Mob) ch).lootChance(curUser) * lootMultiplier;
 
 							if (curUser.lvl > ((Mob) ch).maxLvl + 2) {
 								lootChance = 0;
@@ -180,7 +179,7 @@ public class MasterThievesArmband extends Artifact {
 							Buff.prolong(ch, Blindness.class, debuffDuration, this);
 							Buff.prolong(ch, Cripple.class, debuffDuration, this);
 
-							artifactProc(ch, visiblyUpgraded(), 1);
+							artifactProc(curUser, ch, visiblyUpgraded(), 1);
 
 							charge--;
 							exp += 3;

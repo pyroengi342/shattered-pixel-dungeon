@@ -70,12 +70,8 @@ public class Challenges {
 
 	public static boolean isItemBlocked( Item item ){
 
-		if (Dungeon.isChallenged(NO_HERBALISM) && item instanceof Dewdrop){
-			return true;
-		}
+        return Dungeon.isChallenged(NO_HERBALISM) && item instanceof Dewdrop;
 
-		return false;
-
-	}
+    }
 
 }

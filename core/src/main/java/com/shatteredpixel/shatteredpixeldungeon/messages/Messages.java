@@ -63,7 +63,7 @@ public class Messages {
 	 * Setup Methods
 	 */
 
-	private static String[] prop_files = new String[]{
+	private static final String[] prop_files = new String[]{
 			Assets.Messages.ACTORS,
 			Assets.Messages.ITEMS,
 			Assets.Messages.JOURNAL,
@@ -173,7 +173,7 @@ public class Messages {
 		}
 	}
 
-	private static HashMap<String, DecimalFormat> formatters;
+	private static final HashMap<String, DecimalFormat> formatters;
 
 	public static String decimalFormat( String format, double number ){
 		if (!formatters.containsKey(format)){

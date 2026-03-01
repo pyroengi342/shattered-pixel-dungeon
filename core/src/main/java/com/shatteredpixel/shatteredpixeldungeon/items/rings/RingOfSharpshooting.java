@@ -21,7 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.items.rings;
 
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
@@ -29,7 +28,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 public class RingOfSharpshooting extends Ring {
 
 	{
-		icon = ItemSpriteSheet.Icons.RING_SHARPSHOOT;
+		setIcon(ItemSpriteSheet.Icons.RING_SHARPSHOOT);
 		buffClass = Aim.class;
 	}
 

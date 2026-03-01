@@ -47,7 +47,7 @@ import java.util.ArrayList;
 public class ReclaimTrap extends TargetedSpell {
 	
 	{
-		image = ItemSpriteSheet.RECLAIM_TRAP;
+		setImage(ItemSpriteSheet.RECLAIM_TRAP);
 
 		talentChance = 1/(float)Recipe.OUT_QUANTITY;
 	}
@@ -89,7 +89,7 @@ public class ReclaimTrap extends TargetedSpell {
 				
 				Sample.INSTANCE.play(Assets.Sounds.LIGHTNING);
 				ScrollOfRecharging.charge(hero);
-				Buff.affect(hero, ReclaimedTrap.class, this)trap = t.getClass();
+				Buff.affect(hero, ReclaimedTrap.class, this).trap = t.getClass();
 				Bestiary.setSeen(t.getClass());
 				
 			} else {
@@ -109,7 +109,7 @@ public class ReclaimTrap extends TargetedSpell {
 			Bestiary.countEncounter(t.getClass());
 			t.activate();
 
-			onSpellused();
+			onSpellUsed(curUser);
 			
 		}
 	}
@@ -186,9 +186,9 @@ public class ReclaimTrap extends TargetedSpell {
 		}
 
 		@Override
-		public Item brew(ArrayList<Item> ingredients) {
+		public Item brew(ArrayList<Item> ingredients, Hero hero) {
 			Catalog.countUse(MetalShard.class);
-			return super.brew(ingredients);
+			return super.brew(ingredients, hero);
 		}
 	}
 

@@ -226,11 +226,8 @@ public class SentryRoom extends SpecialRoom {
 		if (width() % 2 == 1 && p.x == center().x){
 			return false;
 		}
-		if (height() % 2 == 1 && p.y == center().y){
-			return false;
-		}
-		return true;
-	}
+        return height() % 2 != 1 || p.y != center().y;
+    }
 
 	public static class Sentry extends NPC {
 

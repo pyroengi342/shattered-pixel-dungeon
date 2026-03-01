@@ -22,7 +22,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.sprites;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.Ratmogrify;
 import com.shatteredpixel.shatteredpixeldungeon.utils.Holiday;
@@ -44,16 +43,16 @@ public class RatKingSprite extends MobSprite {
 
 		int c;
 		switch (Holiday.getCurrentHoliday()){
-			default:
-				c = 0;
-				break;
-			case APRIL_FOOLS:
+            case APRIL_FOOLS:
 				c = 8;
 				break;
 			case WINTER_HOLIDAYS:
 				c = 16;
 				break;
-		}
+            default:
+                c = 0;
+                break;
+        }
 
         if (isAnyHeroUsing()){
             c = 24;
@@ -65,16 +64,16 @@ public class RatKingSprite extends MobSprite {
 		TextureFilm frames = new TextureFilm( texture, 16, 17 );
 
 		idle = new Animation( 2, true );
-		idle.frames( frames, c+0, c+0, c+0, c+1 );
+		idle.frames( frames, c, c, c, c+1 );
 
 		run = new Animation( 10, true );
 		run.frames( frames, c+2, c+3, c+4, c+5, c+6 );
 
 		attack = new Animation( 15, false );
-		attack.frames( frames, c+0 );
+		attack.frames( frames, c);
 
 		die = new Animation( 10, false );
-		die.frames( frames, c+0 );
+		die.frames( frames, c);
 
 		play( idle );
 

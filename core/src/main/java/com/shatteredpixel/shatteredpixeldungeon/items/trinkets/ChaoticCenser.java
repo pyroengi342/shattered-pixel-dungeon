@@ -31,14 +31,14 @@ import com.watabou.utils.Bundle;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
-import network.Multiplayer;
-
 import java.util.HashMap;
+
+import network.Multiplayer;
 
 public class ChaoticCenser extends Trinket {
 
     {
-        image = ItemSpriteSheet.CHAOTIC_CENSER;
+        setImage(ItemSpriteSheet.CHAOTIC_CENSER);
     }
 
     @Override
@@ -49,11 +49,11 @@ public class ChaoticCenser extends Trinket {
     @Override
     public String statsDesc() {
         Hero viewer = Multiplayer.localHero();
-        int level = isIdentified() ? buffedLvl() : 0;
-        return Messages.get(this, "stats_desc", averageTurnsUntilGas(level, viewer));
+//        int level = isIdentified() ? buffedLvl() : 0;
+        return Messages.get(this, "stats_desc", averageTurnsUntilGas(viewer));
     }
 
-    public static int averageTurnsUntilGas(int level, Hero hero) {
+    public static int averageTurnsUntilGas(Hero hero) {
         int lvl = trinketLevel(ChaoticCenser.class, hero);
         if (lvl == -1) return -1;
         return 300 / (lvl + 1);

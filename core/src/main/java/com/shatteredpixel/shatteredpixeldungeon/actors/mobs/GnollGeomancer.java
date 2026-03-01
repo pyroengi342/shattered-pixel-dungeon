@@ -678,7 +678,7 @@ public class GnollGeomancer extends Mob {
 	}
 
 	private static int rocksInFlight = 0;
-	private static ArrayList<Char> knockedChars = new ArrayList<>();
+	private static final ArrayList<Char> knockedChars = new ArrayList<>();
 
 	public static void doRockThrowAttack( Char source, int from, int to ){
 
@@ -726,7 +726,7 @@ public class GnollGeomancer extends Mob {
 
 							if (!knockedChars.contains(ch) && rockPath.path.size() > rockPath.dist+1) {
 								Ballistica trajectory = new Ballistica(ch.pos, rockPath.path.get(rockPath.dist + 1), Ballistica.MAGIC_BOLT);
-								WandOfBlastWave.throwChar(ch, trajectory, 1, false, false, source);
+								WandOfBlastWave.throwChar(ch, trajectory, 1, false, false, source, null);
 								knockedChars.add(ch);
 							}
 						} else if (ch == null) {
@@ -746,7 +746,7 @@ public class GnollGeomancer extends Mob {
 
 	public static class Boulder extends Item {
 		{
-			image = ItemSpriteSheet.GEO_BOULDER;
+			setImage(ItemSpriteSheet.GEO_BOULDER);
 		}
 	}
 
@@ -775,10 +775,11 @@ public class GnollGeomancer extends Mob {
 				if (avoidBarricades){
 					boolean barricade = false;
 					for (int j : PathFinder.NEIGHBOURS9){
-						if (Dungeon.level.map[pos+j] == Terrain.BARRICADE
-								|| Dungeon.level.map[pos+j] == Terrain.ENTRANCE){
-							barricade = true;
-						}
+                        if (Dungeon.level.map[pos + j] == Terrain.BARRICADE
+                                || Dungeon.level.map[pos + j] == Terrain.ENTRANCE) {
+                            barricade = true;
+                            break;
+                        }
 					}
 					if (barricade){
 						pos++;

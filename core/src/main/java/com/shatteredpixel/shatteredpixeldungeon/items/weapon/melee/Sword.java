@@ -22,7 +22,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
@@ -40,7 +39,7 @@ import com.watabou.utils.Callback;
 public class Sword extends MeleeWeapon {
 	
 	{
-		image = ItemSpriteSheet.SWORD;
+		setImage(ItemSpriteSheet.SWORD);
 		hitSound = Assets.Sounds.HIT_SLASH;
 		hitSoundPitch = 1f;
 
@@ -115,7 +114,7 @@ public class Sword extends MeleeWeapon {
 
 				if (!enemy.isAlive()){
 					hero.next();
-					wep.onAbilityKill(hero, enemy);
+					onAbilityKill(hero, enemy);
 					if (hero.buff(CleaveTracker.class) != null) {
 						hero.buff(CleaveTracker.class).detach();
 					} else {

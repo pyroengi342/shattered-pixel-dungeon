@@ -139,8 +139,8 @@ public class Notes {
 		TROLL,
 		IMP,
 
-		DEMON_SPAWNER;
-	}
+		DEMON_SPAWNER
+    }
 	
 	public static class LandmarkRecord extends Record {
 		
@@ -464,9 +464,9 @@ public class Notes {
 				case ITEM_TYPE:
 				case SPECIFIC_ITEM:
 					Item item = (Item) Reflection.newInstance(itemClass);
-					if (item.isIdentified() && item.icon != -1) {
+					if (item.isIdentified() && item.getIcon() != -1) {
 						Image secondIcon = new Image(Assets.Sprites.ITEM_ICONS);
-						secondIcon.frame(ItemSpriteSheet.Icons.film.get(item.icon));
+						secondIcon.frame(ItemSpriteSheet.Icons.film.get(item.getIcon()));
 						return secondIcon;
 					}
 					return null;

@@ -42,7 +42,7 @@ import com.watabou.utils.PathFinder;
 public class Rapier extends MeleeWeapon {
 
 	{
-		image = ItemSpriteSheet.RAPIER;
+		setImage(ItemSpriteSheet.RAPIER);
 		hitSound = Assets.Sounds.HIT_SLASH;
 		hitSoundPitch = 1.3f;
 
@@ -151,7 +151,7 @@ public class Rapier extends MeleeWeapon {
 							if (hero.attack(enemy, dmgMulti, dmgBoost, Char.INFINITE_ACCURACY)) {
 								Sample.INSTANCE.play(Assets.Sounds.HIT_STRONG);
 								if (!enemy.isAlive()) {
-									wep.onAbilityKill(hero, enemy);
+									onAbilityKill(hero, enemy);
 								}
 							}
 							Invisibility.dispel(hero);

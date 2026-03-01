@@ -44,7 +44,7 @@ public class SpectralNecromancer extends Necromancer {
 		spriteClass = SpectralNecromancerSprite.class;
 	}
 
-	private ArrayList<Integer> wraithIDs = new ArrayList<>();
+	private final ArrayList<Integer> wraithIDs = new ArrayList<>();
 
 	@Override
 	protected boolean act() {
@@ -58,10 +58,10 @@ public class SpectralNecromancer extends Necromancer {
 	}
 
 	@Override
-	public void rollToDropLoot() {
-		if (Dungeon.hero.lvl > maxLvl + 2) return;
+	public void rollToDropLoot(Hero hero) {
+		if (hero.lvl > maxLvl + 2) return;
 
-		super.rollToDropLoot();
+		super.rollToDropLoot(hero);
 
 		int ofs;
 		do {
@@ -158,7 +158,7 @@ public class SpectralNecromancer extends Necromancer {
 
 		for (Buff b : buffs()){
 			if (b.revivePersists) {
-				Buff.affect(wraith, b.getClass());
+				Buff.affect(wraith, b.getClass(), this);
 			}
 		}
 		wraithIDs.add(wraith.id());

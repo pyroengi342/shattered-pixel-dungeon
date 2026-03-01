@@ -56,7 +56,7 @@ import java.util.ArrayList;
 public class RingOfWealth extends Ring {
 
 	{
-		icon = ItemSpriteSheet.Icons.RING_WEALTH;
+		setIcon(ItemSpriteSheet.Icons.RING_WEALTH);
 		buffClass = Wealth.class;
 	}
 
@@ -115,13 +115,13 @@ public class RingOfWealth extends Ring {
 
 		CounterBuff triesToDrop = target.buff(TriesToDropTracker.class);
 		if (triesToDrop == null){
-			triesToDrop = Buff.affect(target, TriesToDropTracker.class);
+			triesToDrop = Buff.affect(target, TriesToDropTracker.class, null);
 			triesToDrop.countUp( Random.NormalIntRange(0, 20) );
 		}
 
 		CounterBuff dropsToEquip = target.buff(DropsToEquipTracker.class);
 		if (dropsToEquip == null){
-			dropsToEquip = Buff.affect(target, DropsToEquipTracker.class);
+			dropsToEquip = Buff.affect(target, DropsToEquipTracker.class, null);
 			dropsToEquip.countUp( Random.NormalIntRange(5, 10) );
 		}
 
@@ -172,9 +172,7 @@ public class RingOfWealth extends Ring {
 	public static void showFlareForBonusDrop( Visual vis ){
 		if (vis == null || vis.parent == null) return;
 		switch (latestDropTier){
-			default:
-				break; //do nothing
-			case 1:
+            case 1:
 				new Flare(6, 20).color(0x00FF00, true).show(vis, 3f);
 				break;
 			case 2:
@@ -186,7 +184,9 @@ public class RingOfWealth extends Ring {
 			case 4:
 				new Flare(6, 32).color(0xFFAA00, true).show(vis, 4f);
 				break;
-		}
+            default:
+                break; //do nothing
+        }
 		latestDropTier = 0;
 	}
 	

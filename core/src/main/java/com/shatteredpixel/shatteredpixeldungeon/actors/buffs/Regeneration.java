@@ -49,19 +49,22 @@ public class Regeneration extends Buff {
 
 			//if other trinkets ever get buffs like this should probably make the buff attaching
 			// behaviour more like wands/rings/artifacts
-			if (ChaoticCenser.averageTurnsUntilGas() != -1 && target instanceof Hero){
-				Buff.affect(target, ChaoticCenser.CenserGasTracker.class, ChaoticCenser.CenserGasTracker.class);
+			if (target instanceof Hero) {
+				Hero hero = (Hero) target;
+				if (ChaoticCenser.averageTurnsUntilGas(hero) != -1) {
+					Buff.affect(target, ChaoticCenser.CenserGasTracker.class, hero);
+				}
 			}
 
 			if (regenOn((Hero) target) && target.HP < regencap() && !((Hero)target).isStarving()) {
 				boolean chaliceCursed = false;
 				int chaliceLevel = -1;
 				if (target.buff(MagicImmune.class) == null) {
-					if (((Hero)target).buff(ChaliceOfBlood.chaliceRegen.class) != null) {
-						chaliceCursed = ((Hero)target).buff(ChaliceOfBlood.chaliceRegen.class).isCursed();
-						chaliceLevel = ((Hero)target).buff(ChaliceOfBlood.chaliceRegen.class).itemLevel();
-					} else if (((Hero)target).buff(SpiritForm.SpiritFormBuff.class) != null
-							&& ((Hero)target).buff(SpiritForm.SpiritFormBuff.class).artifact() instanceof ChaliceOfBlood) {
+					if (target.buff(ChaliceOfBlood.chaliceRegen.class) != null) {
+						chaliceCursed = target.buff(ChaliceOfBlood.chaliceRegen.class).isCursed();
+						chaliceLevel = target.buff(ChaliceOfBlood.chaliceRegen.class).itemLevel();
+					} else if (target.buff(SpiritForm.SpiritFormBuff.class) != null
+							&& target.buff(SpiritForm.SpiritFormBuff.class).artifact() instanceof ChaliceOfBlood) {
 						chaliceLevel = SpiritForm.artifactLevel(((Hero)target));
 					}
 				}
@@ -79,7 +82,7 @@ public class Regeneration extends Buff {
 
 				//salt cube is turned off while regen is disabled.
 				if (target.buff(LockedFloor.class) == null) {
-					delay /= SaltCube.healthRegenMultiplier();
+					delay /= SaltCube.healthRegenMultiplier((Hero) target);
 				}
 
 				partialRegen += 1f / delay;
@@ -115,11 +118,8 @@ public class Regeneration extends Buff {
 		if (lock != null && !lock.regenOn()){
 			return false;
 		}
-		if (Dungeon.level instanceof VaultLevel){
-			return false;
-		}
-		return true;
-	}
+        return !(Dungeon.level instanceof VaultLevel);
+    }
 
 	public static final String PARTIAL_REGEN = "partial_regen";
 

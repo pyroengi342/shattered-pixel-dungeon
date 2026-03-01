@@ -87,9 +87,10 @@ public class CirclePitRoom extends StandardRoom {
 
 				boolean valid = true;
 				for (Point door : connected.values()){
-					if (door.equals(edge)){
-						valid = false;
-					}
+                    if (door.equals(edge)) {
+                        valid = false;
+                        break;
+                    }
 				}
 
 				if (valid) {

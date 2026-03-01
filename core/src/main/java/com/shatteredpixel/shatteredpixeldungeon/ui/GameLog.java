@@ -40,7 +40,7 @@ public class GameLog extends Component implements Signal.Listener<String> {
 	private RenderedTextBlock lastEntry;
 	private int lastColor;
 
-	private static ArrayList<Entry> entries = new ArrayList<>();
+	private static final ArrayList<Entry> entries = new ArrayList<>();
 
 	public GameLog() {
 		super();
@@ -49,7 +49,7 @@ public class GameLog extends Component implements Signal.Listener<String> {
 		recreateLines();
 	}
 	
-	private static ArrayList<String> textsToAdd = new ArrayList<>();
+	private static final ArrayList<String> textsToAdd = new ArrayList<>();
 	
 	@Override
 	public synchronized void update() {

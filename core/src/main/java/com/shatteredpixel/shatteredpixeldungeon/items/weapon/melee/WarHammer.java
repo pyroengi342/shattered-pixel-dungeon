@@ -29,7 +29,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 public class WarHammer extends MeleeWeapon {
 
 	{
-		image = ItemSpriteSheet.WAR_HAMMER;
+		setImage(ItemSpriteSheet.WAR_HAMMER);
 		hitSound = Assets.Sounds.HIT_CRUSH;
 		hitSoundPitch = 1f;
 

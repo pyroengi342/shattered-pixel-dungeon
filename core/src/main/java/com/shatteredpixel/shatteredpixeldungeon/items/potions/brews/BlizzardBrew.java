@@ -28,23 +28,21 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfFrost;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
-import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.PathFinder;
+
+import network.AudioWrapper;
 
 public class BlizzardBrew extends Brew {
 	
 	{
-		image = ItemSpriteSheet.BREW_BLIZZARD;
+		setImage(ItemSpriteSheet.BREW_BLIZZARD);
 	}
 	
 	@Override
 	public void shatter(int cell) {
 		splash( cell );
-				Hero local = Multiplayer.localHero();
-		if (local != null && local.fieldOfView != null && local.fieldOfView[cell]) {
-			Sample.INSTANCE.play( Assets.Sounds.SHATTER );
-			Sample.INSTANCE.play( Assets.Sounds.GAS );
-		}
+			AudioWrapper.play( Assets.Sounds.SHATTER, cell);
+			AudioWrapper.play( Assets.Sounds.GAS, cell );
 
 		int centerVolume = 120;
 		for (int i : PathFinder.NEIGHBOURS8){

@@ -21,8 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
-import static network.NetworkManager.getLocalPlayerId;
-
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
@@ -50,10 +48,13 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
+import com.watabou.utils.Bundle;
 
 import java.util.ArrayList;
 
 import network.Multiplayer;
+import network.NetworkManager;
+import network.handlers.window.BlacksmithHandler;
 
 public class WndBlacksmith extends Window {
 
@@ -101,6 +102,9 @@ public class WndBlacksmith extends Window {
 							}
 							Blacksmith.Quest.favor -= pickaxeCost;
 							Blacksmith.Quest.pickaxe = null;
+							if (Multiplayer.isMultiplayer) {
+								BlacksmithHandler.sendPickaxe();
+							}
 							WndBlacksmith.this.hide();
 
 							if (!Blacksmith.Quest.rewardsAvailable()){
@@ -159,6 +163,12 @@ public class WndBlacksmith extends Window {
 						if (index == 0){
 							Blacksmith.Quest.favor -= 2000;
 							Blacksmith.Quest.smiths++;
+							if (Multiplayer.isMultiplayer) {
+								// отправляем сообщение о начале крафта, но без предмета
+								Bundle bundle = new Bundle();
+								bundle.put("action", "start_smith");
+								NetworkManager.sendMessage("BLACKSMITH", bundle);
+							}
 							WndBlacksmith.this.hide();
 							GameScene.show(new WndSmith(troll, hero));
 						}
@@ -183,7 +193,11 @@ public class WndBlacksmith extends Window {
 					protected void onSelect(int index) {
 						if (index == 0){
 							new Gold(Blacksmith.Quest.favor).doPickUp(Multiplayer.localHero(), Multiplayer.localHero().pos);
+							int amount = Blacksmith.Quest.favor;
 							Blacksmith.Quest.favor = 0;
+							if (Multiplayer.isMultiplayer) {
+								BlacksmithHandler.sendCashout(amount);
+							}
 							WndBlacksmith.this.hide();
 						}
 					}
@@ -218,9 +232,9 @@ public class WndBlacksmith extends Window {
 
 		private ItemButton btnPressed;
 
-		private ItemButton btnItem1;
-		private ItemButton btnItem2;
-		private RedButton btnReforge;
+		private final ItemButton btnItem1;
+		private final ItemButton btnItem2;
+		private final RedButton btnReforge;
 
 		public WndReforge( Blacksmith troll, Window wndParent ) {
 			super();
@@ -310,6 +324,9 @@ public class WndBlacksmith extends Window {
 					if (wndParent != null){
 						wndParent.hide();
 					}
+					if (Multiplayer.isMultiplayer) {
+						BlacksmithHandler.sendReforge(first, second);
+					}
 				}
 			};
 			btnReforge.enable( false );
@@ -354,12 +371,7 @@ public class WndBlacksmith extends Window {
 						btnReforge.enable(false);
 
 					//and not the literal same item
-					} else if (item1 == item2) {
-						btnReforge.enable(false);
-
-					} else {
-						btnReforge.enable(true);
-					}
+					} else btnReforge.enable(item1 != item2);
 				}
 			}
 		};
@@ -394,7 +406,9 @@ public class WndBlacksmith extends Window {
 				} else if (item instanceof Armor){
 					((Armor) item).glyphHardened = true;
 				}
-
+				if (Multiplayer.isMultiplayer) {
+					BlacksmithHandler.sendHarden(item);
+				}
 				Blacksmith.Quest.favor -= 500 + 1000*Blacksmith.Quest.hardens;
 				Blacksmith.Quest.hardens++;
 
@@ -449,7 +463,9 @@ public class WndBlacksmith extends Window {
 				if (!Blacksmith.Quest.rewardsAvailable()){
 					Notes.remove( Notes.Landmark.TROLL );
 				}
-
+				if (Multiplayer.isMultiplayer) {
+					BlacksmithHandler.sendUpgrade(item);
+				}
 				Catalog.countUse(item.getClass());
 			}
 		}
@@ -532,9 +548,12 @@ public class WndBlacksmith extends Window {
 						} else {
 							Dungeon.level.drop( item, hero.pos ).sprite.drop();
 						}
+						int idx = Blacksmith.Quest.smithRewards.indexOf(item);
+						if (idx != -1 && Multiplayer.isMultiplayer) {
+							BlacksmithHandler.sendSmith(idx);
+						}
 						WndSmith.this.hide();
 						Blacksmith.Quest.smithRewards = null;
-
 						if (!Blacksmith.Quest.rewardsAvailable()){
 							Notes.remove( Notes.Landmark.TROLL );
 						}

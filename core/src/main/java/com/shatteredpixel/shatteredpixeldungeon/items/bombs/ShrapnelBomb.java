@@ -32,14 +32,14 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.watabou.utils.Point;
 import com.watabou.utils.Random;
 
-import network.Multiplayer;
-
 import java.util.ArrayList;
+
+import network.Multiplayer;
 
 public class ShrapnelBomb extends Bomb {
 	
 	{
-		image = ItemSpriteSheet.SHRAPNEL_BOMB;
+		setImage(ItemSpriteSheet.SHRAPNEL_BOMB);
 	}
 	
 	@Override

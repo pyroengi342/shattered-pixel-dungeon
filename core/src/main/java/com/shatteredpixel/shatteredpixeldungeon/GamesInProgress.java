@@ -38,7 +38,7 @@ public class GamesInProgress {
 	public static final int MAX_SLOTS = HeroClass.values().length;
 	
 	//null means we have loaded info and it is empty, no entry means unknown.
-	private static HashMap<Integer, Info> slotStates = new HashMap<>();
+	private static final HashMap<Integer, Info> slotStates = new HashMap<>();
 	public static int curSlot;
 	
 	public static HeroClass selectedClass;
@@ -149,16 +149,16 @@ public class GamesInProgress {
 		info.daily = Dungeon.daily;
 		info.dailyReplay = Dungeon.dailyReplay;
 		
-		info.level = Dungeon.hero.lvl;
-		info.str = Dungeon.hero.STR;
-		info.strBonus = Dungeon.hero.STR() - Dungeon.hero.STR;
-		info.exp = Dungeon.hero.exp;
-		info.hp = Dungeon.hero.HP;
-		info.ht = Dungeon.hero.HT;
-		info.shld = Dungeon.hero.shielding();
-		info.heroClass = Dungeon.hero.heroClass;
-		info.subClass = Dungeon.hero.subClass;
-		info.armorTier = Dungeon.hero.tier();
+//		info.level = Dungeon.hero.lvl;
+//		info.str = Dungeon.hero.STR;
+//		info.strBonus = Dungeon.hero.STR() - Dungeon.hero.STR;
+//		info.exp = Dungeon.hero.exp;
+//		info.hp = Dungeon.hero.HP;
+//		info.ht = Dungeon.hero.HT;
+//		info.shld = Dungeon.hero.shielding();
+//		info.heroClass = Dungeon.hero.heroClass;
+//		info.subClass = Dungeon.hero.subClass;
+//		info.armorTier = Dungeon.hero.tier();
 		
 		info.goldCollected = Statistics.goldCollected;
 		info.maxDepth = Statistics.deepestFloor;

@@ -21,8 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
-import static network.NetworkManager.getLocalPlayerId;
-
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.SPDAction;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Belongings;
@@ -73,10 +71,10 @@ public class WndBag extends WndTabbed {
 	
 	protected static final int TITLE_HEIGHT	= 14;
 	
-	private ItemSelector selector;
+	private final ItemSelector selector;
 
-	private int nCols;
-	private int nRows;
+	private final int nCols;
+	private final int nRows;
 
 	private int slotWidth;
 	private int slotHeight;
@@ -421,8 +419,8 @@ public class WndBag extends WndTabbed {
 	
 	private class BagTab extends IconTab {
 
-		private Bag bag;
-		private int index;
+		private final Bag bag;
+		private final int index;
 		
 		public BagTab( Bag bag, int index ) {
 			super( icon(bag) );
@@ -456,7 +454,7 @@ public class WndBag extends WndTabbed {
 	public static class Placeholder extends Item {
 
 		public Placeholder(int image ) {
-			this.image = image;
+			this.setImage(image);
 		}
 
 		@Override

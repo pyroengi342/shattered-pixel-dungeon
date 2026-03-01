@@ -80,7 +80,7 @@ public class ScorpioSprite extends MobSprite {
 			idle();
 			
 			((MissileSprite)parent.recycle( MissileSprite.class )).
-			reset( this, cellToAttack, new ScorpioShot(), new Callback() {
+			reset(null, this, cellToAttack, new ScorpioShot(), new Callback() {
 				@Override
 				public void call() {
 					ch.onAttackComplete();
@@ -93,7 +93,7 @@ public class ScorpioSprite extends MobSprite {
 	
 	public class ScorpioShot extends Item {
 		{
-			image = ItemSpriteSheet.FISHING_SPEAR;
+			setImage(ItemSpriteSheet.FISHING_SPEAR);
 		}
 	}
 }

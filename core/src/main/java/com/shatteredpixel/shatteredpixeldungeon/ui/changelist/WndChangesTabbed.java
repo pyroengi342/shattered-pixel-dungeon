@@ -37,7 +37,7 @@ public class WndChangesTabbed extends WndTabbed {
 	protected static final int WIDTH_MAX    = 220;
 	protected static final int GAP	= 2;
 
-	private ArrayList<RenderedTextBlock> texts = new ArrayList<>();
+	private final ArrayList<RenderedTextBlock> texts = new ArrayList<>();
 
 	public WndChangesTabbed(Image icon, String title, String... messages ) {
 

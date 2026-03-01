@@ -36,14 +36,14 @@ import com.watabou.utils.BArray;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
-import network.Multiplayer;
-
 import java.util.ArrayList;
+
+import network.Multiplayer;
 
 public class ArcaneBomb extends Bomb {
 	
 	{
-		image = ItemSpriteSheet.ARCANE_BOMB;
+		setImage(ItemSpriteSheet.ARCANE_BOMB);
 	}
 
 	@Override

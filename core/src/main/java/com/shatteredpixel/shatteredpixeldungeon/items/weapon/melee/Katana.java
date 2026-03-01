@@ -30,7 +30,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 public class Katana extends MeleeWeapon {
 
 	{
-		image = ItemSpriteSheet.KATANA;
+		setImage(ItemSpriteSheet.KATANA);
 		hitSound = Assets.Sounds.HIT_SLASH;
 		hitSoundPitch = 1.1f;
 

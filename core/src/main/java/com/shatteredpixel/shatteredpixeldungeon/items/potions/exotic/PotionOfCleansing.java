@@ -22,7 +22,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.potions.exotic;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AllyBuff;
@@ -35,12 +34,13 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.Flare;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.watabou.noosa.Image;
-import com.watabou.noosa.audio.Sample;
+
+import network.AudioWrapper;
 
 public class PotionOfCleansing extends ExoticPotion {
 	
 	{
-		icon = ItemSpriteSheet.Icons.POTION_CLEANSE;
+		setIcon(ItemSpriteSheet.Icons.POTION_CLEANSE);
 	}
 	
 	@Override
@@ -57,11 +57,8 @@ public class PotionOfCleansing extends ExoticPotion {
 			super.shatter(cell);
 		} else {
 			splash( cell );
-					Hero local = Multiplayer.localHero();
-		if (local != null && local.fieldOfView != null && local.fieldOfView[cell]) {
-				Sample.INSTANCE.play(Assets.Sounds.SHATTER);
-				identify();
-			}
+			AudioWrapper.play(Assets.Sounds.SHATTER, cell);
+			identify();
 			
 			if (Actor.findChar(cell) != null){
 				cleanse(Actor.findChar(cell));
@@ -84,7 +81,7 @@ public class PotionOfCleansing extends ExoticPotion {
 				((Hunger) b).satisfy(Hunger.STARVING);
 			}
 		}
-		Buff.prolong(ch, Cleanse.class, duration, this);
+		Buff.prolong(ch, Cleanse.class, duration, ch);
 	}
 
 	public static class Cleanse extends FlavourBuff {

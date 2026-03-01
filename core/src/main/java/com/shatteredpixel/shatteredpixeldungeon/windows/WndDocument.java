@@ -29,7 +29,7 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 
 public class WndDocument extends Window {
 
-	private ScrollingListPane list;
+	private final ScrollingListPane list;
 
 	public WndDocument(Document doc){
 		list = new ScrollingListPane();

@@ -29,23 +29,21 @@ import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfParalyticG
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.watabou.utils.BArray;
-import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.PathFinder;
+
+import network.AudioWrapper;
 
 public class ShockingBrew extends Brew {
 	
 	{
-		image = ItemSpriteSheet.BREW_SHOCKING;
+		setImage(ItemSpriteSheet.BREW_SHOCKING);
 	}
 	
 	@Override
 	public void shatter(int cell) {
 		splash( cell );
-				Hero local = Multiplayer.localHero();
-		if (local != null && local.fieldOfView != null && local.fieldOfView[cell]) {
-			Sample.INSTANCE.play( Assets.Sounds.SHATTER );
-			Sample.INSTANCE.play(Assets.Sounds.LIGHTNING);
-		}
+		AudioWrapper.play( Assets.Sounds.SHATTER, cell);
+		AudioWrapper.play( Assets.Sounds.GAS, cell );
 		PathFinder.buildDistanceMap( cell, BArray.not( Dungeon.level.solid, null ), 3 );
 		for (int i = 0; i < PathFinder.distance.length; i++) {
 			if (PathFinder.distance[i] < Integer.MAX_VALUE) {

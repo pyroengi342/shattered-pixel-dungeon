@@ -64,7 +64,7 @@ import java.util.Arrays;
 public class SkeletonKey extends Artifact {
 
 	{
-		image = ItemSpriteSheet.ARTIFACT_KEY;
+		setImage(ItemSpriteSheet.ARTIFACT_KEY);
 
 		levelCap = 10;
 
@@ -238,8 +238,8 @@ public class SkeletonKey extends Artifact {
 
 							if (pushCell != -1 && !Char.hasProp(toMove, Char.Property.IMMOVABLE)){
 								Ballistica push = new Ballistica(target, pushCell, Ballistica.PROJECTILE);
-								WandOfBlastWave.throwChar(toMove, push, 1, false, false, this);
-								artifactProc(toMove, visiblyUpgraded(), 2);
+								WandOfBlastWave.throwChar(toMove, push, 1, false, false, this, curUser);
+								artifactProc(curUser, toMove, visiblyUpgraded(), 2);
 							} else {
 								GLog.w(Messages.get(SkeletonKey.class, "lock_no_space"));
 								return;
@@ -464,8 +464,8 @@ public class SkeletonKey extends Artifact {
 
 			Char ch = Actor.findChar(pos);
 			if (ch != null && ch.alignment == Char.Alignment.ENEMY){
-				WandOfBlastWave.throwChar(ch, new Ballistica(pos, pos+knockbackDIR, Ballistica.PROJECTILE), 1, false, false, this);
-				artifactProc(ch, visiblyUpgraded(), 2);
+				WandOfBlastWave.throwChar(ch, new Ballistica(pos, pos+knockbackDIR, Ballistica.PROJECTILE), 1, false, false, this, curUser);
+				artifactProc(curUser, ch, visiblyUpgraded(), 2);
 			}
 		}
 	}

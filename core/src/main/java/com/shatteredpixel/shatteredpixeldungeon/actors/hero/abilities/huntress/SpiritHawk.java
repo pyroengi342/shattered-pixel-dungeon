@@ -37,6 +37,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.ArmorAbili
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.DirectableAlly;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShaftParticle;
+import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClassArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTeleportation;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -87,8 +88,7 @@ public class SpiritHawk extends ArmorAbility {
 
 		if (ally != null){
 			if (target == null){
-				return;
-			} else {
+            } else {
 				ally.directTocell(target);
 			}
 		} else {
@@ -102,7 +102,7 @@ public class SpiritHawk extends ArmorAbility {
 
 			if (!spawnPoints.isEmpty()){
 				armor.charge -= chargeUse(hero);
-				armor.updateQuickslot();
+				Item.updateQuickslot();
 
 				ally = new HawkAlly(hero);
 				ally.pos = Random.element(spawnPoints);

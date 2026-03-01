@@ -9,14 +9,14 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Random;
 
-import network.Multiplayer;
-
 import java.util.ArrayList;
+
+import network.Multiplayer;
 
 public class MossyClump extends Trinket {
 
     {
-        image = ItemSpriteSheet.MOSSY_CLUMP;
+        setImage(ItemSpriteSheet.MOSSY_CLUMP);
     }
 
     @Override
@@ -28,25 +28,33 @@ public class MossyClump extends Trinket {
     public String statsDesc() {
         Hero viewer = Multiplayer.localHero();
         int level = isIdentified() ? buffedLvl() : 0;
-        return Messages.get(this, "stats_desc", (int) (100 * overrideNormalLevelChance(level, viewer)));
+        return Messages.get(this, "stats_desc", (int) (100 * overrideNormalLevelChance()));
     }
 
-    public static float overrideNormalLevelChance(int level, Hero hero) {
-        int lvl = trinketLevel(MossyClump.class, hero);
+    public static float overrideNormalLevelChance() {
+        int lvl = -1;
+        for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+            lvl = trinketLevel(MossyClump.class, player.hero);
+            if (lvl != -1) break;
+        }
         if (lvl == -1) return 0f;
         return 0.25f + 0.25f * lvl;
     }
 
     // true for grass, false for water
-    private ArrayList<Boolean> levelFeels = new ArrayList<>();
+    private final ArrayList<Boolean> levelFeels = new ArrayList<>();
     private int shuffles = 0;
 
-    public static Level.Feeling getNextFeeling(Hero hero) {
-        if (hero == null) return Level.Feeling.NONE;
-        MossyClump clump = hero.belongings.getItem(MossyClump.class);
-        if (clump == null) {
-            return Level.Feeling.NONE;
+    public static Level.Feeling getNextFeeling() {
+        MossyClump clump = null;
+        for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+            clump = player.hero.belongings.getItem(MossyClump.class);
+            if (clump != null) break;
         }
+
+        if (clump == null)
+            return Level.Feeling.NONE;
+
         if (clump.levelFeels.isEmpty()) {
             Random.pushGenerator(Dungeon.seed + 1);
             clump.levelFeels.add(true);

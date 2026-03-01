@@ -33,12 +33,12 @@ import com.watabou.noosa.audio.Sample;
 public class SealShard extends RemainsItem {
 
 	{
-		image = ItemSpriteSheet.SEAL_SHARD;
+		setImage(ItemSpriteSheet.SEAL_SHARD);
 	}
 
 	@Override
 	protected void doEffect(Hero hero) {
-		Buff.affect(hero, Barrier.class, this)incShield(Math.round(hero.HT/5f));
+		Buff.affect(hero, Barrier.class, this).incShield(Math.round(hero.HT/5f));
 		hero.sprite.showStatusWithIcon( CharSprite.POSITIVE, Integer.toString(Math.round(hero.HT/5f)), FloatingText.SHIELDING );
 		Sample.INSTANCE.play(Assets.Sounds.UNLOCK);
 	}

@@ -38,7 +38,7 @@ public class StoneOfEnchantment extends InventoryStone {
 	
 	{
 		preferredBag = Belongings.Backpack.class;
-		image = ItemSpriteSheet.STONE_ENCHANT;
+		setImage(ItemSpriteSheet.STONE_ENCHANT);
 
 		unique = true;
 	}

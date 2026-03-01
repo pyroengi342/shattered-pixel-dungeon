@@ -45,9 +45,9 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap;
-import com.watabou.utils.BArray;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
+import com.watabou.utils.BArray;
 import com.watabou.utils.Callback;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
@@ -59,7 +59,7 @@ public class EtherealChains extends Artifact {
 	public static final String AC_CAST       = "CAST";
 
 	{
-		image = ItemSpriteSheet.ARTIFACT_CHAINS;
+		setImage(ItemSpriteSheet.ARTIFACT_CHAINS);
 
 		levelCap = 5;
 		exp = 0;
@@ -206,7 +206,7 @@ public class EtherealChains extends Artifact {
 						GameScene.updateFog();
 						hero.spendAndNext(1f);
 
-						artifactProc(enemy, visiblyUpgraded(), chargeUse);
+						artifactProc(hero, enemy, visiblyUpgraded(), chargeUse);
 					}
 				}));
 				hero.next();

@@ -21,8 +21,7 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.scenes;
 // В начале файла HeroSelectScene.java добавить:
-import network.NetworkManager;
-import network.windows.WndMultiplayer;
+
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Challenges;
 import com.shatteredpixel.shatteredpixeldungeon.Chrome;
@@ -77,15 +76,19 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
+import network.NetworkManager;
+import network.windows.WndMultiplayer;
+
 public class HeroSelectScene extends PixelScene {
 
 	private Image background;
-	private Image fadeLeft, fadeRight;
+	private Image fadeLeft;
+	private Image fadeRight;
 	private IconButton btnFade; //only on landscape
 
 	//fading UI elements
 	private RenderedTextBlock title;
-	private ArrayList<StyledButton> heroBtns = new ArrayList<>();
+	private final ArrayList<StyledButton> heroBtns = new ArrayList<>();
 	private RenderedTextBlock heroName; //only on landscape
 	private RenderedTextBlock heroDesc; //only on landscape
 	private StyledButton startBtn;
@@ -93,7 +96,7 @@ public class HeroSelectScene extends PixelScene {
 	private IconButton btnOptions;
 	private GameOptions optionsPane;
 	private IconButton btnExit;
-
+	private boolean waitingForLocalServer = false;
 	private RectF insets;
 
 	private static boolean heroWasRandomized = true;
@@ -148,14 +151,14 @@ public class HeroSelectScene extends PixelScene {
 		add(title);
 
 		startBtn = new StyledButton(Chrome.Type.GREY_BUTTON_TR, ""){
-			@SuppressWarnings("SuspiciousIndentation")
             protected void onClick() {
 				super.onClick();
 
-				if (GamesInProgress.selectedClass == null) return;
+				if (GamesInProgress.selectedClass == null) {
+					return;
+				}
 
                 // TODO need to add switch to explicitly state multiplayer mode
-                if (network.Multiplayer.isMultiplayer) {
                     switch (NetworkManager.getMode()) {
                         case SERVER:
                             // Server is allowed to init seed
@@ -163,19 +166,20 @@ public class HeroSelectScene extends PixelScene {
                             network.NetworkManager.broadcastSeed(Dungeon.seed, Dungeon.customSeedText);
                             break;
                         case CLIENT:
-                            // Client needs to get the seed of host, if he
-                            // did not get one
-
-                            // Client sends selected class
+							if (!NetworkManager.seedReceived) {
+								Game.scene().addToFront(new WndMessage("Waiting for seed from server..."));
+								return;
+							}
                             HeroClass cls = GamesInProgress.selectedClass;
-                            network.NetworkManager.sendHeroClass(cls);
+                            network.NetworkManager.sendHeroClass(GamesInProgress.selectedClass);
                             break;
-                        case NONE:
-                            // Do Nothing, probably error
-                            break;
+						case NONE:
+							// Запускаем локальный сервер
+							NetworkManager.getInstance().startServer();
+							startBtn.text(Messages.get(this, "connecting")); // локализация
+							startBtn.enable(false);
+							break;
                     }
-                    // Standard behaviour if not multiplayer
-                } else Dungeon.initSeed();
 
                 Dungeon.daily = Dungeon.dailyReplay = false;
 
@@ -505,6 +509,18 @@ public class HeroSelectScene extends PixelScene {
 
 	@Override
 	public void update() {
+		if (waitingForLocalServer && NetworkManager.seedReceived && NetworkManager.getLocalPlayerId() != -1) {
+			waitingForLocalServer = false;
+			startBtn.enable(true);
+			startBtn.text(Messages.titleCase(Messages.get(this, "start")));
+			HeroClass cls = GamesInProgress.selectedClass;
+			if (cls != null) {
+				NetworkManager.sendHeroClass(cls);
+			}
+			ActionIndicator.clearAction();
+			InterlevelScene.mode = InterlevelScene.Mode.DESCEND;
+			Game.switchScene(InterlevelScene.class);
+		}
 		super.update();
 		if (SPDSettings.intro() && Rankings.INSTANCE.totalNumber > 0){
 			SPDSettings.intro(false);
@@ -586,7 +602,7 @@ public class HeroSelectScene extends PixelScene {
 
 	private class HeroBtn extends StyledButton {
 
-		private HeroClass cl;
+		private final HeroClass cl;
 
 		private static final int MIN_WIDTH = 20;
 		private static final int HEIGHT = 24;
@@ -751,8 +767,10 @@ public class HeroSelectScene extends PixelScene {
 			};
 			seedButton.leftJustify = true;
 			seedButton.icon(Icons.get(Icons.SEED));
-			if (!SPDSettings.customSeed().isEmpty()) seedButton.icon().hardlight(1f, 1.5f, 0.67f);;
-			buttons.add(seedButton);
+			if (!SPDSettings.customSeed().isEmpty()) {
+				seedButton.icon().hardlight(1f, 1.5f, 0.67f);
+			}
+            buttons.add(seedButton);
 			add(seedButton);
 
 			StyledButton dailyButton = new StyledButton(Chrome.Type.BLANK, Messages.get(HeroSelectScene.class, "daily"), 6){

@@ -21,8 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero;
 
-import static network.NetworkManager.getLocalPlayerId;
-
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.GamesInProgress;
@@ -210,22 +208,27 @@ public enum Talent {
 		public int icon() { return BuffIndicator.TIME; }
 		public void tintIcon(Image icon) { icon.hardlight(0.15f, 0.2f, 0.5f); }
 		public float iconFadePercent() { return Math.max(0, visualcooldown() / 50); }
-	};
-	public static class LethalMomentumTracker extends FlavourBuff{};
-	public static class StrikingWaveTracker extends FlavourBuff{};
-	public static class WandPreservationCounter extends CounterBuff{{revivePersists = true;}};
-	public static class EmpoweredStrikeTracker extends FlavourBuff{
+	}
+
+    public static class LethalMomentumTracker extends FlavourBuff{}
+
+    public static class StrikingWaveTracker extends FlavourBuff{}
+
+    public static class WandPreservationCounter extends CounterBuff{{revivePersists = true;}}
+
+    public static class EmpoweredStrikeTracker extends FlavourBuff{
 		//blast wave on-hit doesn't resolve instantly, so we delay detaching for it
 		public boolean delayedDetach = false;
-	};
-	public static class ProtectiveShadowsTracker extends Buff {
+	}
+
+    public static class ProtectiveShadowsTracker extends Buff {
 		float barrierInc = 0.5f;
 
 		@Override
 		public boolean act() {
 			//barrier every 2/1 turns, to a max of 3/5
 			if (((Hero)target).hasTalent(Talent.PROTECTIVE_SHADOWS) && target.invisible > 0){
-				Barrier barrier = Buff.affect(target, Barrier.class, (Hero)target);
+				Barrier barrier = Buff.affect(target, Barrier.class, target);
 				if (barrier.shielding() < 1 + 2*((Hero)target).pointsInTalent(Talent.PROTECTIVE_SHADOWS)) {
 					barrierInc += 0.5f * ((Hero) target).pointsInTalent(Talent.PROTECTIVE_SHADOWS);
 				}
@@ -255,20 +258,25 @@ public enum Talent {
 			barrierInc = bundle.getFloat( BARRIER_INC );
 		}
 	}
-	public static class BountyHunterTracker extends FlavourBuff{};
-	public static class RejuvenatingStepsCooldown extends FlavourBuff{
+	public static class BountyHunterTracker extends FlavourBuff{}
+
+    public static class RejuvenatingStepsCooldown extends FlavourBuff{
 		public int icon() { return BuffIndicator.TIME; }
 		public void tintIcon(Image icon) { icon.hardlight(0f, 0.35f, 0.15f); }
 		public float iconFadePercent() { return GameMath.gate(0, visualcooldown() / (15 - 5*((Hero) target).pointsInTalent(REJUVENATING_STEPS)), 1); }
-	};
-	public static class RejuvenatingStepsFurrow extends CounterBuff{{revivePersists = true;}};
-	public static class SeerShotCooldown extends FlavourBuff{
+	}
+
+    public static class RejuvenatingStepsFurrow extends CounterBuff{{revivePersists = true;}}
+
+    public static class SeerShotCooldown extends FlavourBuff{
 		public int icon() { return target.buff(RevealedArea.class) != null ? BuffIndicator.NONE : BuffIndicator.TIME; }
 		public void tintIcon(Image icon) { icon.hardlight(0.7f, 0.4f, 0.7f); }
 		public float iconFadePercent() { return Math.max(0, visualcooldown() / 20); }
-	};
-	public static class SpiritBladesTracker extends FlavourBuff{};
-	public static class PatientStrikeTracker extends Buff {
+	}
+
+    public static class SpiritBladesTracker extends FlavourBuff{}
+
+    public static class PatientStrikeTracker extends Buff {
 		public int pos;
 		{ type = Buff.buffType.POSITIVE; }
 		public int icon() { return BuffIndicator.TIME; }
@@ -293,19 +301,22 @@ public enum Talent {
 			super.restoreFromBundle(bundle);
 			pos = bundle.getInt(POS);
 		}
-	};
-	public static class AggressiveBarrierCooldown extends FlavourBuff{
+	}
+
+    public static class AggressiveBarrierCooldown extends FlavourBuff{
 		public int icon() { return BuffIndicator.TIME; }
 		public void tintIcon(Image icon) { icon.hardlight(0.35f, 0f, 0.7f); }
 		public float iconFadePercent() { return Math.max(0, visualcooldown() / 50); }
-	};
-	public static class LiquidAgilEVATracker extends FlavourBuff{
+	}
+
+    public static class LiquidAgilEVATracker extends FlavourBuff{
 		{
 			//detaches after hero acts, not after mobs act
 			actPriority = HERO_PRIO+1;
 		}
-	};
-	public static class LiquidAgilACCTracker extends FlavourBuff{
+	}
+
+    public static class LiquidAgilACCTracker extends FlavourBuff{
 		public int uses;
 
 		{ type = buffType.POSITIVE; }
@@ -324,13 +335,15 @@ public enum Talent {
 			super.restoreFromBundle(bundle);
 			uses = bundle.getInt(USES);
 		}
-	};
-	public static class LethalHasteCooldown extends FlavourBuff{
+	}
+
+    public static class LethalHasteCooldown extends FlavourBuff{
 		public int icon() { return BuffIndicator.TIME; }
 		public void tintIcon(Image icon) { icon.hardlight(0.35f, 0f, 0.7f); }
 		public float iconFadePercent() { return Math.max(0, visualcooldown() / 100); }
-	};
-	public static class SwiftEquipCooldown extends FlavourBuff{
+	}
+
+    public static class SwiftEquipCooldown extends FlavourBuff{
 		public boolean secondUse;
 		public boolean hasSecondUse(){
 			return secondUse;
@@ -354,8 +367,9 @@ public enum Talent {
 			super.restoreFromBundle(bundle);
 			secondUse = bundle.getBoolean(SECOND_USE);
 		}
-	};
-	public static class DeadlyFollowupTracker extends FlavourBuff{
+	}
+
+    public static class DeadlyFollowupTracker extends FlavourBuff{
 		public int object;
 		{ type = Buff.buffType.POSITIVE; }
 		public int icon() { return BuffIndicator.INVERT_MARK; }
@@ -378,8 +392,9 @@ public enum Talent {
 		public int icon() { return BuffIndicator.INVERT_MARK; }
 		public void tintIcon(Image icon) { icon.hardlight(1f, 1f, 0.0f); }
 		public float iconFadePercent() { return Math.max(0, 1f - (visualcooldown() / 5)); }
-	};
-	public static class VariedChargeTracker extends Buff{
+	}
+
+    public static class VariedChargeTracker extends Buff{
 		public Class weapon;
 
 		private static final String WEAPON    = "weapon";
@@ -396,8 +411,9 @@ public enum Talent {
 	}
 	public static class CombinedLethalityAbilityTracker extends FlavourBuff{
 		public MeleeWeapon weapon;
-	};
-	public static class CombinedEnergyAbilityTracker extends FlavourBuff{
+	}
+
+    public static class CombinedEnergyAbilityTracker extends FlavourBuff{
 		public boolean monkAbilused = false;
 		public boolean wepAbilUsed = false;
 
@@ -505,15 +521,15 @@ public enum Talent {
 		}
 
 		if (talent == VETERANS_INTUITION && hero.pointsInTalent(VETERANS_INTUITION) == 2){
-			if (hero.belongings.armor() != null && !ShardOfOblivion.passiveIDDisabled())  {
+			if (hero.belongings.armor() != null && !ShardOfOblivion.passiveIDDisabled(hero))  {
 				hero.belongings.armor.identify();
 			}
 		}
 		if (talent == THIEFS_INTUITION && hero.pointsInTalent(THIEFS_INTUITION) == 2){
-			if (hero.belongings.ring != null && !ShardOfOblivion.passiveIDDisabled()) {
+			if (hero.belongings.ring != null && !ShardOfOblivion.passiveIDDisabled(hero)) {
 				hero.belongings.ring.identify();
 			}
-			if (hero.belongings.misc instanceof Ring && !ShardOfOblivion.passiveIDDisabled()) {
+			if (hero.belongings.misc instanceof Ring && !ShardOfOblivion.passiveIDDisabled(hero)) {
 				hero.belongings.misc.identify();
 			}
 			for (Item item : hero.belongings){
@@ -527,7 +543,7 @@ public enum Talent {
 			if (hero.belongings.misc instanceof Ring) ((Ring) hero.belongings.misc).setKnown();
 		}
 		if (talent == ADVENTURERS_INTUITION && hero.pointsInTalent(ADVENTURERS_INTUITION) == 2){
-			if (hero.belongings.weapon() != null && !ShardOfOblivion.passiveIDDisabled()){
+			if (hero.belongings.weapon() != null && !ShardOfOblivion.passiveIDDisabled(hero)){
 				hero.belongings.weapon().identify();
 			}
 		}
@@ -582,10 +598,11 @@ public enum Talent {
 		}
 	}
 
-	public static class CachedRationsDropped extends CounterBuff{{revivePersists = true;}};
-	public static class NatureBerriesDropped extends CounterBuff{{revivePersists = true;}};
+	public static class CachedRationsDropped extends CounterBuff{{revivePersists = true;}}
 
-	public static void onFoodEaten( Hero hero, float foodVal, Item foodSource ){
+    public static class NatureBerriesDropped extends CounterBuff{{revivePersists = true;}}
+
+    public static void onFoodEaten( Hero hero, float foodVal, Item foodSource ){
 		if (hero.hasTalent(HEARTY_MEAL)){
 			//4/6 HP healed, when hero is below 33% health (with a little rounding up)
 			if (hero.HP/(float)hero.HT < 0.334f) {
@@ -831,11 +848,8 @@ public enum Talent {
 	}
 
 	public static void onItemEquipped( Hero hero, Item item ){
-		boolean identify = false;
-		if (hero.pointsInTalent(VETERANS_INTUITION) == 2 && item instanceof Armor){
-			identify = true;
-		}
-		if (hero.hasTalent(THIEFS_INTUITION) && item instanceof Ring){
+		boolean identify = hero.pointsInTalent(VETERANS_INTUITION) == 2 && item instanceof Armor;
+        if (hero.hasTalent(THIEFS_INTUITION) && item instanceof Ring){
 			if (hero.pointsInTalent(THIEFS_INTUITION) == 2){
 				identify = true;
 			}
@@ -846,7 +860,7 @@ public enum Talent {
 		}
 
 		if (identify) {
-			if (ShardOfOblivion.passiveIDDisabled()) {
+			if (ShardOfOblivion.passiveIDDisabled(hero)) {
 				if (item instanceof Weapon){
 					((Weapon) item).setIDReady();
 				} else if (item instanceof Armor){
@@ -938,8 +952,9 @@ public enum Talent {
 		public void tintIcon(Image icon) { icon.hardlight(1.43f, 1.43f, 0f); }
 		public float iconFadePercent() { return Math.max(0, 1f - (visualcooldown() / 5)); }
 	}
-	public static class SuckerPunchTracker extends Buff{};
-	public static class FollowupStrikeTracker extends FlavourBuff{
+	public static class SuckerPunchTracker extends Buff{}
+
+    public static class FollowupStrikeTracker extends FlavourBuff{
 		public int object;
 		{ type = Buff.buffType.POSITIVE; }
 		public int icon() { return BuffIndicator.INVERT_MARK; }
@@ -956,9 +971,9 @@ public enum Talent {
 			super.restoreFromBundle(bundle);
 			object = bundle.getInt(OBJECT);
 		}
-	};
+	}
 
-	public static final int MAX_TALENT_TIERS = 4;
+    public static final int MAX_TALENT_TIERS = 4;
 
 	public static void initClassTalents( Hero hero ){
 		initClassTalents( hero.heroClass, hero.talents, hero.metamorphedTalents );

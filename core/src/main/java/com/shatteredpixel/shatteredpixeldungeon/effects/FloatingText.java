@@ -357,15 +357,15 @@ public class FloatingText extends RenderedTextBlock {
 		}
 		if (attacker.buff(Bless.class) != null) blessBoost *= 1.25f;
         // TODO remake
-        for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
-            if (player.hero.heroClass != HeroClass.CLERIC
-                    && player.hero.hasTalent(Talent.BLESS)
-                    && attacker.alignment == Char.Alignment.ALLY){
-                // + 3%/5%
-                blessBoost *= 1.01f + 0.02f*player.hero.pointsInTalent(Talent.BLESS);
-                break;
-            }
-        }
+//        for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+//            if (player.hero.heroClass != HeroClass.CLERIC
+//                    && player.hero.hasTalent(Talent.BLESS)
+//                    && attacker.alignment == Char.Alignment.ALLY){
+//                // + 3%/5%
+//                blessBoost *= 1.01f + 0.02f*player.hero.pointsInTalent(Talent.BLESS);
+//                break;
+//            }
+//        }
 		if (blessBoost > 1f) hitReasons.put(HIT_BLS, blessBoost);
 		if (RingOfAccuracy.accuracyMultiplier(attacker) > 1)    hitReasons.put(HIT_ACC, RingOfAccuracy.accuracyMultiplier(attacker));
 		if (attacker.buff(Scimitar.SwordDance.class) != null)   hitReasons.put(HIT_DANCE, 1.5f);
@@ -453,17 +453,19 @@ public class FloatingText extends RenderedTextBlock {
 				&& defender.buff(ChampionEnemy.class).evasionAndAccuracyFactor() > 1){
 			blessBoost *= defender.buff(ChampionEnemy.class).evasionAndAccuracyFactor();
 		}
-		if (defender.buff(Bless.class) != null) blessBoost *= 1.25f;
-        // TODO remake
-        for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
-            if (player.hero.heroClass != HeroClass.CLERIC
-                    && player.hero.hasTalent(Talent.BLESS)
-                    && defender.alignment == Char.Alignment.ALLY){
-                // + 3%/5%
-                blessBoost *= 1.01f + 0.02f*player.hero.pointsInTalent(Talent.BLESS);
-                break;
-            }
+		if (defender.buff(Bless.class) != null) {
+            blessBoost *= 1.25f;
         }
+        // TODO remake
+//        for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+//            if (player.hero.heroClass != HeroClass.CLERIC
+//                    && player.hero.hasTalent(Talent.BLESS)
+//                    && defender.alignment == Char.Alignment.ALLY){
+//                // + 3%/5%
+//                blessBoost *= 1.01f + 0.02f*player.hero.pointsInTalent(Talent.BLESS);
+//                break;
+//            }
+//        }
 		if (blessBoost > 1f)                                    missReasons.put(MISS_BLS, blessBoost);
 		if (FerretTuft.evasionMultiplier() > 1)                 missReasons.put(MISS_TUFT, FerretTuft.evasionMultiplier());
 		if (RingOfEvasion.evasionMultiplier(defender) > 1)      missReasons.put(MISS_EVA, RingOfEvasion.evasionMultiplier(defender));

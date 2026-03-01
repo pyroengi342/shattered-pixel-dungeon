@@ -21,6 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors;
 
+import static network.Multiplayer.localHero;
+
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
@@ -31,8 +33,6 @@ import com.watabou.noosa.Game;
 import com.watabou.utils.Bundlable;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.SparseArray;
-
-import static network.Multiplayer.localHero;
 
 import java.util.HashSet;
 import java.util.List;
@@ -149,11 +149,11 @@ public abstract class Actor implements Bundlable {
 	// *** Static members ***
 	// **********************
 	
-	private static HashSet<Actor> all = new HashSet<>();
-	private static HashSet<Char> chars = new HashSet<>();
+	private static final HashSet<Actor> all = new HashSet<>();
+	private static final HashSet<Char> chars = new HashSet<>();
 	private static volatile Actor current;
 
-	private static SparseArray<Actor> ids = new SparseArray<>();
+	private static final SparseArray<Actor> ids = new SparseArray<>();
 	private static int nextID = 1;
 
 	private static float now = 0;
@@ -234,11 +234,11 @@ public abstract class Actor implements Bundlable {
 	
 	public static void process() {
 		// We need to wait for servers response
-		if (!Multiplayer.isHost) {
-			clientProcess();
-		} else {
-        	serverOrSingleProcess(); // оригинальный цикл (для хоста или одиночной игры)
-    	}
+//		if (!Multiplayer.isHost) {
+//			clientProcess();
+//		} else {
+//        	serverOrSingleProcess(); // оригинальный цикл (для хоста или одиночной игры)
+//    	}
 		boolean doNext;
 		boolean interrupted = false;
 

@@ -32,7 +32,7 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 public class PotionOfHaste extends Potion {
 	
 	{
-		icon = ItemSpriteSheet.Icons.POTION_HASTE;
+		setIcon(ItemSpriteSheet.Icons.POTION_HASTE);
 	}
 	
 	@Override

@@ -21,8 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.levels.traps;
 
-import static network.NetworkManager.getLocalPlayerId;
-
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
@@ -63,7 +61,7 @@ public class PitfallTrap extends Trap {
         DelayedPit p = null;
         Char activator = Actor.findChar(pos);
         if (activator instanceof Hero) {
-            p = Buff.append((Hero) activator, DelayedPit.class, 1);
+            p = Buff.append(activator, DelayedPit.class, 1);
         }
         else {
 
@@ -81,11 +79,11 @@ public class PitfallTrap extends Trap {
 		}
 		p.setPositions(positions);
 
-
-		if (pos == Multiplayer.localHero().pos){
+        Hero local = Multiplayer.localHero();
+		if (pos == local.pos){
 			GLog.n(Messages.get(this, "triggered_hero"));
-		} else 		Hero local = Multiplayer.localHero();
-		if (local != null && local.fieldOfView != null && local.fieldOfView[pos]) {
+		}
+		else if (local != null && local.fieldOfView != null && local.fieldOfView[pos]) {
 			GLog.n(Messages.get(this, "triggered"));
 		}
 

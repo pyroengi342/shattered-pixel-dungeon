@@ -36,6 +36,8 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.watabou.noosa.Game;
 
+import network.Multiplayer;
+
 public class Fadeleaf extends Plant {
 	
 	{
@@ -78,7 +80,7 @@ public class Fadeleaf extends Plant {
 	
 	public static class Seed extends Plant.Seed {
 		{
-			image = ItemSpriteSheet.SEED_FADELEAF;
+			setImage(ItemSpriteSheet.SEED_FADELEAF);
 
 			plantClass = Fadeleaf.class;
 		}

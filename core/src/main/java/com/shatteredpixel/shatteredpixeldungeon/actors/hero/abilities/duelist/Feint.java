@@ -160,7 +160,7 @@ public class Feint extends ArmorAbility {
 	public static class AfterImage extends Mob {
 
         // Добавляем поле для хранения героя-владельца
-        private Hero owner;
+        private final Hero owner;
 
         // Конструктор с владельцем
         public AfterImage(Hero owner) {

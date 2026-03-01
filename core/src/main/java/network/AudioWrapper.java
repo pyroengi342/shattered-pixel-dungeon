@@ -77,7 +77,6 @@ public class AudioWrapper {
      * @param delay     Delay in seconds
      * @param volume    Volume multiplier
      * @param pitch     Pitch multiplier
-     * @param cell      The map cell where the sound originates
      */
     public static void playGlobalDelayed(String assetName, float delay, float volume, float pitch) {
         Sample.INSTANCE.playDelayed(assetName, delay, volume, pitch);

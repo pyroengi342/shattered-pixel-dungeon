@@ -36,7 +36,7 @@ public class GreatCrabSprite extends MobSprite {
 		int c = 32;
 
 		idle = new Animation( 5, true );
-		idle.frames( frames, 0+c, 1+c, 0+c, 2+c );
+		idle.frames( frames, c, 1+c, c, 2+c );
 
 		run = new Animation( 10, true ); //slower run animation
 		run.frames( frames, 3+c, 4+c, 5+c, 6+c );

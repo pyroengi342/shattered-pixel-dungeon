@@ -21,7 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.items.rings;
 
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
@@ -29,7 +28,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 public class RingOfEvasion extends Ring {
 
 	{
-		icon = ItemSpriteSheet.Icons.RING_EVASION;
+		setIcon(ItemSpriteSheet.Icons.RING_EVASION);
 		buffClass = Evasion.class;
 	}
 

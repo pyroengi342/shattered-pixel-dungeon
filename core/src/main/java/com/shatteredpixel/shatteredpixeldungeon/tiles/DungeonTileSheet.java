@@ -48,7 +48,7 @@ public class DungeonTileSheet {
 	 **********************************************************************/
 
 	private static final int GROUND         =                               xy(1, 1);   //24 slots
-	public static final int FLOOR           = GROUND +0;
+	public static final int FLOOR           = GROUND;
 	public static final int FLOOR_DECO      = GROUND +1;
 	public static final int GRASS           = GROUND +2;
 	public static final int EMBERS          = GROUND +3;
@@ -153,8 +153,7 @@ public class DungeonTileSheet {
 	public static boolean waterStitcheable(int tile){
 		//alt region deco has different visuals per region, is stitcheable in demon halls
 		if (tile == Terrain.REGION_DECO_ALT){
-			if (Dungeon.depth <= 20)    return false;
-			else                        return true;
+            return Dungeon.depth > 20;
 		}
 		return waterStitcheable.contains(tile);
 	}
@@ -179,7 +178,7 @@ public class DungeonTileSheet {
 	 **********************************************************************/
 
 	private static final int FLAT_WALLS         =                           xy(1, 4);   //16 slots
-	public static final int FLAT_WALL           = FLAT_WALLS+0;
+	public static final int FLAT_WALL           = FLAT_WALLS;
 	public static final int FLAT_WALL_DECO      = FLAT_WALLS+1;
 	public static final int FLAT_BOOKSHELF      = FLAT_WALLS+2;
 
@@ -195,7 +194,7 @@ public class DungeonTileSheet {
 	public static final int LOCKED_EXIT         = FLAT_WALLS+13;
 
 	public static final int FLAT_OTHER          =                           xy(1, 5);   //16 slots
-	public static final int FLAT_ALCHEMY_POT    = FLAT_OTHER+0;
+	public static final int FLAT_ALCHEMY_POT    = FLAT_OTHER;
 	public static final int FLAT_BARRICADE      = FLAT_OTHER+1;
 	public static final int FLAT_HIGH_GRASS     = FLAT_OTHER+2;
 	public static final int FLAT_FURROWED_GRASS = FLAT_OTHER+3;
@@ -221,7 +220,7 @@ public class DungeonTileSheet {
 
 	private static final int RAISED_WALLS               =                   xy(1, 6);   //32 slots
 	//+1 for open to the right, +2 for open to the left
-	public static final int RAISED_WALL                 = RAISED_WALLS+0;
+	public static final int RAISED_WALL                 = RAISED_WALLS;
 	public static final int RAISED_WALL_DECO            = RAISED_WALLS+4;
 	//wall that appears behind a top/bottom doorway
 	public static final int RAISED_WALL_DOOR            = RAISED_WALLS+8;
@@ -235,7 +234,7 @@ public class DungeonTileSheet {
 	// makes array traversal much faster than something like HashSet.contains.
 
 	//These tiles count as wall for the purposes of wall stitching
-	private static int[] wallStitcheable = new int[]{
+	private static final int[] wallStitcheable = new int[]{
 			Terrain.WALL, Terrain.WALL_DECO, Terrain.SECRET_DOOR,
 			Terrain.LOCKED_EXIT, Terrain.UNLOCKED_EXIT, Terrain.BOOKSHELF, NULL_TILE
 	};
@@ -265,7 +264,7 @@ public class DungeonTileSheet {
 	}
 
 	private static final int RAISED_DOORS           =                       xy(1, 8);  //8 slots
-	public static final int RAISED_DOOR             = RAISED_DOORS+0;
+	public static final int RAISED_DOOR             = RAISED_DOORS;
 	public static final int RAISED_DOOR_OPEN        = RAISED_DOORS+1;
 	public static final int RAISED_DOOR_LOCKED      = RAISED_DOORS+2;
 	public static final int RAISED_DOOR_CRYSTAL     = RAISED_DOORS+3;
@@ -283,7 +282,7 @@ public class DungeonTileSheet {
 		else return -1;
 	}
 
-	private static int[] doorTiles = new int[]{
+	private static final int[] doorTiles = new int[]{
 			Terrain.DOOR, Terrain.LOCKED_DOOR, Terrain.HERO_LKD_DR, Terrain.CRYSTAL_DOOR, Terrain.OPEN_DOOR
 	};
 
@@ -295,7 +294,7 @@ public class DungeonTileSheet {
 	}
 
 	private static final int RAISED_OTHER           =                       xy(9, 8);  //24 slots
-	public static final int RAISED_ALCHEMY_POT      = RAISED_OTHER+0;
+	public static final int RAISED_ALCHEMY_POT      = RAISED_OTHER;
 	public static final int RAISED_BARRICADE        = RAISED_OTHER+1;
 	public static final int RAISED_HIGH_GRASS       = RAISED_OTHER+2;
 	public static final int RAISED_FURROWED_GRASS   = RAISED_OTHER+3;
@@ -322,7 +321,7 @@ public class DungeonTileSheet {
 
 	//+1 for open right, +2 for open right-below, +4 for open left-below, +8 for open left.
 	public static final int WALLS_INTERNAL              =                   xy(1, 10);  //48 slots
-	private static final int WALL_INTERNAL              = WALLS_INTERNAL+0;
+	private static final int WALL_INTERNAL              = WALLS_INTERNAL;
 	private static final int WALL_INTERNAL_DECO         = WALLS_INTERNAL+16;
 	private static final int WALL_INTERNAL_WOODEN       = WALLS_INTERNAL+32;
 
@@ -343,7 +342,7 @@ public class DungeonTileSheet {
 
 	//+1 for open to the down-right, +2 for open to the down-left
 	private static final int WALLS_OVERHANG             =                   xy(1, 13);  //32 slots
-	public static final int WALL_OVERHANG                   = WALLS_OVERHANG+0;
+	public static final int WALL_OVERHANG                   = WALLS_OVERHANG;
 	public static final int WALL_OVERHANG_DECO              = WALLS_OVERHANG+4;
 	public static final int WALL_OVERHANG_WOODEN            = WALLS_OVERHANG+8;
 	public static final int DOOR_SIDEWAYS_OVERHANG          = WALLS_OVERHANG+16;
@@ -381,7 +380,7 @@ public class DungeonTileSheet {
 
 
 	private static final int OTHER_OVERHANG             =                   xy(9, 15);  //24 slots
-	public static final int ALCHEMY_POT_OVERHANG        = OTHER_OVERHANG+0;
+	public static final int ALCHEMY_POT_OVERHANG        = OTHER_OVERHANG;
 	public static final int BARRICADE_OVERHANG          = OTHER_OVERHANG+1;
 	public static final int HIGH_GRASS_OVERHANG         = OTHER_OVERHANG+2;
 	public static final int FURROWED_OVERHANG           = OTHER_OVERHANG+3;

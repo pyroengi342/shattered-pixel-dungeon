@@ -37,16 +37,16 @@ import com.watabou.noosa.tweeners.AlphaTweener;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
-import network.Multiplayer;
-
 import java.util.ArrayList;
+
+import network.Multiplayer;
 
 public class Honeypot extends Item {
 	
 	public static final String AC_SHATTER	= "SHATTER";
 	
 	{
-		image = ItemSpriteSheet.HONEYPOT;
+		setImage(ItemSpriteSheet.HONEYPOT);
 
 		defaultAction = AC_THROW;
 		usesTargeting = true;
@@ -156,7 +156,7 @@ public class Honeypot extends Item {
 	public static class ShatteredPot extends Item {
 
 		{
-			image = ItemSpriteSheet.SHATTPOT;
+			setImage(ItemSpriteSheet.SHATTPOT);
 			stackable = true;
 		}
 

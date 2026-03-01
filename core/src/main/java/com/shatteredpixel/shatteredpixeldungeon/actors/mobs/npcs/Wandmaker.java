@@ -1,24 +1,3 @@
-/*
- * Pixel Dungeon
- * Copyright (C) 2012-2015 Oleg Dolya
- *
- * Shattered Pixel Dungeon
- * Copyright (C) 2014-2025 Evan Debenham
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>
- */
-
 package com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
@@ -57,15 +36,14 @@ import com.watabou.utils.Callback;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
-import network.Multiplayer;
-
 import java.util.ArrayList;
+
+import network.Multiplayer;
 
 public class Wandmaker extends NPC {
 
 	{
 		spriteClass = WandmakerSprite.class;
-
 		properties.add(Property.IMMOVABLE);
 	}
 
@@ -84,7 +62,7 @@ public class Wandmaker extends NPC {
 		}
 		return super.act();
 	}
-	
+
 	@Override
 	public int defenseSkill( Char enemy ) {
 		return INFINITE_EVASION;
@@ -99,32 +77,32 @@ public class Wandmaker extends NPC {
 	public boolean add( Buff buff ) {
 		return false;
 	}
-	
+
 	@Override
 	public boolean reset() {
 		return true;
 	}
-	
+
 	@Override
 	public boolean interact(Char c) {
 		if (!(c instanceof Hero)){
 			return true;
 		}
-		sprite.turnTo( pos, ((Hero) c).pos );
+		sprite.turnTo( pos, c.pos );
+		Hero hero = (Hero) c;
 		if (Quest.given) {
-			
-			// TODO Check everybodies inventory?
+
 			Item item;
 			switch (Quest.type) {
 				case 1:
 				default:
-					item = ((Hero) c).belongings.getItem(CorpseDust.class);
+					item = hero.belongings.getItem(CorpseDust.class);
 					break;
 				case 2:
-					item = ((Hero) c).belongings.getItem(Embers.class);
+					item = hero.belongings.getItem(Embers.class);
 					break;
 				case 3:
-					item = ((Hero) c).belongings.getItem(Rotberry.Seed.class);
+					item = hero.belongings.getItem(Rotberry.Seed.class);
 					break;
 			}
 
@@ -139,13 +117,13 @@ public class Wandmaker extends NPC {
 				String msg;
 				switch(Quest.type){
 					case 1: default:
-						msg = Messages.get(this, "reminder_dust", Messages.titleCase(((Hero) c).name()));
+						msg = Messages.get(this, "reminder_dust", Messages.titleCase(hero.name()));
 						break;
 					case 2:
-						msg = Messages.get(this, "reminder_ember", Messages.titleCase(((Hero) c).name()));
+						msg = Messages.get(this, "reminder_ember", Messages.titleCase(hero.name()));
 						break;
 					case 3:
-						msg = Messages.get(this, "reminder_berry", Messages.titleCase(((Hero) c).name()));
+						msg = Messages.get(this, "reminder_berry", Messages.titleCase(hero.name()));
 						break;
 				}
 				Game.runOnRenderThread(new Callback() {
@@ -155,12 +133,12 @@ public class Wandmaker extends NPC {
 					}
 				});
 			}
-			
+
 		} else {
 
 			String msg1 = "";
 			String msg2 = "";
-			switch(((Hero) c).heroClass){
+			switch(hero.heroClass){
 				case WARRIOR:
 					msg1 += Messages.get(this, "intro_warrior");
 					break;
@@ -168,7 +146,7 @@ public class Wandmaker extends NPC {
 					msg1 += Messages.get(this, "intro_rogue");
 					break;
 				case MAGE:
-					msg1 += Messages.get(this, "intro_mage", Messages.titleCase(((Hero) c).name()));
+					msg1 += Messages.get(this, "intro_mage", Messages.titleCase(hero.name()));
 					break;
 				case HUNTRESS:
 					msg1 += Messages.get(this, "intro_huntress");
@@ -198,7 +176,7 @@ public class Wandmaker extends NPC {
 			msg2 += Messages.get(this, "intro_2");
 			final String msg1Final = msg1;
 			final String msg2Final = msg2;
-			
+
 			Game.runOnRenderThread(new Callback() {
 				@Override
 				public void call() {
@@ -217,31 +195,30 @@ public class Wandmaker extends NPC {
 
 		return true;
 	}
-	
+
 	public static class Quest {
 
 		private static int type;
 		// 1 = corpse dust quest
 		// 2 = elemental embers quest
 		// 3 = rotberry quest
-		
+
 		private static boolean spawned;
-		
+
 		private static boolean given;
-		
+
 		public static Wand wand1;
 		public static Wand wand2;
-		
+
 		public static void reset() {
 			spawned = false;
 			type = 0;
-
 			wand1 = null;
 			wand2 = null;
 		}
-		
+
 		private static final String NODE		= "wandmaker";
-		
+
 		private static final String SPAWNED		= "spawned";
 		private static final String TYPE		= "type";
 		private static final String GIVEN		= "given";
@@ -249,19 +226,19 @@ public class Wandmaker extends NPC {
 		private static final String WAND2		= "wand2";
 
 		private static final String RITUALPOS	= "ritualpos";
-		
+
 		public static void storeInBundle( Bundle bundle ) {
-			
+
 			Bundle node = new Bundle();
-			
+
 			node.put( SPAWNED, spawned );
-			
+
 			if (spawned) {
-				
+
 				node.put( TYPE, type );
-				
+
 				node.put( GIVEN, given );
-				
+
 				node.put( WAND1, wand1 );
 				node.put( WAND2, wand2 );
 
@@ -270,20 +247,20 @@ public class Wandmaker extends NPC {
 				}
 
 			}
-			
+
 			bundle.put( NODE, node );
 		}
-		
+
 		public static void restoreFromBundle( Bundle bundle ) {
 
 			Bundle node = bundle.getBundle( NODE );
-			
+
 			if (!node.isNull() && (spawned = node.getBoolean( SPAWNED ))) {
 
 				type = node.getInt(TYPE);
-				
+
 				given = node.getBoolean( GIVEN );
-				
+
 				wand1 = (Wand)node.get( WAND1 );
 				wand2 = (Wand)node.get( WAND2 );
 
@@ -295,17 +272,16 @@ public class Wandmaker extends NPC {
 				reset();
 			}
 		}
-		
+
 		private static boolean questRoomSpawned;
-		
+
 		public static void spawnWandmaker( Level level, Room room ) {
 			if (questRoomSpawned) {
-				
+
 				questRoomSpawned = false;
-				
+
 				Wandmaker npc = new Wandmaker();
 				boolean validPos;
-				//Do not spawn wandmaker on the entrance, in front of a door, or on bad terrain.
 				int tries = 0;
 				int dist = 2;
 				do {
@@ -319,8 +295,9 @@ public class Wandmaker extends NPC {
 						validPos = false;
 					}
 					for (int i : PathFinder.NEIGHBOURS4){
-						if (level.map[npc.pos+i] == Terrain.DOOR){
+						if (level.map[npc.pos + i] == Terrain.DOOR) {
 							validPos = false;
+							break;
 						}
 					}
 					if (level.traps.get(npc.pos) != null
@@ -350,17 +327,16 @@ public class Wandmaker extends NPC {
 				}
 				wand2.cursed = false;
 				wand2.upgrade();
-				
+
 			}
 		}
-		
+
 		public static ArrayList<Room> spawnRoom( ArrayList<Room> rooms) {
 			questRoomSpawned = false;
 			if (!spawned && (type != 0 || (Dungeon.depth > 6 && Random.Int( 10 - Dungeon.depth ) == 0))) {
 
-				// decide between 1,2, or 3 for quest type.
 				if (type == 0) type = Random.Int(3)+1;
-				
+
 				switch (type){
 					case 1: default:
 						rooms.add(new MassGraveRoom());
@@ -372,55 +348,41 @@ public class Wandmaker extends NPC {
 						rooms.add(new RotGardenRoom());
 						break;
 				}
-		
+
 				questRoomSpawned = true;
-				
+
 			}
 			return rooms;
 		}
 
-		//quest is active if:
 		public static boolean active(){
-			//it is not completed
-			if (wand1 == null || wand2 == null
-					|| !(Dungeon.level instanceof RegularLevel)){
+			if (wand1 == null || wand2 == null || !(Dungeon.level instanceof RegularLevel)){
 				return false;
 			}
+			Hero hero = Multiplayer.localHero();
+			if (hero == null) return false;
 
-			//and...
 			if (type == 1){
-				//hero is in the mass grave room
-				if (((RegularLevel) Dungeon.level).room(Dungeon.hero.pos) instanceof MassGraveRoom) {
+				if (((RegularLevel) Dungeon.level).room(hero.pos) instanceof MassGraveRoom) {
 					return true;
 				}
-
-				//or if they are corpse dust cursed
-				for (Buff b : Dungeon.hero.buffs()) {
+				for (Buff b : hero.buffs()) {
 					if (b instanceof CorpseDust.DustGhostSpawner) {
 						return true;
 					}
 				}
-
 				return false;
 			} else if (type == 2){
-				//hero has summoned the newborn elemental
 				for (Mob m : Dungeon.level.mobs) {
 					if (m instanceof Elemental.NewbornFireElemental) {
 						return true;
 					}
 				}
-
-				//or hero is in the ritual room and all 4 candles are with them
-				if (((RegularLevel) Dungeon.level).room(Dungeon.hero.pos) instanceof RitualSiteRoom) {
+				if (((RegularLevel) Dungeon.level).room(hero.pos) instanceof RitualSiteRoom) {
 					int candles = 0;
-					if (Dungeon.hero.belongings.getItem(CeremonialCandle.class) != null){
-						candles += Dungeon.hero.belongings.getItem(CeremonialCandle.class).quantity();
-					}
-
-					if (candles >= 4){
-						return true;
-					}
-
+					Item candleItem = hero.belongings.getItem(CeremonialCandle.class);
+					if (candleItem != null) candles += candleItem.quantity();
+					if (candles >= 4) return true;
 					for (Heap h : Dungeon.level.heaps.valueList()){
 						if (((RegularLevel) Dungeon.level).room(h.pos) instanceof RitualSiteRoom){
 							for (Item i : h.items){
@@ -430,34 +392,26 @@ public class Wandmaker extends NPC {
 							}
 						}
 					}
-
-					if (candles >= 4){
-						return true;
-					}
-
+					return candles >= 4;
 				}
-
 				return false;
 			} else {
-				//hero is in the rot garden room and the rot heart is alive
-				if (((RegularLevel) Dungeon.level).room(Dungeon.hero.pos) instanceof RotGardenRoom) {
+				if (((RegularLevel) Dungeon.level).room(hero.pos) instanceof RotGardenRoom) {
 					for (Mob m : Dungeon.level.mobs) {
 						if (m instanceof RotHeart) {
 							return true;
 						}
 					}
 				}
-
 				return false;
 			}
 		}
-		
+
 		public static void complete() {
 			wand1 = null;
 			wand2 = null;
-			
+
 			Notes.remove( Notes.Landmark.WANDMAKER );
-			//other quests award score when their boss is defeated
 			if (Quest.type == 1) {
 				Statistics.questScores[1] += 2000;
 			}

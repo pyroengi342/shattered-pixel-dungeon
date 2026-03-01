@@ -91,7 +91,7 @@ public class Hunger extends Buff implements Hero.Doom {
 				if (target.buff(Shadows.class) != null){
 					hungerDelay *= 1.5f;
 				}
-				hungerDelay /= SaltCube.hungerGainMultiplier();
+				hungerDelay /= SaltCube.hungerGainMultiplier((Hero) target);
 
 				float newLevel = level + (1f/hungerDelay);
 				if (newLevel >= STARVING) {

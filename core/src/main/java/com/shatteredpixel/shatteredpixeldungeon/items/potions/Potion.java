@@ -23,7 +23,6 @@ package com.shatteredpixel.shatteredpixeldungeon.items.potions;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
-import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Fire;
@@ -68,7 +67,6 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndBag;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndUseItem;
-import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Random;
 import com.watabou.utils.Reflection;
@@ -77,6 +75,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+
+import network.AudioWrapper;
+import network.Multiplayer;
 
 public class Potion extends Item {
 
@@ -166,10 +167,8 @@ public class Potion extends Item {
 				if (!classes.contains(ExoticPotion.exoToReg.get(i.getClass()))){
 					classes.add(ExoticPotion.exoToReg.get(i.getClass()));
 				}
-			} else if (i instanceof Potion){
-				if (!classes.contains(i.getClass())){
+			} else if (i instanceof Potion && !classes.contains(i.getClass())){
 					classes.add(i.getClass());
-				}
 			}
 		}
 		handler.saveClassesSelectively( bundle, classes );
@@ -190,7 +189,7 @@ public class Potion extends Item {
 	//useful for items that appear in UIs, or which are only spawned for their effects
 	protected boolean anonymous = false;
 	public void anonymize(){
-		if (!isKnown()) image = ItemSpriteSheet.POTION_HOLDER;
+		if (!isKnown()) setImage(ItemSpriteSheet.POTION_HOLDER);
 		anonymous = true;
 	}
 
@@ -198,10 +197,10 @@ public class Potion extends Item {
 	public void reset(){
 		super.reset();
 		if (handler != null && handler.contains(this)) {
-			image = handler.image(this);
+			setImage(handler.image(this));
 			color = handler.label(this);
 		} else {
-			image = ItemSpriteSheet.POTION_CRIMSON;
+			setImage(ItemSpriteSheet.POTION_CRIMSON);
 			color = "crimson";
 		}
 	}
@@ -283,23 +282,23 @@ public class Potion extends Item {
 			super.doThrow( hero );
 		}
 	}
-	
+
 	protected void drink( Hero hero ) {
-		
+
 		detach( hero.belongings.backpack );
-		
+
 		hero.spend( TIME_TO_DRINK );
 		hero.busy();
 		apply( hero );
-		
-		Sample.INSTANCE.play( Assets.Sounds.DRINK );
-		
+
+		AudioWrapper.play( Assets.Sounds.DRINK, hero.pos );
+
 		hero.sprite.operate( hero.pos );
 
 		if (!anonymous) {
 			Catalog.countUse(getClass());
 			if (Random.Float() < talentChance) {
-				Talent.onPotionUsed(curUser, curUser.pos, talentFactor);
+				Talent.onPotionUsed(hero, hero.pos, talentFactor);
 			}
 		}
 	}
@@ -334,10 +333,10 @@ public class Potion extends Item {
 	
 	public void shatter( int cell ) {
 		splash( cell );
-				Hero local = Multiplayer.localHero();
+		Hero local = Multiplayer.localHero();
 		if (local != null && local.fieldOfView != null && local.fieldOfView[cell]) {
 			GLog.i( Messages.get(Potion.class, "shatter") );
-			Sample.INSTANCE.play( Assets.Sounds.SHATTER );
+			AudioWrapper.play( Assets.Sounds.SHATTER, cell );
 		}
 	}
 
@@ -349,25 +348,17 @@ public class Potion extends Item {
 	public boolean isKnown() {
 		return anonymous || (handler != null && handler.isKnown( this ));
 	}
-	
+
 	public void setKnown() {
-		if (!anonymous) {
-			if (!isKnown()) {
+		if (!anonymous && !isKnown()) {
 				handler.know(this);
 				updateQuickslot();
-			}
-			
-			if (curUser.isAlive()) {
-				Catalog.setSeen(getClass());
-				Statistics.itemTypesDiscovered.add(getClass());
-			}
 		}
 	}
 	
 	@Override
 	public Item identify( boolean byHero ) {
 		super.identify(byHero);
-
 		if (!isKnown()) {
 			setKnown();
 		}
@@ -413,7 +404,7 @@ public class Potion extends Item {
 	}
 	
 	protected int splashColor(){
-		return anonymous ? 0x00AAFF : ItemSprite.pick( image, 5, 9 );
+		return anonymous ? 0x00AAFF : ItemSprite.pick(getImage(), 5, 9 );
 	}
 	
 	protected void splash( int cell ) {
@@ -451,7 +442,7 @@ public class Potion extends Item {
 	public static class PlaceHolder extends Potion {
 		
 		{
-			image = ItemSpriteSheet.POTION_HOLDER;
+			setImage(ItemSpriteSheet.POTION_HOLDER);
 		}
 		
 		@Override
@@ -506,7 +497,7 @@ public class Potion extends Item {
 		}
 		
 		@Override
-		public Item brew(ArrayList<Item> ingredients) {
+		public Item brew(ArrayList<Item> ingredients, Hero hero) {
 			if (!testIngredients(ingredients)) return null;
 			
 			for (Item ingredient : ingredients){

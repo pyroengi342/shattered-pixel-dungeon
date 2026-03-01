@@ -39,7 +39,7 @@ public class Ankh extends Item {
 	public static final String AC_BLESS = "BLESS";
 
 	{
-		image = ItemSpriteSheet.ANKH;
+		setImage(ItemSpriteSheet.ANKH);
 
 		//You tell the ankh no, don't revive me, and then it comes back to revive you again in another run.
 		//I'm not sure if that's enthusiasm or passive-aggression.

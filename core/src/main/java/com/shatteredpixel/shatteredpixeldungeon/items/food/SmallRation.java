@@ -27,7 +27,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 public class SmallRation extends Food {
 
 	{
-		image = ItemSpriteSheet.OVERPRICED;
+		setImage(ItemSpriteSheet.OVERPRICED);
 		energy = Hunger.HUNGRY/2f;
 	}
 	

@@ -21,13 +21,11 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.sprites;
 
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.spells.HolyLance;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.GnollGeomancer;
-
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.SpiritBow;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Crossbow;
@@ -60,20 +58,20 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
     // Новый метод reset с указанием атакующего
     public void reset( Char attacker, int from, int to, Item item, Callback listener ) {
         reset(attacker,
-                Dungeon.level.solid[from] ? DungeonTilemap.raisedTileCenterToWorld(from) : DungeonTilemap.raisedTileCenterToWorld(from),
-                Dungeon.level.solid[to] ? DungeonTilemap.raisedTileCenterToWorld(to) : DungeonTilemap.raisedTileCenterToWorld(to),
+                DungeonTilemap.raisedTileCenterToWorld(from),
+                DungeonTilemap.raisedTileCenterToWorld(to),
                 item, listener);
     }
 
     public void reset( Char attacker, Visual from, int to, Item item, Callback listener ) {
         reset(attacker, from.center(),
-                Dungeon.level.solid[to] ? DungeonTilemap.raisedTileCenterToWorld(to) : DungeonTilemap.raisedTileCenterToWorld(to),
+                DungeonTilemap.raisedTileCenterToWorld(to),
                 item, listener);
     }
 
     public void reset( Char attacker, int from, Visual to, Item item, Callback listener ) {
         reset(attacker,
-                Dungeon.level.solid[from] ? DungeonTilemap.raisedTileCenterToWorld(from) : DungeonTilemap.raisedTileCenterToWorld(from),
+                DungeonTilemap.raisedTileCenterToWorld(from),
                 to.center(),
                 item, listener);
     }

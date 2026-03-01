@@ -45,7 +45,7 @@ public class Stylus extends Item {
 	private static final String AC_INSCRIBE = "INSCRIBE";
 	
 	{
-		image = ItemSpriteSheet.STYLUS;
+		setImage(ItemSpriteSheet.STYLUS);
 		
 		stackable = true;
 

@@ -130,9 +130,10 @@ public class SewerPipeRoom extends StandardRoom {
 					}
 
 					for (Point door : connected.values()) {
-						if (door.x == p.x || door.y == p.y){
-							valid = false;
-						}
+                        if (door.x == p.x || door.y == p.y) {
+                            valid = false;
+                            break;
+                        }
 					}
 
 				} while (!valid);

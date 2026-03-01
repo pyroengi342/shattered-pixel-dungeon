@@ -21,7 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.items.artifacts;
 
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicImmune;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Regeneration;
@@ -49,7 +48,7 @@ import java.util.ArrayList;
 public class HolyTome extends Artifact {
 
 	{
-		image = ItemSpriteSheet.ARTIFACT_TOME;
+		setImage(ItemSpriteSheet.ARTIFACT_TOME);
 
 		exp = 0;
 		levelCap = 10;
@@ -127,7 +126,7 @@ public class HolyTome extends Artifact {
 			if (container.owner instanceof Hero
 					&& passiveBuff == null
 					&& ((Hero) container.owner).hasTalent(Talent.LIGHT_READING)){
-				activate((Hero) container.owner);
+				activate(container.owner);
 			}
 			return true;
 		} else{

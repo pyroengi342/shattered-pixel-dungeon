@@ -22,9 +22,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.sprites;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Necromancer;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShadowParticle;
@@ -36,7 +34,7 @@ import network.Multiplayer;
 
 public class SpectralNecromancerSprite extends MobSprite {
 
-	private Animation charging;
+	private final Animation charging;
 	private Emitter summoningParticles;
 
 	public SpectralNecromancerSprite(){
@@ -48,10 +46,10 @@ public class SpectralNecromancerSprite extends MobSprite {
 		int c = 16;
 
 		idle = new Animation( 1, true );
-		idle.frames( film, c+0, c+0, c+0, c+1, c+0, c+0, c+0, c+0, c+1 );
+		idle.frames( film, c, c, c, c+1, c, c, c, c, c+1 );
 
 		run = new Animation( 8, true );
-		run.frames( film, c+0, c+0, c+0, c+2, c+3, c+4 );
+		run.frames( film, c, c, c, c+2, c+3, c+4 );
 
 		zap = new Animation( 10, false );
 		zap.frames( film, c+5, c+6, c+7, c+8 );

@@ -59,16 +59,16 @@ import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 import com.watabou.utils.Reflection;
 
-import network.Multiplayer;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 
+import network.Multiplayer;
+
 public class Bomb extends Item {
 	
 	{
-		image = ItemSpriteSheet.BOMB;
+		setImage(ItemSpriteSheet.BOMB);
 
 		defaultAction = AC_LIGHTTHROW;
 		usesTargeting = true;
@@ -276,9 +276,9 @@ public class Bomb extends Item {
 	}
 
 	//used to track the death from friendly magic badge, if an explosion was conjured by magic
-	public static class ConjuredBomb extends Bomb{};
+	public static class ConjuredBomb extends Bomb{}
 
-	public static class Fuse extends Actor{
+    public static class Fuse extends Actor{
 
 		{
 			actPriority = BLOB_PRIO+1; //after hero, before other actors
@@ -333,7 +333,7 @@ public class Bomb extends Item {
 	public static class DoubleBomb extends Bomb{
 
 		{
-			image = ItemSpriteSheet.DBL_BOMB;
+			setImage(ItemSpriteSheet.DBL_BOMB);
 			stackable = false;
 		}
 
@@ -417,7 +417,7 @@ public class Bomb extends Item {
 		}
 		
 		@Override
-		public Item brew(ArrayList<Item> ingredients) {
+		public Item brew(ArrayList<Item> ingredients, Hero hero) {
 			Item result = null;
 			
 			for (Item i : ingredients){

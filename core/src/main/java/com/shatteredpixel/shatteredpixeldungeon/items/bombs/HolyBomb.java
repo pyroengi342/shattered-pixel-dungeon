@@ -35,14 +35,14 @@ import com.watabou.utils.BArray;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
-import network.Multiplayer;
-
 import java.util.ArrayList;
+
+import network.Multiplayer;
 
 public class HolyBomb extends Bomb {
 	
 	{
-		image = ItemSpriteSheet.HOLY_BOMB;
+		setImage(ItemSpriteSheet.HOLY_BOMB);
 	}
 
 	@Override

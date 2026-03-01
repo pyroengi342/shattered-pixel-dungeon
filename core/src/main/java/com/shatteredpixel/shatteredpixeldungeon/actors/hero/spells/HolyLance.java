@@ -21,8 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.spells;
 
-import static network.NetworkManager.getLocalPlayerId;
-
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
@@ -111,7 +109,8 @@ public String desc(Hero hero){
 		Char enemy = Actor.findChar(aim.collisionPos);
 		if (enemy != null) {
 			((MissileSprite) hero.sprite.parent.recycle(MissileSprite.class)).
-					reset(hero.sprite,
+					reset(hero,
+							hero.sprite,
 							enemy.sprite,
 							new HolyLanceVFX(),
 							new Callback() {
@@ -138,7 +137,8 @@ public String desc(Hero hero){
 							});
 		} else {
 			((MissileSprite) hero.sprite.parent.recycle(MissileSprite.class)).
-					reset(hero.sprite,
+					reset(hero,
+							hero.sprite,
 							target,
 							new HolyLanceVFX(),
 							new Callback() {
@@ -158,7 +158,7 @@ public String desc(Hero hero){
 	public static class HolyLanceVFX extends Item {
 
 		{
-			image = ItemSpriteSheet.THROWING_SPIKE;
+			setImage(ItemSpriteSheet.THROWING_SPIKE);
 		}
 
 		@Override

@@ -48,8 +48,6 @@ import com.watabou.utils.Bundle;
 import com.watabou.utils.Callback;
 import com.watabou.utils.PathFinder;
 
-import network.Multiplayer;
-
 import java.util.ArrayList;
 
 public class LloydsBeacon extends Artifact {
@@ -64,7 +62,7 @@ public class LloydsBeacon extends Artifact {
 	public int returnPos;
 	
 	{
-		image = ItemSpriteSheet.ARTIFACT_BEACON;
+		setImage(ItemSpriteSheet.ARTIFACT_BEACON);
 
 		levelCap = 3;
 

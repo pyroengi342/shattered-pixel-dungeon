@@ -37,7 +37,7 @@ public class WndStory extends Window {
 	private static final int MARGIN = 2;
 
 	private IconTitle ttl;
-	private RenderedTextBlock tf;
+	private final RenderedTextBlock tf;
 	
 	private float appearDelay;
 	private float disappearDelay;

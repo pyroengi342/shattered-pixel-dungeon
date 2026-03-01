@@ -32,7 +32,7 @@ import com.watabou.utils.PathFinder;
 public class SmokeBomb extends Bomb {
 	
 	{
-		image = ItemSpriteSheet.SMOKE_BOMB;
+		setImage(ItemSpriteSheet.SMOKE_BOMB);
 	}
 
 	@Override

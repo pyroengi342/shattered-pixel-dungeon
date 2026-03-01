@@ -4,22 +4,30 @@ package network;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
-import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
-import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndMessage;
 import com.watabou.noosa.Game;
 import com.watabou.utils.Bundle;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.ByteBufOutputStream;
-import io.netty.channel.*;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.ChannelPipeline;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
@@ -28,19 +36,28 @@ import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.LengthFieldPrepender;
 import io.netty.handler.codec.MessageToByteEncoder;
-
-import java.io.ByteArrayInputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import network.handlers.window.AbilityHandler;
+import network.handlers.window.BlacksmithHandler;
+import network.handlers.window.ComboHandler;
+import network.handlers.window.EnergizeHandler;
+import network.handlers.window.GhostRewardHandler;
+import network.handlers.HeroClassHandler;
+import network.handlers.window.ItemUseHandler;
+import network.handlers.window.MonkAbilityHandler;
+import network.handlers.PlayerAssignHandler;
+import network.handlers.PlayerJoinHandler;
+import network.handlers.PlayerLeaveHandler;
+import network.handlers.SeedInitHandler;
+import network.handlers.ServerShutdownHandler;
+import network.handlers.window.SubclassHandler;
+import network.handlers.window.UpgradeHandler;
 
 public class NetworkManager {
     public enum Mode { NONE, CLIENT, SERVER }
     private static NetworkManager instance;
-    private final MessageDispatcher messageDispatcher = new MessageDispatcher(this);
+    private final MessageDispatcher messageDispatcher = new MessageDispatcher();
     private static Mode mode = Mode.NONE;
-
+    public static boolean seedReceived = false;
     // Netty
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
@@ -70,7 +87,25 @@ public class NetworkManager {
             this.playerId = playerId;
         }
     }
-
+    private void initHandlers() {
+        messageDispatcher.registerHandler(new PlayerAssignHandler());
+        messageDispatcher.registerHandler(new PlayerJoinHandler());
+        messageDispatcher.registerHandler(new PlayerLeaveHandler());
+        messageDispatcher.registerHandler(new ServerShutdownHandler(this)); // требует ссылку на NetworkManager
+        messageDispatcher.registerHandler(new SeedInitHandler());
+        messageDispatcher.registerHandler(new HeroClassHandler());
+        // Wnd dispatchers
+        messageDispatcher.registerHandler(new UpgradeHandler());
+        messageDispatcher.registerHandler(new ItemUseHandler());
+        messageDispatcher.registerHandler(new GhostRewardHandler());
+        messageDispatcher.registerHandler(new MonkAbilityHandler());
+        messageDispatcher.registerHandler(new EnergizeHandler());
+        messageDispatcher.registerHandler(new ComboHandler());
+        messageDispatcher.registerHandler(new SubclassHandler());
+        messageDispatcher.registerHandler(new AbilityHandler());
+        messageDispatcher.registerHandler(new BlacksmithHandler());
+        // Добавьте остальные (GAME_STATE, LEVEL_UPDATE, PLAYER_INPUT) по мере необходимости
+    }
     private NetworkManager() {
         setupKryo();
     }
@@ -95,6 +130,7 @@ public class NetworkManager {
         return mode;
     }
     public void disconnect() {
+        seedReceived = false;
         isDisconnecting = true;
 
         new Thread(() -> {
@@ -165,9 +201,8 @@ public class NetworkManager {
         protected void channelRead0(ChannelHandlerContext ctx, BundleMessage msg) throws Exception {
             Game.runOnRenderThread(() -> {
                 messageDispatcher.dispatch(msg);
-                if (msg.type.equals("PLAYER_INPUT") || msg.type.equals("LEVEL_UPDATE")) {
-                    broadcastMessageServer(msg, ctx);
-                }
+                // Рассылаем всем остальным клиентам (кроме отправителя)
+                broadcastMessageServer(msg, ctx);
             });
         }
 
@@ -245,9 +280,10 @@ public class NetworkManager {
                             network.Multiplayer.isHost = true;
 
                             // Создаем игрока для администратора
-                            Multiplayer.PlayerInfo hostPlayer = new Multiplayer.PlayerInfo(0, "Host");
-                            hostPlayer.isLocal = true; // Отмечаем как локального игрока
-                            Multiplayer.Players.add(hostPlayer);
+//                            Multiplayer.PlayerInfo hostPlayer = new Multiplayer.PlayerInfo(0, "Host");
+//                            hostPlayer.isLocal = true; // Отмечаем как локального игрока
+//                            Multiplayer.Players.add(hostPlayer);
+                            isStarting = false; // разрешаем подключение
                             connectToServer("127.0.0.1");
                         } else {
                             //showError("Failed to start server: " + future.cause().getMessage());
@@ -412,14 +448,14 @@ public class NetworkManager {
         isStarting = true;
 
         // Если мы администратор и уже создали себя как игрока
-        if (mode == Mode.SERVER && host.equals("127.0.0.1")) {
-            // Пропускаем обычное подключение для администратора
-            Game.runOnRenderThread(() -> {
-                showMessage("Host connected as player");
-                isStarting = false;
-            });
-            return;
-        }
+//        if (mode == Mode.SERVER && host.equals("127.0.0.1")) {
+//            // Пропускаем обычное подключение для администратора
+//            Game.runOnRenderThread(() -> {
+//                showMessage("Host connected as player");
+//                isStarting = false;
+//            });
+//            return;
+//        }
 
         new Thread(() -> {
             try {
@@ -564,6 +600,15 @@ public class NetworkManager {
     }
 
     // Player methods
+    public static void sendMessage(String type, Bundle bundle) {
+        BundleMessage msg = new BundleMessage(type, getLocalPlayerId());
+        msg.bundleData = bundle.toString();
+        if (getMode() == Mode.CLIENT) {
+            sendToServer(msg);
+        } else if (getMode() == Mode.SERVER) {
+            broadcastMessageServer(msg);
+        }
+    }
     private void sendCurrGameStateToPlayer(ChannelHandlerContext ctx) {
         Bundle gameState = new Bundle();
         BundleMessage message = new BundleMessage("GAME_STATE", -1);
@@ -587,6 +632,11 @@ public class NetworkManager {
                 }
 
             }
+        }
+    }
+    public static void sendToServer(BundleMessage msg) {
+        if (mode == Mode.CLIENT && clientChannel != null) {
+            clientChannel.writeAndFlush(msg);
         }
     }
     public static int getLocalPlayerId() {

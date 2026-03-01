@@ -8,9 +8,9 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import network.Multiplayer;
 
 public class ParchmentScrap extends Trinket {
-
+    // TODO this needs to be remade completely
     {
-        image = ItemSpriteSheet.PARCHMENT_SCRAP;
+        setImage(ItemSpriteSheet.PARCHMENT_SCRAP);
     }
 
     @Override
@@ -21,31 +21,43 @@ public class ParchmentScrap extends Trinket {
     @Override
     public String statsDesc() {
         Hero viewer = Multiplayer.localHero();
-        int level = isIdentified() ? buffedLvl() : 0;
+//        int level = isIdentified() ? buffedLvl() : 0;
         return Messages.get(this, "stats_desc",
-                (int) enchantChanceMultiplier(level, viewer),
-                Messages.decimalFormat("#.##", curseChanceMultiplier(level, viewer)));
+                (int) enchantChanceMultiplier(viewer),
+                Messages.decimalFormat("#.##", curseChanceMultiplier(viewer)));
     }
 
-    public static float enchantChanceMultiplier(int level, Hero hero) {
+    public static float enchantChanceMultiplier(Hero hero) {
         int lvl = trinketLevel(ParchmentScrap.class, hero);
         switch (lvl) {
-            default: return 1;
             case 0: return 2;
             case 1: return 4;
             case 2: return 7;
             case 3: return 10;
+            default: return 1;
         }
     }
 
-    public static float curseChanceMultiplier(int level, Hero hero) {
+    public static float curseChanceMultiplier(Hero hero) {
         int lvl = trinketLevel(ParchmentScrap.class, hero);
         switch (lvl) {
-            default: return 1;
             case 0: return 1.5f;
             case 1: return 2f;
             case 2: return 1f;
             case 3: return 0f;
+            default: return 1;
         }
     }
+
+//    private void extracted() {
+//        float effectRoll = Random.Float();
+//        //30% chance to be cursed
+//        //10% chance to be enchanted
+//        if (effectRoll < 0.3f * ParchmentScrap.curseChanceMultiplier(curUser)) {
+//            enchant(Weapon.Enchantment.randomCurse());
+//            cursed = true;
+//        } else if (effectRoll >= 1f - (0.1f * ParchmentScrap.enchantChanceMultiplier(curUser))){
+//            enchant();
+//        }
+//    }
 }

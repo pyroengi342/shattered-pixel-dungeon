@@ -29,7 +29,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 public class WarScythe extends MeleeWeapon {
 
 	{
-		image = ItemSpriteSheet.WAR_SCYTHE;
+		setImage(ItemSpriteSheet.WAR_SCYTHE);
 		hitSound = Assets.Sounds.HIT_SLASH;
 		hitSoundPitch = 0.9f;
 

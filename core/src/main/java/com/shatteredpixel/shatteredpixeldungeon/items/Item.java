@@ -30,7 +30,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Blindness;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Degrade;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Belongings;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
@@ -54,14 +53,22 @@ import com.watabou.utils.Bundle;
 import com.watabou.utils.Callback;
 import com.watabou.utils.Reflection;
 
-import network.Multiplayer;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
-public class Item implements Bundlable {
+import network.Multiplayer;
 
+public class Item implements Bundlable {
+	private static long nextItemID = 1; // глобальный счётчик (можно long, чтобы избежать переполнения)
+	protected long itemID;
+
+	public Item() {
+		itemID = nextItemID++;
+	}
+	public long getItemID() {
+		return itemID;
+	}
 	protected static final String TXT_TO_STRING_LVL		= "%s %+d";
 	protected static final String TXT_TO_STRING_X		= "%s x%d";
 	
@@ -74,10 +81,8 @@ public class Item implements Bundlable {
 	
 	protected String defaultAction;
 	public boolean usesTargeting;
-
-	//TODO should these be private and accessed through methods?
-	public int image = 0;
-	public int icon = -1; //used as an identifier for items with randomized images
+	private int image = 0;
+	private int icon = -1; //used as an identifier for items with randomized images
 	
 	public boolean stackable = false;
 	protected int quantity = 1;
@@ -312,16 +317,15 @@ public class Item implements Bundlable {
 
 	public Item duplicate(){
 		Item dupe = Reflection.newInstance(getClass());
-		if (dupe == null){
-			return null;
-		}
+		if (dupe == null) return null;
 		Bundle copy = new Bundle();
 		this.storeInBundle(copy);
 		dupe.restoreFromBundle(copy);
+		dupe.itemID = nextItemID++; // присвоить новый ID
 		return dupe;
 	}
 	
-		public final Item detach( Bag container ) {
+	public final Item detach( Bag container ) {
 		Hero owner = (container.owner instanceof Hero) ? (Hero) container.owner : null;
 
 		if (quantity <= 0) return null;
@@ -519,7 +523,7 @@ public class Item implements Bundlable {
 	}
 	
 	public int image() {
-		return image;
+		return getImage();
 	}
 	
 	public ItemSprite.Glowing glowing() {
@@ -593,6 +597,8 @@ public class Item implements Bundlable {
 	private static final String CURSED_KNOWN	= "cursedKnown";
 	private static final String KEPT_LOST       = "kept_lost";
 	private static final String CUSTOM_NOTE_ID = "custom_note_id";
+	private static final String ITEM_ID = "item_id";
+	private static final String NEXT_ITEM_ID = "next_item_id";
 	
 	@Override
 	public void storeInBundle( Bundle bundle ) {
@@ -601,6 +607,8 @@ public class Item implements Bundlable {
 		bundle.put( LEVEL_KNOWN, levelKnown );
 		bundle.put( CURSED, cursed );
 		bundle.put( CURSED_KNOWN, cursedKnown );
+		bundle.put(ITEM_ID, itemID);
+		bundle.put(NEXT_ITEM_ID, nextItemID);
 		// if (curUser.quickslot.contains(this)) {
 		// 	bundle.put( QUICKSLOT, curUser.quickslot.getSlot(this) );
 		// }
@@ -629,7 +637,11 @@ public class Item implements Bundlable {
 		// 		curUser.quickslot.setSlot(bundle.getInt(QUICKSLOT), this);
 		// 	}
 		// }
-
+		nextItemID = bundle.getLong(NEXT_ITEM_ID);
+		itemID = bundle.getLong(ITEM_ID);
+		if (itemID == 0) {
+			itemID = nextItemID++; // для старых сохранений (если ID не было)
+		}
 		keptThoughLostInvent = bundle.getBoolean( KEPT_LOST );
 		if (bundle.contains(CUSTOM_NOTE_ID))    customNoteID = bundle.getInt(CUSTOM_NOTE_ID);
 	}
@@ -720,10 +732,26 @@ public class Item implements Bundlable {
 		curItem = this;
 	}
 
+	public int getImage() {
+		return image;
+	}
+
+	public void setImage(int image) {
+		this.image = image;
+	}
+
+	public int getIcon() {
+		return icon;
+	}
+
+	public void setIcon(int icon) {
+		this.icon = icon;
+	}
+
 	// Вспомогательный класс для выбора цели броска
 	private class ThrowSelector extends CellSelector.Listener {
-		private Hero hero;
-		private Item item;
+		private final Hero hero;
+		private final Item item;
 		ThrowSelector(Hero hero, Item item) { this.hero = hero; this.item = item; }
 		@Override
 		public void onSelect( Integer target ) {
@@ -735,5 +763,8 @@ public class Item implements Bundlable {
 		public String prompt() {
 			return Messages.get(Item.class, "prompt");
 		}
+	}
+	protected CellSelector.Listener createThrowSelector(Hero hero, Item item) {
+		return new ThrowSelector(hero, item);
 	}
 }

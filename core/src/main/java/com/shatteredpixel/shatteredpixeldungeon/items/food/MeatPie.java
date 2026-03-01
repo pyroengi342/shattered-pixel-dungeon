@@ -33,7 +33,7 @@ import java.util.ArrayList;
 public class MeatPie extends Food {
 	
 	{
-		image = ItemSpriteSheet.MEAT_PIE;
+		setImage(ItemSpriteSheet.MEAT_PIE);
 		energy = Hunger.STARVING*2f;
 	}
 	
@@ -80,7 +80,7 @@ public class MeatPie extends Food {
 		}
 		
 		@Override
-		public Item brew(ArrayList<Item> ingredients) {
+		public Item brew(ArrayList<Item> ingredients, Hero hero) {
 			if (!testIngredients(ingredients)) return null;
 			
 			for (Item ingredient : ingredients){

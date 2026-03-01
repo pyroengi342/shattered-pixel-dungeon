@@ -34,6 +34,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.ArmorAbili
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.huntress.SpiritHawk;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.DirectableAlly;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SmokeParticle;
+import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClassArmor;
 import com.shatteredpixel.shatteredpixeldungeon.levels.CityLevel;
@@ -91,8 +92,7 @@ public class ShadowClone extends ArmorAbility {
 
 		if (ally != null){
 			if (target == null){
-				return;
-			} else {
+            } else {
 				ally.directTocell(target);
 			}
 		} else {
@@ -106,7 +106,7 @@ public class ShadowClone extends ArmorAbility {
 
 			if (!spawnPoints.isEmpty()){
 				armor.charge -= chargeUse(hero);
-				armor.updateQuickslot();
+				Item.updateQuickslot();
 
 				ally = new ShadowAlly(hero.lvl, hero);
 				ally.pos = Random.element(spawnPoints);
@@ -284,11 +284,7 @@ public class ShadowClone extends ArmorAbility {
         public boolean canInteract(Char c) {
             if (super.canInteract(c)){
                 return true;
-            } else if (c instanceof Hero && Dungeon.level.distance(pos, c.pos) <= ((Hero) c).pointsInTalent(Talent.PERFECT_COPY)) {
-                return true;
-            } else {
-                return false;
-            }
+            } else return c instanceof Hero && Dungeon.level.distance(pos, c.pos) <= ((Hero) c).pointsInTalent(Talent.PERFECT_COPY);
         }
 
 		@Override
@@ -314,8 +310,8 @@ public class ShadowClone extends ArmorAbility {
 			if (PathFinder.distance[pos] == Integer.MAX_VALUE){
 				return true;
 			}
-			appear(this, ((Hero) c).pos);
-			appear(((Hero) c), curPos);
+			appear(this, c.pos);
+			appear(c, curPos);
 			Dungeon.observe( ((Hero) c) );
 			GameScene.updateFog();
 			return true;

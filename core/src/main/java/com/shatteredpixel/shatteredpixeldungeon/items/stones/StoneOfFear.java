@@ -22,7 +22,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.stones;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
@@ -35,7 +34,7 @@ import com.watabou.noosa.audio.Sample;
 public class StoneOfFear extends Runestone {
 	
 	{
-		image = ItemSpriteSheet.STONE_FEAR;
+		setImage(ItemSpriteSheet.STONE_FEAR);
 	}
 	
 	@Override

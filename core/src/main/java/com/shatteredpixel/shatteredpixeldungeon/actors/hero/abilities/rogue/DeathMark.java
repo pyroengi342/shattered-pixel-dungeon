@@ -34,15 +34,16 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.ArmorAbility;
 import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
+import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClassArmor;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
-import com.watabou.utils.BArray;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.Image;
 import com.watabou.noosa.audio.Sample;
+import com.watabou.utils.BArray;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.PathFinder;
 
@@ -97,7 +98,7 @@ public class DeathMark extends ArmorAbility {
         }
 
 		armor.charge -= chargeUse( hero );
-		armor.updateQuickslot();
+		Item.updateQuickslot();
 		hero.sprite.zap(target);
 
 		hero.next();
@@ -143,9 +144,9 @@ public class DeathMark extends ArmorAbility {
         }
     }
 
-	public static class DoubleMarkTracker extends FlavourBuff{};
+	public static class DoubleMarkTracker extends FlavourBuff{}
 
-	@Override
+    @Override
 	public int icon() {
 		return HeroIcon.DEATH_MARK;
 	}
@@ -224,7 +225,7 @@ public class DeathMark extends ArmorAbility {
 			}
 		}
 
-		private static String INITIAL_HP = "initial_hp";
+		private static final String INITIAL_HP = "initial_hp";
 
         private static final String SOURCE_HERO_ID = "source_hero_id";
 

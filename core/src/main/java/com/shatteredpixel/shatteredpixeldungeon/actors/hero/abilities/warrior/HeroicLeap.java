@@ -31,6 +31,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Vulnerable;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.ArmorAbility;
+import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClassArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfBlastWave;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
@@ -49,7 +50,7 @@ public class HeroicLeap extends ArmorAbility {
 	}
 
 	@Override
-	public String targetingPrompt() {
+	public String targetingPrompt(Hero hero) {
 		return Messages.get(this, "prompt");
 	}
 
@@ -83,7 +84,7 @@ public class HeroicLeap extends ArmorAbility {
 			}
 
 			armor.charge -= chargeUse( hero );
-			armor.updateQuickslot();
+			Item.updateQuickslot();
 
 			final int dest = cell;
 			hero.busy();
@@ -99,7 +100,7 @@ public class HeroicLeap extends ArmorAbility {
 						Char mob = Actor.findChar(hero.pos + i);
 						if (mob != null && mob != hero && mob.alignment != Char.Alignment.ALLY) {
 							if (hero.hasTalent(Talent.BODY_SLAM)){
-								int damage = Hero.heroDamageIntRange(hero.pointsInTalent(Talent.BODY_SLAM), 4*hero.pointsInTalent(Talent.BODY_SLAM));
+								int damage = Hero.heroDamageIntRange(hero.pointsInTalent(Talent.BODY_SLAM), 4*hero.pointsInTalent(Talent.BODY_SLAM), hero);
 								damage += Math.round(hero.drRoll()*0.25f*hero.pointsInTalent(Talent.BODY_SLAM));
 								damage -= mob.drRoll();
 								mob.damage(damage, hero);
@@ -107,7 +108,7 @@ public class HeroicLeap extends ArmorAbility {
 							if (mob.pos == hero.pos + i && hero.hasTalent(Talent.IMPACT_WAVE)){
 								Ballistica trajectory = new Ballistica(mob.pos, mob.pos + i, Ballistica.MAGIC_BOLT);
 								int strength = 1+hero.pointsInTalent(Talent.IMPACT_WAVE);
-								WandOfBlastWave.throwChar(mob, trajectory, strength, true, true, HeroicLeap.this);
+								WandOfBlastWave.throwChar(mob, trajectory, strength, true, true, HeroicLeap.this, hero);
 								if (Random.Int(4) < hero.pointsInTalent(Talent.IMPACT_WAVE)){
 									Buff.prolong(mob, Vulnerable.class, 5f, this);
 								}
@@ -115,7 +116,7 @@ public class HeroicLeap extends ArmorAbility {
 						}
 					}
 
-					WandOfBlastWave.BlastWave.blast(dest);
+					WandOfBlastWave.BlastWave.blast(hero, dest);
 					PixelScene.shake(2, 0.5f);
 
 					Invisibility.dispel(hero);
@@ -133,9 +134,9 @@ public class HeroicLeap extends ArmorAbility {
 		}
 	}
 
-	public static class DoubleJumpTracker extends FlavourBuff{};
+	public static class DoubleJumpTracker extends FlavourBuff{}
 
-	@Override
+    @Override
 	public int icon() {
 		return HeroIcon.HEROIC_LEAP;
 	}

@@ -139,6 +139,7 @@ import com.watabou.noosa.Visual;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.noosa.particles.Emitter;
 import com.watabou.noosa.tweeners.Tweener;
+import com.watabou.utils.Bundle;
 import com.watabou.utils.Callback;
 import com.watabou.utils.GameMath;
 import com.watabou.utils.PlatformSupport;
@@ -153,6 +154,7 @@ import java.util.Comparator;
 import java.util.Locale;
 
 import network.Multiplayer;
+import network.NetworkManager;
 
 public class GameScene extends PixelScene {
 //    public static void handleCell(Integer cell) {
@@ -651,7 +653,7 @@ public class GameScene extends PixelScene {
 				GLog.h(Messages.get(this, "return"), Dungeon.depth);
 			}
 
-			if (Dungeon.hero.hasTalent(Talent.ROGUES_FORESIGHT)
+			if (Multiplayer.localHero().hasTalent(Talent.ROGUES_FORESIGHT)
 					&& Dungeon.level instanceof RegularLevel && Dungeon.branch == 0){
 				int reqSecrets = Dungeon.level.feeling == Level.Feeling.SECRETS ? 2 : 1;
 				for (Room r : ((RegularLevel) Dungeon.level).rooms()){
@@ -661,7 +663,7 @@ public class GameScene extends PixelScene {
 				//75%/100% chance, use level's seed so that we get the same result for the same level
 				//offset seed slightly to avoid output patterns
 				Random.pushGenerator(Dungeon.seedCurDepth()+1);
-					if (reqSecrets <= 0 && Random.Int(4) < 2+Dungeon.hero.pointsInTalent(Talent.ROGUES_FORESIGHT)){
+					if (reqSecrets <= 0 && Random.Int(4) < 2+Multiplayer.localHero().pointsInTalent(Talent.ROGUES_FORESIGHT)){
 						GLog.p(Messages.get(this, "secret_hint"));
 					}
 				Random.popGenerator();
@@ -718,8 +720,8 @@ public class GameScene extends PixelScene {
 				}
 			}
 
-			if (Dungeon.hero.buff(AscensionChallenge.class) != null){
-				Dungeon.hero.buff(AscensionChallenge.class).saySwitch();
+			if (Multiplayer.localHero().buff(AscensionChallenge.class) != null){
+				Multiplayer.localHero().buff(AscensionChallenge.class).saySwitch();
 			}
 
 			DimensionalSundial.sundialWarned = true;
@@ -760,7 +762,7 @@ public class GameScene extends PixelScene {
 			GameScene.flashForDocument(Document.ADVENTURERS_GUIDE, Document.GUIDE_DIEING);
 		}
 
-		TrinketCatalyst cata = Dungeon.hero.belongings.getItem(TrinketCatalyst.class);
+		TrinketCatalyst cata = Multiplayer.localHero().belongings.getItem(TrinketCatalyst.class);
 		if (cata != null && cata.hasRolledTrinkets()){
 			addToFront(new TrinketCatalyst.WndTrinket(cata));
 		}
@@ -829,7 +831,7 @@ public class GameScene extends PixelScene {
 	@Override
 	public synchronized void onPause() {
 		try {
-			if (!Dungeon.hero.ready) waitForActorThread(500, false);
+			if (!Multiplayer.localHero().ready) waitForActorThread(500, false);
 			Dungeon.saveAll();
 			Badges.saveGlobal();
 			Journal.saveGlobal();
@@ -842,7 +844,7 @@ public class GameScene extends PixelScene {
 	
 	//sometimes UI changes can be prompted by the actor thread.
 	// We queue any removed element destruction, rather than destroying them in the actor thread.
-	private ArrayList<Gizmo> toDestroy = new ArrayList<>();
+	private final ArrayList<Gizmo> toDestroy = new ArrayList<>();
 
 	//the actor thread processes at a maximum of 60 times a second
 	//this caps the speed of resting for higher refresh rate displays
@@ -869,7 +871,7 @@ public class GameScene extends PixelScene {
 			}
 		}
 
-		if (Dungeon.hero == null || scene == null) {
+		if (Multiplayer.localHero() == null || scene == null) {
 			return;
 		}
 
@@ -883,7 +885,7 @@ public class GameScene extends PixelScene {
 			waterOfs = water.offsetY(); //re-assign to account for auto adjust
 		}
 
-		if (!Actor.processing() && Dungeon.hero.isAlive()) {
+		if (!Actor.processing() && Multiplayer.localHero().isAlive()) {
 			if (actorThread == null || !actorThread.isAlive()) {
 				
 				actorThread = new Thread() {
@@ -909,7 +911,7 @@ public class GameScene extends PixelScene {
 			}
 		}
 
-		if (Dungeon.hero.ready && Dungeon.hero.paralysed == 0) {
+		if (Multiplayer.localHero().ready && Multiplayer.localHero().paralysed == 0) {
 			log.newLine();
 		}
 
@@ -943,7 +945,7 @@ public class GameScene extends PixelScene {
 
 		}
 
-		cellSelector.enable(Dungeon.hero.ready);
+		cellSelector.enable(Multiplayer.localHero().ready);
 
 		if (!toDestroy.isEmpty()) {
 			for (Gizmo g : toDestroy) {
@@ -982,7 +984,7 @@ public class GameScene extends PixelScene {
 		} else {
 			Camera.main.setCenterOffset(0, 0);
 		}
-		//Camera.main.panTo(Dungeon.hero.sprite.center(), 5f);
+		//Camera.main.panTo(Multiplayer.localHero().sprite.center(), 5f);
 
 		//adjust spacing for elements based on display cutouts
 		// We use ALL here as some elements can be a fair but up the side of the screen
@@ -1268,7 +1270,7 @@ public class GameScene extends PixelScene {
 						GLog.p(Messages.get(Guidebook.class, "hint_desktop", KeyBindings.getKeyName(KeyBindings.getFirstKeyForAction(SPDAction.JOURNAL, ControllerHandler.isControllerConnected()))));
 					}
 				}
-				Dungeon.hero.sprite.showStatus(CharSprite.POSITIVE, Messages.get(Guidebook.class, "hint_status"));
+				Multiplayer.localHero().sprite.showStatus(CharSprite.POSITIVE, Messages.get(Guidebook.class, "hint_status"));
 			}
 			scene.menu.flashForPage( doc, page );
 		}
@@ -1414,12 +1416,8 @@ public class GameScene extends PixelScene {
 
 		if (showingWindow()) return true;
 
-		if (scene.inventory != null && scene.inventory.isSelecting()){
-			return true;
-		}
-
-		return false;
-	}
+        return scene.inventory != null && scene.inventory.isSelecting();
+    }
 
 	public static void toggleInvPane(){
 		if (scene != null && scene.inventory != null){
@@ -1518,7 +1516,7 @@ public class GameScene extends PixelScene {
 		StyledButton restart = new StyledButton(Chrome.Type.GREY_BUTTON_TR, Messages.get(StartScene.class, "new"), 9){
 			@Override
 			protected void onClick() {
-				GamesInProgress.selectedClass = Dungeon.hero.heroClass;
+				GamesInProgress.selectedClass = Multiplayer.localHero().heroClass;
 				GamesInProgress.curSlot = GamesInProgress.firstEmpty();
 				ShatteredPixelDungeon.switchScene(HeroSelectScene.class);
 			}
@@ -1582,7 +1580,7 @@ public class GameScene extends PixelScene {
 			cellSelector.listener.onSelect(null);
 		}
 		cellSelector.listener = listener;
-		cellSelector.enabled = Dungeon.hero.ready;
+		cellSelector.enabled = Multiplayer.localHero().ready;
 		if (scene != null) {
 			scene.prompt(listener.prompt());
 		}
@@ -1618,10 +1616,10 @@ public class GameScene extends PixelScene {
 	
 	public static boolean cancel() {
 		cellSelector.resetKeyHold();
-		if (Dungeon.hero != null && (Dungeon.hero.curAction != null || Dungeon.hero.resting)) {
+		if (Multiplayer.localHero() != null && (Multiplayer.localHero().curAction != null || Multiplayer.localHero().resting)) {
 			
-			Dungeon.hero.curAction = null;
-			Dungeon.hero.resting = false;
+			Multiplayer.localHero().curAction = null;
+			Multiplayer.localHero().resting = false;
 			return true;
 			
 		} else {
@@ -1681,12 +1679,14 @@ public class GameScene extends PixelScene {
 	}
 
 	private static ArrayList<Object> getObjectsAtCell( int cell ){
+		Hero local = Multiplayer.localHero();
+		boolean[] fov = (local != null) ? local.fieldOfView : null;
 		ArrayList<Object> objects = new ArrayList<>();
 
-        if (cell instanceof Hero.pos) {
-			objects.add(Dungeon.hero);
+        if (cell == local.pos) {
+			objects.add(Multiplayer.localHero());
 
-		} else if (Dungeon.level.heroFOV[cell]) {
+		} else if (fov != null && fov[cell]) {
 			Mob mob = (Mob) Actor.findChar(cell);
 			if (mob != null) objects.add(mob);
 		}
@@ -1742,8 +1742,16 @@ public class GameScene extends PixelScene {
 	private static final CellSelector.Listener defaultCellListener = new CellSelector.Listener() {
 		@Override
 		public void onSelect( Integer cell ) {
-			if (Dungeon.hero.handle( cell )) {
-				Dungeon.hero.next();
+			Hero local = Multiplayer.localHero();
+			if (local == null) return;
+			if (local.handle(cell)) {
+				if (Multiplayer.isMultiplayer) {
+					Bundle bundle = new Bundle();
+					bundle.put("type", "PLAYER_MOVE");
+					bundle.put("cell", cell);
+					NetworkManager.sendMessage("PLAYER_ACTION", bundle);
+				}
+				local.next();
 			}
 		}
 

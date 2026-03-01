@@ -118,13 +118,9 @@ public abstract class DungeonTilemap extends Tilemap {
 		}
 
 		//caves region deco is very wall-like, so it counts
-		if (Dungeon.depth >= 10 && Dungeon.depth <= 15
-				&& (map[cell] == Terrain.REGION_DECO || map[cell] == Terrain.REGION_DECO_ALT)) {
-			return true;
-		}
-
-		return false;
-	}
+        return Dungeon.depth >= 10 && Dungeon.depth <= 15
+                && (map[cell] == Terrain.REGION_DECO || map[cell] == Terrain.REGION_DECO_ALT);
+    }
 	
 	@Override
 	public boolean overlapsPoint( float x, float y ) {

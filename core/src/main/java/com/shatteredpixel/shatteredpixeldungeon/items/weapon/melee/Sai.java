@@ -22,7 +22,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
@@ -41,7 +40,7 @@ import com.watabou.utils.Callback;
 public class Sai extends MeleeWeapon {
 
 	{
-		image = ItemSpriteSheet.SAI;
+		setImage(ItemSpriteSheet.SAI);
 		hitSound = Assets.Sounds.HIT_STAB;
 		hitSoundPitch = 1.3f;
 
@@ -115,7 +114,7 @@ public class Sai extends MeleeWeapon {
 
 				boolean hit = hero.attack(enemy, 1f + multiPerHit*recentHits, boostPerHit*recentHits, Char.INFINITE_ACCURACY);
 				if (hit && !enemy.isAlive()){
-					wep.onAbilityKill(hero, enemy);
+					onAbilityKill(hero, enemy);
 				}
 
 				Invisibility.dispel(hero);

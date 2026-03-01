@@ -30,7 +30,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 public class Greatsword extends MeleeWeapon {
 
 	{
-		image = ItemSpriteSheet.GREATSWORD;
+		setImage(ItemSpriteSheet.GREATSWORD);
 		hitSound = Assets.Sounds.HIT_SLASH;
 		hitSoundPitch = 1f;
 

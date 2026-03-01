@@ -21,8 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.spells;
 
-import static network.NetworkManager.getLocalPlayerId;
-
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
@@ -47,8 +45,6 @@ import com.watabou.noosa.Image;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Callback;
 import com.watabou.utils.Random;
-
-import network.Multiplayer;
 
 public class GuidingLight extends TargetedClericSpell {
 
@@ -166,20 +162,19 @@ public class GuidingLight extends TargetedClericSpell {
 			if (on) target.sprite.add(CharSprite.State.ILLUMINATED);
 			else target.sprite.remove(CharSprite.State.ILLUMINATED);
 		}
-
 		@Override
-	public String desc(Hero hero){
-			String desc = super.desc();
+		public String desc(){
+				String desc = super.desc();
 
-			if (((Hero) target).subClass == HeroSubClass.PRIEST){
-				desc += "\n\n" + Messages.get(this, "desc_priest");
-			} else if (((Hero) target).heroClass != HeroClass.CLERIC){
-				desc += "\n\n" + Messages.get(this, "desc_generic");
+				if (((Hero) target).subClass == HeroSubClass.PRIEST){
+					desc += "\n\n" + Messages.get(this, "desc_priest");
+				} else if (((Hero) target).heroClass != HeroClass.CLERIC){
+					desc += "\n\n" + Messages.get(this, "desc_generic");
+				}
+
+				return desc;
 			}
-
-			return desc;
 		}
-	}
 
 	public static class WasIlluminatedTracker extends Buff {}
 }

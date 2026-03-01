@@ -33,7 +33,7 @@ import network.Multiplayer;
 
 public class BlobEmitter extends Emitter {
 	
-	private Blob blob;
+	private final Blob blob;
 	
 	public BlobEmitter( Blob blob ) {
 		

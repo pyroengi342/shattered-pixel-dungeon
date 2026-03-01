@@ -50,14 +50,12 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
 
-import network.Multiplayer;
-
 import java.util.ArrayList;
 
 public class TalismanOfForesight extends Artifact {
 
 	{
-		image = ItemSpriteSheet.ARTIFACT_TALISMAN;
+		setImage(ItemSpriteSheet.ARTIFACT_TALISMAN);
 
 		exp = 0;
 		levelCap = 10;
@@ -195,7 +193,7 @@ public class TalismanOfForesight extends Artifact {
 							&& ch.alignment != curUser.alignment){
 						Buff.append(curUser, CharAwareness.class, 5 + 2*level()).charID = ch.id();
 
-						artifactProc(ch, visiblyUpgraded(), (int)(3 + dist*1.08f));
+						artifactProc(curUser, ch, visiblyUpgraded(), (int)(3 + dist*1.08f));
 
 						if (!curUser.fieldOfView[ch.pos]){
 							earnedExp += 10;

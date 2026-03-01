@@ -35,6 +35,8 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.watabou.utils.Bundle;
 
+import network.Multiplayer;
+
 public class Earthroot extends Plant {
 	
 	{
@@ -47,7 +49,7 @@ public class Earthroot extends Plant {
 
 		if (ch != null){
 			if (ch instanceof Hero && ((Hero) ch).subClass == HeroSubClass.WARDEN) {
-				Barkskin.conditionallyAppend(((Hero) ch), ((Hero) ch).lvl + 5, 5);
+				Barkskin.conditionallyAppend(ch, ((Hero) ch).lvl + 5, 5);
 			} else {
 				Buff.affect(ch, Armor.class, ch).level(ch.HT);
 			}
@@ -62,7 +64,7 @@ public class Earthroot extends Plant {
 	
 	public static class Seed extends Plant.Seed {
 		{
-			image = ItemSpriteSheet.SEED_EARTHROOT;
+			setImage(ItemSpriteSheet.SEED_EARTHROOT);
 
 			plantClass = Earthroot.class;
 

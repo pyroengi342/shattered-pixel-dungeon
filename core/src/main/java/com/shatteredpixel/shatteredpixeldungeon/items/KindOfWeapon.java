@@ -15,13 +15,11 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions;
-import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.BArray;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
 import network.AudioWrapper;
-import network.Multiplayer;
 
 abstract public class KindOfWeapon extends EquipableItem {
 
@@ -224,7 +222,7 @@ abstract public class KindOfWeapon extends EquipableItem {
 
     public int damageRoll(Char owner) {
         if (owner instanceof Hero) {
-            return Hero.heroDamageIntRange(min(), max());
+            return Hero.heroDamageIntRange(min(), max(), ((Hero) owner));
         } else {
             return Random.NormalIntRange(min(), max());
         }

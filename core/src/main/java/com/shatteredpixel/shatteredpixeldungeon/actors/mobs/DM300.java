@@ -46,10 +46,8 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Vertigo;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.spells.WallOfLight;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
-import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.effects.TargetedCell;
-import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SparkParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.DriedRose;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.LloydsBeacon;
 import com.shatteredpixel.shatteredpixeldungeon.items.quest.MetalShard;
@@ -57,7 +55,6 @@ import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfBlastWave;
 import com.shatteredpixel.shatteredpixeldungeon.levels.CavesBossLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
-import com.shatteredpixel.shatteredpixeldungeon.levels.traps.Trap;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.ConeAOE;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -453,7 +450,7 @@ public class DM300 extends Mob {
 		if (Dungeon.level.adjacent(pos, target.pos)){
 			int oppositeAdjacent = target.pos + (target.pos - pos);
 			Ballistica trajectory = new Ballistica(target.pos, oppositeAdjacent, Ballistica.MAGIC_BOLT);
-			WandOfBlastWave.throwChar(target, trajectory, 2, false, false, this);
+			WandOfBlastWave.throwChar(target, trajectory, 2, false, false, this, null);
 			if (target instanceof Hero){
 				((Hero) target).interrupt();}
 			rockCenter = trajectory.path.get(Math.min(trajectory.dist, 2));
@@ -462,7 +459,7 @@ public class DM300 extends Mob {
 		} else if (fieldOfView[target.pos] && Dungeon.level.distance(pos, target.pos) == 2) {
 			int oppositeAdjacent = target.pos + (target.pos - pos);
 			Ballistica trajectory = new Ballistica(target.pos, oppositeAdjacent, Ballistica.MAGIC_BOLT);
-			WandOfBlastWave.throwChar(target, trajectory, 1, false, false, this);
+			WandOfBlastWave.throwChar(target, trajectory, 1, false, false, this, null);
 			if (target instanceof Hero){
                 ((Hero) target).interrupt();}
 			rockCenter = trajectory.path.get(Math.min(trajectory.dist, 1));
@@ -560,7 +557,7 @@ public class DM300 extends Mob {
 
 	public void supercharge(){
 		supercharged = true;
-		((CavesBossLevel)Dungeon.level).activatePylon();
+		((CavesBossLevel)Dungeon.level).activatePylon(null);
 		pylonsActivated++;
 
 		spend(Dungeon.isChallenged(Challenges.STRONGER_BOSSES) ? 2f : 3f);

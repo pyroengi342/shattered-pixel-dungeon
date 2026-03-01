@@ -36,7 +36,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MindVision;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.RevealedArea;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Terror;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.cleric.PowerOfMany;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.huntress.SpiritHawk;
@@ -108,7 +107,7 @@ public class Dungeon {
 
 	//enum of items which have limited spawns, records how many have spawned
 	//could all be their own separate numbers, but this allows iterating, much nicer for bundling/initializing.
-	public static enum LimitedDrops {
+	public enum LimitedDrops {
 		//limited world drops
 		STRENGTH_POTIONS,
 		UPGRADE_SCROLLS,
@@ -283,36 +282,36 @@ public class Dungeon {
 		Imp.Quest.reset();
 
         // Проверяем, есть ли уже игроки (включая администратора)
-        List<Multiplayer.PlayerInfo> players = Multiplayer.Players.getAll();
-        boolean hasHostHero = false;
-        for (Multiplayer.PlayerInfo player : players) {
-            if (player.hero != null) {
-                hasHostHero = true;
-                break;
-            }
-        }
+//        List<Multiplayer.PlayerInfo> players = Multiplayer.Players.getAll();
+//        boolean hasHostHero = false;
+//        for (Multiplayer.PlayerInfo player : players) {
+//            if (player.hero != null) {
+//                hasHostHero = true;
+//                break;
+//            }
+//        }
         // Если у администратора еще нет героя, создаем его
-        if (Multiplayer.isHost && !hasHostHero && !players.isEmpty()) {
-            Multiplayer.PlayerInfo host = players.get(0);
-            host.hero = new Hero();
-            host.hero.live();
-            GamesInProgress.selectedClass.initHero(host.hero);
-            System.out.println("Created hero for host in init()");
-        }
+//        if (Multiplayer.isHost && !hasHostHero && !players.isEmpty()) {
+//            Multiplayer.PlayerInfo host = players.get(0);
+//            host.hero = new Hero();
+//            host.hero.live();
+//            GamesInProgress.selectedClass.initHero(host.hero);
+//            System.out.println("Created hero for host in init()");
+//        }
         // TODO need to add more checks
         // Adding every connected player right now
-        for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
-			if (player.hero == null) {
-				player.hero = new Hero();
-				player.hero.live();
-				System.out.println("Created hero for player: " + player.name + " (ID: " + player.id + ")");
-				GamesInProgress.selectedClass.initHero( player.hero );
-			}
-        }
+//        for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+//			if (player.hero == null) {
+//				player.hero = new Hero();
+//				player.hero.live();
+//				System.out.println("Created hero for player: " + player.name + " (ID: " + player.connectionID + ")");
+//				GamesInProgress.selectedClass.initHero( player.hero );
+//			}
+//        }
 
         Badges.reset();
         // TODO better show the player you actually play
-        // GamesInProgress.selectedClass.initHero( hero );
+//        GamesInProgress.selectedClass.initHero( hero );
 	}
 
 	public static boolean isChallenged( int mask ) {
@@ -414,11 +413,7 @@ public class Dungeon {
 			if (depth > Statistics.deepestFloor && branch == 0) {
 				Statistics.deepestFloor = depth;
 
-				if (Statistics.qualifiedForNoKilling) {
-					Statistics.completedWithNoKilling = true;
-				} else {
-					Statistics.completedWithNoKilling = false;
-				}
+                Statistics.completedWithNoKilling = Statistics.qualifiedForNoKilling;
 			}
 		}
 
@@ -484,13 +479,10 @@ public class Dungeon {
     }
 
 	public static boolean interfloorTeleportAllowed( Hero hero ){
-		if (Dungeon.level.locked
-				|| Dungeon.level instanceof MiningLevel
-				|| (hero != null && hero.belongings.getItem(Amulet.class) != null)){
-			return false;
-		}
-		return true;
-	}
+        return !Dungeon.level.locked
+                && !(Dungeon.level instanceof MiningLevel)
+                && (hero == null || hero.belongings.getItem(Amulet.class) == null);
+    }
 
     public static void switchLevel( final Level level, int pos ) {
         //Position of -2 specifically means trying to place the hero the exit
@@ -502,7 +494,6 @@ public class Dungeon {
         PathFinder.setMapSize(level.width(), level.height());
         Dungeon.level = level;
 
-        if (network.Multiplayer.isMultiplayer) {
             // МУЛЬТИПЛЕЕР: обрабатываем всех игроков
             List<Multiplayer.PlayerInfo> players = Multiplayer.Players.getAll();
 
@@ -528,7 +519,7 @@ public class Dungeon {
                     }
 
                     // Восстанавливаем союзников для каждого героя
-                    Mob.restoreAllies(level, heroPos);
+                    Mob.restoreAllies(level, heroPos, player.hero);
 
                     // Смещаем мобов, если они занимают позицию героя
                     for (Mob m : level.mobs) {
@@ -548,13 +539,12 @@ public class Dungeon {
                     player.hero.curAction = player.hero.lastAction = null;
                 }
             }
-        }
 
         Actor.init();
         level.addRespawner();
 
         // TODO observe for each hero or local only
-        observe(Multiplayer.Players.getHero(getLocalPlayerId()));
+        observeAll();
 
         try {
             saveAll();
@@ -581,10 +571,11 @@ public class Dungeon {
 
 		//pos drops every two floors, (numbers 1-2, and 3-4) with a 50% chance for the earlier one each time.
 		int targetPOSLeft = 2 - floorThisSet/2;
-		if (floorThisSet % 2 == 1 && Random.Int(2) == 0) targetPOSLeft --;
+		if (floorThisSet % 2 == 1 && Random.Int(2) == 0) {
+			targetPOSLeft--;
+		}
 
-		if (targetPOSLeft < posLeftThisSet) return true;
-		else return false;
+        return targetPOSLeft < posLeftThisSet;
 
 	}
 	
@@ -637,9 +628,7 @@ public class Dungeon {
 		int region = 1+depth/5;
 		if (region > LimitedDrops.LAB_ROOM.count){
 			int floorThisRegion = depth%5;
-			if (floorThisRegion >= 4 || (floorThisRegion == 3 && Random.Int(2) == 0)){
-				return true;
-			}
+            return floorThisRegion >= 4 || (floorThisRegion == 3 && Random.Int(2) == 0);
 		}
 		return false;
 	}
@@ -680,7 +669,8 @@ public class Dungeon {
 			bundle.put( LAST_PLAYED, lastPlayed = Game.realTime);
 			bundle.put( CHALLENGES, challenges );
 			bundle.put( MOBS_TO_CHAMPION, mobsToChampion );
-			bundle.put( HERO, hero );
+			// TODO
+//			bundle.put( HERO, hero );
 			bundle.put( DEPTH, depth );
 			bundle.put( BRANCH, branch );
 
@@ -698,7 +688,7 @@ public class Dungeon {
 			bundle.put ( LIMDROPS, limDrops );
 			
 			int count = 0;
-			int ids[] = new int[chapters.size()];
+			int[] ids = new int[chapters.size()];
 			for (Integer id : chapters) {
 				ids[count++] = id;
 			}
@@ -802,7 +792,7 @@ public class Dungeon {
 			LimitedDrops.restore( bundle.getBundle(LIMDROPS) );
 
 			chapters = new HashSet<>();
-			int ids[] = bundle.getIntArray( CHAPTERS );
+			int[] ids = bundle.getIntArray( CHAPTERS );
 			if (ids != null) {
 				for (int id : ids) {
 					chapters.add( id );
@@ -856,8 +846,8 @@ public class Dungeon {
 		Notes.restoreFromBundle( bundle );
 		
 		// TODO hero get for all players
-		hero = null;
-		hero = (Hero)bundle.get( HERO );
+//		hero = null;
+//		hero = (Hero)bundle.get( HERO );
 		
 		depth = bundle.getInt( DEPTH );
 		branch = bundle.getInt( BRANCH );

@@ -22,7 +22,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.sprites;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Necromancer;
@@ -36,7 +35,7 @@ import network.Multiplayer;
 
 public class NecromancerSprite extends MobSprite {
 	
-	private Animation charging;
+	private final Animation charging;
 	private Emitter summoningBones;
 	
 	public NecromancerSprite(){

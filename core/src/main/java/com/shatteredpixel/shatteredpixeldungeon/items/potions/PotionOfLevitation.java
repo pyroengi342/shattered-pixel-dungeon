@@ -22,7 +22,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.potions;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.ConfusionGas;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
@@ -32,26 +31,22 @@ import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
-import com.watabou.noosa.audio.Sample;
+
+import network.AudioWrapper;
 
 public class PotionOfLevitation extends Potion {
 
 	{
-		icon = ItemSpriteSheet.Icons.POTION_LEVITATE;
+		setIcon(ItemSpriteSheet.Icons.POTION_LEVITATE);
 	}
 
 	@Override
 	public void shatter( int cell ) {
 
 		splash( cell );
-				Hero local = Multiplayer.localHero();
-		if (local != null && local.fieldOfView != null && local.fieldOfView[cell]) {
 			identify();
-
-			Sample.INSTANCE.play( Assets.Sounds.SHATTER );
-			Sample.INSTANCE.play( Assets.Sounds.GAS );
-		}
-
+			AudioWrapper.play(Assets.Sounds.SHATTER, cell);
+			AudioWrapper.play( Assets.Sounds.BURNING, cell );
 		GameScene.add( Blob.seed( cell, 1000, ConfusionGas.class ) );
 	}
 	

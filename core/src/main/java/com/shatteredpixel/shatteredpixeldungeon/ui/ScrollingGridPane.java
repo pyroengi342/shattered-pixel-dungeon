@@ -32,8 +32,8 @@ import java.util.ArrayList;
 
 public class ScrollingGridPane extends ScrollPane {
 
-	private ArrayList<Component> items = new ArrayList<>();
-	private ArrayList<ColorBlock> separators = new ArrayList<>();
+	private final ArrayList<Component> items = new ArrayList<>();
+	private final ArrayList<ColorBlock> separators = new ArrayList<>();
 
 	private static final int ITEM_SIZE	= 17;
 	private static final int MIN_GROUP_SIZE = 3*(ITEM_SIZE+1);
@@ -131,11 +131,7 @@ public class ScrollingGridPane extends ScrollPane {
 				top += item.height()+1;
 				widthThisGroup = 0;
 
-				if (!((GridHeader) item).center){
-					lastWasSmallheader = true;
-				} else {
-					lastWasSmallheader = false;
-				}
+                lastWasSmallheader = !((GridHeader) item).center;
 
 			} if (item instanceof GridItem){
 				if (left + ITEM_SIZE > width()) {

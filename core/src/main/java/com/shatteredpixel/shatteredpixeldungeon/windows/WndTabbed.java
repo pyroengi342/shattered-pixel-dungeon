@@ -44,7 +44,7 @@ public class WndTabbed extends Window {
 	protected ArrayList<Tab> tabs = new ArrayList<>();
 	protected Tab selected;
 
-	private Signal.Listener<KeyEvent> tabListener;
+	private final Signal.Listener<KeyEvent> tabListener;
 	
 	public WndTabbed() {
 		super( 0, 0, Chrome.get( Chrome.Type.TAB_SET ) );
@@ -244,7 +244,7 @@ public class WndTabbed extends Window {
 	protected class IconTab extends Tab {
 		
 		protected Image icon;
-		private RectF defaultFrame;
+		private final RectF defaultFrame;
 		
 		public IconTab( Image icon ){
 			super();

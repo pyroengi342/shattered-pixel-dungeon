@@ -155,7 +155,7 @@ public class RadialMenu extends Window {
 	}
 
 	//the mouse has a hidden position in a 20-pixel radius circle, helps make selection feel more natural
-	private PointF mousePos = new PointF();
+	private final PointF mousePos = new PointF();
 	private boolean first = true; //ignore the first mouse input as it's caused by hiding mouse
 
 	@Override
@@ -189,7 +189,7 @@ public class RadialMenu extends Window {
 			selectionArc.visible = true;
 			selectionArc.angle = targetAngle + selectionArc.getSweep()*180;
 
-			int newSelect = (int) Math.round((targetAngle) / (360f/slots));
+			int newSelect = Math.round((targetAngle) / (360f/slots));
 			if (newSelect >= slots) newSelect = 0;
 
 			if (newSelect != selectedIdx) {

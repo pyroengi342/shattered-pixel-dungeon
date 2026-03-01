@@ -39,9 +39,9 @@ import com.watabou.utils.Bundle;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
-import network.Multiplayer;
-
 import java.util.ArrayList;
+
+import network.Multiplayer;
 
 public class Ghoul extends Mob {
 	
@@ -140,7 +140,7 @@ public class Ghoul extends Mob {
 				//champion buff, mainly
 				for (Buff b : buffs()){
 					if (b.revivePersists) {
-						Buff.affect(child, b.getClass());
+						Buff.affect(child, b.getClass(), this);
 					}
 				}
 
@@ -161,7 +161,7 @@ public class Ghoul extends Mob {
 				timesDowned++;
 				Actor.remove(this);
 				Dungeon.level.mobs.remove( this );
-				Buff.append(nearby, GhoulLifeLink.class).set(timesDowned*5, this);
+				Buff.append(nearby, GhoulLifeLink.class, this).set(timesDowned*5, this);
 				((GhoulSprite)sprite).crumple();
 				return;
 			}

@@ -356,7 +356,7 @@ public class HallsBossLevel extends Level {
 						@Override
 						protected void onSelect(int index) {
 							if (index == 0){
-								Buff.affect(hero, AscensionChallenge.class);
+								Buff.affect(hero, AscensionChallenge.class, this);
 								Statistics.highestAscent = 25;
 								HallsBossLevel.super.activateTransition(hero, transition);
 							}

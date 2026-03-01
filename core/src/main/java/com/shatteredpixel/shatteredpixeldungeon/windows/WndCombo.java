@@ -21,7 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Combo;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -33,6 +32,9 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.RedButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.watabou.noosa.Image;
+
+import network.Multiplayer;
+import network.handlers.window.ComboHandler;
 
 public class WndCombo extends Window {
 
@@ -57,9 +59,11 @@ public class WndCombo extends Window {
 
 		Image icon;
 		if (hero.belongings.weapon() != null){
-			icon = new ItemSprite(hero.belongings.weapon().image, null);
+			icon = new ItemSprite(hero.belongings.weapon().getImage(), null);
 		} else {
-			icon = new ItemSprite(new Item(){ {image = ItemSpriteSheet.WEAPON_HOLDER; }});
+			icon = new ItemSprite(new Item(){
+				{ setImage(ItemSpriteSheet.WEAPON_HOLDER); }
+			});
 		}
 
 		for (Combo.ComboMove move : Combo.ComboMove.values()) {
@@ -70,7 +74,10 @@ public class WndCombo extends Window {
 				protected void onClick() {
 					super.onClick();
 					hide();
-					combo.useMove(move);
+					combo.useMove(move); // локальное выполнение
+					if (Multiplayer.isMultiplayer) {
+						ComboHandler.send(move);
+					}
 				}
 			};
 			moveBtn.leftJustify = true;

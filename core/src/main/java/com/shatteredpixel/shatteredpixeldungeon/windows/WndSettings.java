@@ -62,12 +62,12 @@ public class WndSettings extends WndTabbed {
 	private static final int BTN_HEIGHT	    = 16;
 	private static final float GAP          = 1;
 
-	private DisplayTab  display;
-	private UITab       ui;
-	private InputTab    input;
-	private DataTab     data;
-	private AudioTab    audio;
-	private LangsTab    langs;
+	private final DisplayTab  display;
+	private final UITab       ui;
+	private final InputTab    input;
+	private final DataTab     data;
+	private final AudioTab    audio;
+	private final LangsTab    langs;
 
 	public static int last_index = 0;
 
@@ -423,12 +423,12 @@ public class WndSettings extends WndTabbed {
 					protected void onClick() {
 						ShatteredPixelDungeon.scene().addToFront(new Window(){
 
-							RenderedTextBlock barDesc;
-							RedButton btnSplit; RedButton btnGrouped; RedButton btnCentered;
-							CheckBox chkQuickSwapper;
-							RenderedTextBlock swapperDesc;
-							CheckBox chkFlipToolbar;
-							CheckBox chkFlipTags;
+							final RenderedTextBlock barDesc;
+							final RedButton btnSplit; final RedButton btnGrouped; final RedButton btnCentered;
+							final CheckBox chkQuickSwapper;
+							final RenderedTextBlock swapperDesc;
+							final CheckBox chkFlipToolbar;
+							final CheckBox chkFlipTags;
 
 							{
 								barDesc = PixelScene.renderTextBlock(Messages.get(WndSettings.UITab.this, "mode"), 9);

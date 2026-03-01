@@ -295,11 +295,8 @@ public class CrystalPathRoom extends SpecialRoom {
 		if (Math.abs(p.x - (right - (width()-1)/2f)) < 1f){
 			return true;
 		}
-		if (Math.abs(p.y - (bottom - (height()-1)/2f)) < 1f){
-			return true;
-		}
-		return false;
-	}
+        return Math.abs(p.y - (bottom - (height() - 1) / 2f)) < 1f;
+    }
 
 	@Override
 	public boolean canPlaceGrass(Point p) {

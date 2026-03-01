@@ -59,6 +59,8 @@ import com.watabou.utils.Random;
 
 import java.util.ArrayList;
 
+import network.Multiplayer;
+
 public class PrisonLevel extends RegularLevel {
 
 	{
@@ -225,7 +227,7 @@ public class PrisonLevel extends RegularLevel {
 	
 	public static class Torch extends Emitter {
 		
-		private int pos;
+		private final int pos;
 		
 		public Torch( int pos ) {
 			super();
@@ -244,7 +246,7 @@ public class PrisonLevel extends RegularLevel {
 		public void update() {
 			Hero local = Multiplayer.localHero();
     		boolean[] fov = (local != null) ? local.fieldOfView : null;
-			if (visible = (fov != null && pos >= 0 && pos < fov.length && fov[pos])) {
+			if (fov != null && pos >= 0 && pos < fov.length && fov[pos]) {
 				super.update();
 			}
 		}

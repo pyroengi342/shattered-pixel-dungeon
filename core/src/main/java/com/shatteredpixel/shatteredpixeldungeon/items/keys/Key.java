@@ -30,8 +30,10 @@ import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Notes;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndJournal;
-import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
+
+import network.AudioWrapper;
+import network.Multiplayer;
 
 public abstract class Key extends Item {
 
@@ -57,9 +59,10 @@ public abstract class Key extends Item {
 		GameScene.pickUpJournal(this, pos);
 		WndJournal.last_index = 0;
 		Notes.add(this);
-		Sample.INSTANCE.play( Assets.Sounds.ITEM );
-		hero.spendAndNext( pickupDelay() );
 		GameScene.updateKeyDisplay();
+
+		AudioWrapper.play(Assets.Sounds.ITEM, pos);
+		hero.spendAndNext(pickupDelay());
 
 		if (hero.buff(SkeletonKey.KeyReplacementTracker.class) != null){
 			hero.buff(SkeletonKey.KeyReplacementTracker.class).processExcessKeys();
@@ -68,18 +71,18 @@ public abstract class Key extends Item {
 		return true;
 	}
 
-	private static final String DEPTH = "depth";
+	private static final String DEPTH_STR = "depth";
 	
 	@Override
 	public void storeInBundle( Bundle bundle ) {
 		super.storeInBundle( bundle );
-		bundle.put( DEPTH, depth );
+		bundle.put(DEPTH_STR, depth );
 	}
 	
 	@Override
 	public void restoreFromBundle( Bundle bundle ) {
 		super.restoreFromBundle( bundle );
-		depth = bundle.getInt( DEPTH );
+		depth = bundle.getInt(DEPTH_STR);
 	}
 	
 	@Override

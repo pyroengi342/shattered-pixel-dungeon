@@ -21,9 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
-import java.util.HexFormat;
-
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.Ankh;
@@ -53,8 +50,8 @@ public class WndResurrect extends Window {
 
 	public static Object instance;
 
-	private ItemButton btnItem1;
-	private ItemButton btnItem2;
+	private final ItemButton btnItem1;
+	private final ItemButton btnItem2;
 	private ItemButton btnPressed;
 
 	RedButton btnContinue;

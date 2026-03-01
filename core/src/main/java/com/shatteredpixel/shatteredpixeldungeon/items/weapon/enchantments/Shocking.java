@@ -29,8 +29,8 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.Lightning;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SparkParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
-import com.watabou.utils.BArray;
 import com.watabou.noosa.audio.Sample;
+import com.watabou.utils.BArray;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
@@ -38,7 +38,7 @@ import java.util.ArrayList;
 
 public class Shocking extends Weapon.Enchantment {
 
-	private static ItemSprite.Glowing WHITE = new ItemSprite.Glowing( 0xFFFFFF, 0.5f );
+	private static final ItemSprite.Glowing WHITE = new ItemSprite.Glowing( 0xFFFFFF, 0.5f );
 
 	@Override
 	public int proc( Weapon weapon, Char attacker, Char defender, int damage ) {
@@ -76,9 +76,9 @@ public class Shocking extends Weapon.Enchantment {
 		return WHITE;
 	}
 
-	private ArrayList<Char> affected = new ArrayList<>();
+	private final ArrayList<Char> affected = new ArrayList<>();
 
-	private ArrayList<Lightning.Arc> arcs = new ArrayList<>();
+	private final ArrayList<Lightning.Arc> arcs = new ArrayList<>();
 	
 	public static void arc( Char attacker, Char defender, int dist, ArrayList<Char> affected, ArrayList<Lightning.Arc> arcs ) {
 

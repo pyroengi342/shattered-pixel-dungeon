@@ -188,7 +188,7 @@ public abstract class TippedDart extends Dart {
 				}
 				targetPos = -1;
 			}
-			int p = curUser == null ? curUser.pos : curUser.pos;
+			int p = curUser.pos;
 			for (Char ch : Actor.chars()) {
 				if (ch instanceof WandOfRegrowth.Lotus) {
 					WandOfRegrowth.Lotus l = (WandOfRegrowth.Lotus) ch;

@@ -36,9 +36,9 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
-import network.Multiplayer;
-
 import java.util.ArrayList;
+
+import network.Multiplayer;
 
 public class PhantomPiranha extends Piranha {
 
@@ -54,7 +54,7 @@ public class PhantomPiranha extends Piranha {
 		Char dmgSource = null;
 		if (src instanceof Char) dmgSource = (Char)src;
 		// TODO remake logic
-		if (src instanceof Wand || src instanceof ClericSpell) dmgSource = src.curUser;
+		// if (src instanceof Wand || src instanceof ClericSpell) dmgSource = src.curUser;
 
 		if (dmgSource == null || !Dungeon.level.adjacent(pos, dmgSource.pos)){
 			dmg = Math.round(dmg/2f); //halve damage taken if we are going to teleport

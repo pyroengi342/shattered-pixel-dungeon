@@ -26,7 +26,7 @@ import com.watabou.noosa.TextureFilm;
 
 public class GhoulSprite extends MobSprite {
 
-	private Animation crumple;
+	private final Animation crumple;
 	
 	public GhoulSprite() {
 		super();

@@ -22,7 +22,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.potions.elixirs;
 
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
@@ -38,7 +37,7 @@ import com.watabou.utils.Bundle;
 public class ElixirOfMight extends Elixir {
 
 	{
-		image = ItemSpriteSheet.ELIXIR_MIGHT;
+		setImage(ItemSpriteSheet.ELIXIR_MIGHT);
 
 		unique = true;
 
@@ -52,8 +51,8 @@ public class ElixirOfMight extends Elixir {
 		hero.STR++;
 		hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, "1", FloatingText.STRENGTH);
 		
-		Buff.affect(hero, HTBoost.class, this)reset();
-		HTBoost boost = Buff.affect(hero, HTBoost.class);
+		Buff.affect(hero, HTBoost.class, this).reset();
+		HTBoost boost = Buff.affect(hero, HTBoost.class, this);
 		boost.reset();
 		
 		hero.updateHT( true );
@@ -133,7 +132,7 @@ public class ElixirOfMight extends Elixir {
 			return Messages.get(this, "desc", boost(), left);
 		}
 		
-		private static String LEFT = "left";
+		private static final String LEFT = "left";
 		
 		@Override
 		public void storeInBundle(Bundle bundle) {

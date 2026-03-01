@@ -22,7 +22,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
@@ -37,7 +36,7 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 public class Crossbow extends MeleeWeapon {
 	
 	{
-		image = ItemSpriteSheet.CROSSBOW;
+		setImage(ItemSpriteSheet.CROSSBOW);
 		hitSound = Assets.Sounds.HIT;
 		hitSoundPitch = 1f;
 		

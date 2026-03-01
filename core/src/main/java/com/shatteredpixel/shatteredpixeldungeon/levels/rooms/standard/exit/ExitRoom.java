@@ -70,7 +70,7 @@ public class ExitRoom extends StandardRoom {
 		return super.canPlaceCharacter(p, l) && l.pointToCell(p) != l.exit();
 	}
 
-	private static ArrayList<Class<?extends StandardRoom>> rooms = new ArrayList<>();
+	private static final ArrayList<Class<?extends StandardRoom>> rooms = new ArrayList<>();
 	static {
 		rooms.add(WaterBridgeExitRoom.class);
 		rooms.add(RegionDecoPatchExitRoom.class);
@@ -98,7 +98,7 @@ public class ExitRoom extends StandardRoom {
 		rooms.add(RitualExitRoom.class);
 	}
 
-	private static float[][] chances = new float[27][];
+	private static final float[][] chances = new float[27][];
 	static {
 		//floor 1 only uses simpler exit rooms
 		chances[1] =  new float[]{4,3,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0};

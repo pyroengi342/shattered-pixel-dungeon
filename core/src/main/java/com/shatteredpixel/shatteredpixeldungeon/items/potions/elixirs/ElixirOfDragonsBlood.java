@@ -28,18 +28,19 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.FlameParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.exotic.PotionOfDragonsBreath;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
-import com.watabou.noosa.audio.Sample;
+
+import network.AudioWrapper;
 
 public class ElixirOfDragonsBlood extends Elixir {
 	
 	{
-		image = ItemSpriteSheet.ELIXIR_DRAGON;
+		setImage(ItemSpriteSheet.ELIXIR_DRAGON);
 	}
 	
 	@Override
 	public void apply(Hero hero) {
 		Buff.affect(hero, FireImbue.class, this).set(FireImbue.DURATION);
-		Sample.INSTANCE.play( Assets.Sounds.BURNING );
+		AudioWrapper.play( Assets.Sounds.BURNING, hero.pos );
 		hero.sprite.emitter().burst(FlameParticle.FACTORY, 10);
 	}
 	

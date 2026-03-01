@@ -119,8 +119,8 @@ public class WndGameInProgress extends Window {
 				super.onClick();
 				
 				GamesInProgress.curSlot = slot;
-				
-				Dungeon.hero = null;
+
+//				Dungeon.hero = null;
 				Dungeon.daily = Dungeon.dailyReplay = false;
 				ActionIndicator.clearAction();
 				InterlevelScene.mode = InterlevelScene.Mode.CONTINUE;

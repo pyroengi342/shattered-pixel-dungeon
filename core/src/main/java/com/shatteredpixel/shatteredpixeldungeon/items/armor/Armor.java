@@ -85,6 +85,8 @@ import com.watabou.utils.Reflection;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import network.Multiplayer;
+
 public class Armor extends EquipableItem {
 
 	protected static final String AC_DETACH       = "DETACH";
@@ -94,8 +96,8 @@ public class Armor extends EquipableItem {
 		DEFENSE (-2f, 1f),
 		NONE	(0f   ,  0f);
 		
-		private float evasionFactor;
-		private float defenceFactor;
+		private final float evasionFactor;
+		private final float defenceFactor;
 		
 		Augment(float eva, float df){
 			evasionFactor = eva;
@@ -200,8 +202,10 @@ public class Armor extends EquipableItem {
 
 	@Override
 	public boolean collect(Bag container) {
-		if(super.collect(container)){
-			if (curUser != null && curUser.isAlive() && isIdentified() && glyph != null){
+		if (super.collect(container)) {
+			// Используем владельца контейнера для обновления каталога
+			Hero owner = (container.owner instanceof Hero) ? (Hero) container.owner : null;
+			if (owner != null && owner.isAlive() && isIdentified() && glyph != null) {
 				Catalog.setSeen(glyph.getClass());
 				Statistics.itemTypesDiscovered.add(glyph.getClass());
 			}
@@ -213,7 +217,7 @@ public class Armor extends EquipableItem {
 
 	@Override
 	public Item identify(boolean byHero) {
-		if (glyph != null && byHero && curUser != null && curUser.isAlive()){
+		if (glyph != null && byHero && curUser != null && curUser.isAlive()) {
 			Catalog.setSeen(glyph.getClass());
 			Statistics.itemTypesDiscovered.add(glyph.getClass());
 		}
@@ -495,64 +499,65 @@ public class Armor extends EquipableItem {
 		return super.upgrade();
 	}
 	
-	public int proc( Char attacker, Char defender, int damage ) {
-
+	public int proc(Char attacker,Char defender, int damage) {
+		Hero owner = (defender instanceof Hero && isEquipped((Hero) defender)) ? (Hero) defender : null;
+		// Для проверок талантов используем owner
 		if (defender.buff(MagicImmune.class) == null) {
 			Glyph trinityGlyph = null;
-			//only when it's the hero or a char that uses the hero's armor
-			if (curUser.buff(BodyForm.BodyFormBuff.class) != null
-					&& (defender == curUser || defender instanceof PrismaticImage || defender instanceof ShadowClone.ShadowAlly)){
-				trinityGlyph = curUser.buff(BodyForm.BodyFormBuff.class).glyph();
-				if (glyph != null && trinityGlyph != null && trinityGlyph.getClass() == glyph.getClass()){
+			if (owner != null && owner.buff(BodyForm.BodyFormBuff.class) != null
+					&& (defender == owner || defender instanceof PrismaticImage || defender instanceof ShadowClone.ShadowAlly)) {
+				trinityGlyph = owner.buff(BodyForm.BodyFormBuff.class).glyph();
+				if (glyph != null && trinityGlyph != null && trinityGlyph.getClass() == glyph.getClass()) {
 					trinityGlyph = null;
 				}
 			}
 
 			if (defender instanceof Hero && isEquipped((Hero) defender)
-					&& defender.buff(HolyWard.HolyArmBuff.class) != null){
+					&& defender.buff(HolyWard.HolyArmBuff.class) != null) {
 				if (glyph != null &&
-						(((Hero) defender).subClass == HeroSubClass.PALADIN || hasCurseGlyph())){
-					damage = glyph.proc( this, attacker, defender, damage );
+						(((Hero) defender).subClass == HeroSubClass.PALADIN || hasCurseGlyph())) {
+					damage = glyph.proc(this, attacker, defender, damage);
 				}
-				if (trinityGlyph != null){
-					damage = trinityGlyph.proc( this, attacker, defender, damage );
+				if (trinityGlyph != null) {
+					damage = trinityGlyph.proc(this, attacker, defender, damage);
 				}
 				int blocking = ((Hero) defender).subClass == HeroSubClass.PALADIN ? 3 : 1;
-				damage -= Math.round(blocking * Glyph.genericProcChanceMultiplier(defender));
-
+				damage -= Math.round(blocking * Glyph.genericProcChanceMultiplier(defender, owner));
 			} else {
 				if (glyph != null) {
 					damage = glyph.proc(this, attacker, defender, damage);
 				}
-				if (trinityGlyph != null){
-					damage = trinityGlyph.proc( this, attacker, defender, damage );
+				if (trinityGlyph != null) {
+					damage = trinityGlyph.proc(this, attacker, defender, damage);
 				}
-				//so that this effect procs for allies using this armor via aura of protection
-				if (defender.alignment == curUser.alignment
-						&& curUser.buff(AuraOfProtection.AuraBuff.class) != null
-						&& (Dungeon.level.distance(defender.pos, curUser.pos) <= 2 || defender.buff(LifeLinkSpell.LifeLinkSpellBuff.class) != null)
-						&& curUser.buff(HolyWard.HolyArmBuff.class) != null) {
-					int blocking = curUser.subClass == HeroSubClass.PALADIN ? 3 : 1;
-					damage -= Math.round(blocking * Glyph.genericProcChanceMultiplier(defender));
+				// Для эффекта ауры защиты нужен владелец (owner)
+				if (owner != null && defender.alignment == owner.alignment
+						&& owner.buff(AuraOfProtection.AuraBuff.class) != null
+						&& (Dungeon.level.distance(defender.pos, owner.pos) <= 2 || defender.buff(LifeLinkSpell.LifeLinkSpellBuff.class) != null)
+						&& owner.buff(HolyWard.HolyArmBuff.class) != null) {
+					int blocking = owner.subClass == HeroSubClass.PALADIN ? 3 : 1;
+					damage -= Math.round(blocking * Glyph.genericProcChanceMultiplier(defender, owner));
 				}
 			}
 			damage = Math.max(damage, 0);
 		}
-		
-		if (!levelKnown && defender == curUser) {
-			float uses = Math.min( availableUsesToID, Talent.itemIDSpeedFactor(curUser, this) );
+
+		if (!levelKnown && defender == owner) {
+			float uses = Math.min(availableUsesToID, Talent.itemIDSpeedFactor(owner, this));
 			availableUsesToID -= uses;
 			usesLeftToID -= uses;
 			if (usesLeftToID <= 0) {
-				if (ShardOfOblivion.passiveIDDisabled()){
-					if (usesLeftToID > -1){
+				if (ShardOfOblivion.passiveIDDisabled(owner)) {
+					if (usesLeftToID > -1 && owner == Multiplayer.localHero()) {
 						GLog.p(Messages.get(ShardOfOblivion.class, "identify_ready"), name());
 					}
 					setIDReady();
 				} else {
 					identify();
-					GLog.p(Messages.get(Armor.class, "identify"));
-					Badges.validateItemLevelAquired(this);
+					if (owner == Multiplayer.localHero()) {
+						GLog.p(Messages.get(Armor.class, "identify"));
+						Badges.validateItemLevelAquired(this);
+					}
 				}
 			}
 		}
@@ -579,22 +584,21 @@ public class Armor extends EquipableItem {
 
 		}
 	}
-	
+
 	@Override
 	public String info() {
 		String info = super.info();
-		
-		if (levelKnown) {
+		Hero viewer = Multiplayer.localHero();
+		int str = (viewer != null) ? viewer.STR() : 0;
 
+		if (levelKnown) {
 			info += "\n\n" + Messages.get(Armor.class, "curr_absorb", tier, DRMin(), DRMax(), STRReq());
-			
-			if (curUser != null && STRReq() > curUser.STR()) {
+			if (viewer != null && STRReq() > str) {
 				info += " " + Messages.get(Armor.class, "too_heavy");
 			}
 		} else {
 			info += "\n\n" + Messages.get(Armor.class, "avg_absorb", tier, DRMin(0), DRMax(0), STRReq(0));
-
-			if (curUser != null && STRReq(0) > curUser.STR()) {
+			if (viewer != null && STRReq(0) > str) {
 				info += " " + Messages.get(Armor.class, "probably_too_heavy");
 			}
 		}
@@ -609,23 +613,23 @@ public class Armor extends EquipableItem {
 			case NONE:
 		}
 
-		if (isEquipped(curUser) && !hasCurseGlyph() && curUser.buff(HolyWard.HolyArmBuff.class) != null
-				&& (curUser.subClass != HeroSubClass.PALADIN || glyph == null)){
+		if (viewer != null && isEquipped(viewer) && !hasCurseGlyph() && viewer.buff(HolyWard.HolyArmBuff.class) != null
+				&& (viewer.subClass != HeroSubClass.PALADIN || glyph == null)) {
 			info += "\n\n" + Messages.capitalize(Messages.get(Armor.class, "inscribed", Messages.get(HolyWard.class, "glyph_name", Messages.get(Glyph.class, "glyph"))));
 			info += " " + Messages.get(HolyWard.class, "glyph_desc");
-		} else if (glyph != null  && (cursedKnown || !glyph.curse())) {
-			info += "\n\n" +  Messages.capitalize(Messages.get(Armor.class, "inscribed", glyph.name()));
+		} else if (glyph != null && (cursedKnown || !glyph.curse())) {
+			info += "\n\n" + Messages.capitalize(Messages.get(Armor.class, "inscribed", glyph.name()));
 			if (glyphHardened) info += " " + Messages.get(Armor.class, "glyph_hardened");
 			info += " " + glyph.desc();
-		} else if (glyphHardened){
+		} else if (glyphHardened) {
 			info += "\n\n" + Messages.get(Armor.class, "hardened_no_glyph");
 		}
-		
-		if (cursed && isEquipped( curUser )) {
+
+		if (viewer != null && cursed && isEquipped(viewer)) {
 			info += "\n\n" + Messages.get(Armor.class, "cursed_worn");
 		} else if (cursedKnown && cursed) {
 			info += "\n\n" + Messages.get(Armor.class, "cursed");
-		} else if (!isIdentified() && cursedKnown){
+		} else if (!isIdentified() && cursedKnown) {
 			if (glyph != null && glyph.curse()) {
 				info += "\n\n" + Messages.get(Armor.class, "weak_cursed");
 			} else {
@@ -633,10 +637,9 @@ public class Armor extends EquipableItem {
 			}
 		}
 
-		if (seal != null) {
-			info += "\n\n" + Messages.get(Armor.class, "seal_attached", seal.maxShield(tier, level(), curUser));
+		if (seal != null && viewer != null) {
+			info += "\n\n" + Messages.get(Armor.class, "seal_attached", seal.maxShield(tier, level(), viewer));
 		}
-		
 		return info;
 	}
 
@@ -644,7 +647,7 @@ public class Armor extends EquipableItem {
 	public Emitter emitter() {
 		if (seal == null) return super.emitter();
 		Emitter emitter = new Emitter();
-		emitter.pos(ItemSpriteSheet.film.width(image)/2f + 2f, ItemSpriteSheet.film.height(image)/3f);
+		emitter.pos(ItemSpriteSheet.film.width(getImage())/2f + 2f, ItemSpriteSheet.film.height(getImage())/3f);
 		emitter.fillTarget = false;
 		emitter.pour(Speck.factory( Speck.RED_LIGHT ), 0.6f);
 		return emitter;
@@ -671,10 +674,10 @@ public class Armor extends EquipableItem {
 			//30% chance to be cursed
 			//15% chance to be inscribed
 			float effectRoll = Random.Float();
-			if (effectRoll < 0.3f * ParchmentScrap.curseChanceMultiplier()) {
+			if (effectRoll < 0.3f * ParchmentScrap.curseChanceMultiplier(null)) {
 				inscribe(Glyph.randomCurse());
 				cursed = true;
-			} else if (effectRoll >= 1f - (0.15f * ParchmentScrap.enchantChanceMultiplier())){
+			} else if (effectRoll >= 1f - (0.15f * ParchmentScrap.enchantChanceMultiplier(null))){
 				inscribe();
 			}
 
@@ -777,7 +780,7 @@ public class Armor extends EquipableItem {
 		return glyph != null && glyph.curse();
 	}
 
-	private static ItemSprite.Glowing HOLY = new ItemSprite.Glowing( 0xFFFF00 );
+	private static final ItemSprite.Glowing HOLY = new ItemSprite.Glowing( 0xFFFF00 );
 
 	@Override
 	public ItemSprite.Glowing glowing() {
@@ -815,21 +818,19 @@ public class Armor extends EquipableItem {
 		public abstract int proc( Armor armor, Char attacker, Char defender, int damage );
 
 		protected float procChanceMultiplier( Char defender ){
-			return genericProcChanceMultiplier( defender );
+			return genericProcChanceMultiplier( defender, null );
 		}
 
-		public static float genericProcChanceMultiplier( Char defender ){
+		public static float genericProcChanceMultiplier(Char defender, Hero owner) {
 			float multi = RingOfArcana.enchantPowerMultiplier(defender);
-	
-			if (curUser.alignment == defender.alignment
-					&& curUser.buff(AuraOfProtection.AuraBuff.class) != null
-					&& (Dungeon.level.distance(defender.pos, curUser.pos) <= 2 || defender.buff(LifeLinkSpell.LifeLinkSpellBuff.class) != null)){
-				multi += 0.25f + 0.25f*curUser.pointsInTalent(Talent.AURA_OF_PROTECTION);
+			if (owner != null && owner.alignment == defender.alignment
+					&& owner.buff(AuraOfProtection.AuraBuff.class) != null
+					&& (Dungeon.level.distance(defender.pos, owner.pos) <= 2 || defender.buff(LifeLinkSpell.LifeLinkSpellBuff.class) != null)) {
+				multi += 0.25f + 0.25f * owner.pointsInTalent(Talent.AURA_OF_PROTECTION);
 			}
-
 			return multi;
 		}
-		
+
 		public String name() {
 			if (!curse())
 				return name( Messages.get(this, "glyph") );
