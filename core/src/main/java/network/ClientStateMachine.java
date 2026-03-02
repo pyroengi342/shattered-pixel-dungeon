@@ -9,11 +9,13 @@ public class ClientStateMachine {
 
     public enum State {
         OFFLINE,
-        CONNECTING,
-        HANDSHAKE,
-        SEED_RECEIVED,
-        WAITING_FOR_HERO,
-        HERO_READY,
+        CONNECTING, // ждёт ответа от сервера на первичное подключение
+        HANDSHAKE, // PLAYER_ASSIGN
+        // GAME START
+        SEED_RECEIVED, // SEED_INIT
+        WAITING_FOR_HERO, // У клиента должен быть выбран герой (проверка)
+        HERO_READY, // GAME_READY Готовность к подключению
+        IN_GAME,
         ERROR
     }
 
