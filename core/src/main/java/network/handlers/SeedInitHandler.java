@@ -4,7 +4,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.watabou.noosa.Game;
 import com.watabou.utils.Bundle;
 
-import network.LogicStateMachine;
+import network.ClientStateMachine;
 import network.NetworkManager;
 
 public class SeedInitHandler implements MessageHandler {
@@ -28,6 +28,6 @@ public class SeedInitHandler implements MessageHandler {
         Dungeon.seed = seed;
         Dungeon.customSeedText = custom;
         NetworkManager.setSeedReceived(true);
-        LogicStateMachine.getInstance().onSeedInit();
+        ClientStateMachine.getInstance().onSeedInit();
     }
 }

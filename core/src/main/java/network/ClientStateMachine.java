@@ -1,14 +1,11 @@
 package network;
 
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.GamesInProgress;
-import com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene;
-import com.watabou.noosa.Game;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class LogicStateMachine {
+public class ClientStateMachine {
 
     public enum State {
         OFFLINE,
@@ -23,13 +20,13 @@ public class LogicStateMachine {
     private State currentState = State.OFFLINE;
     private final List<StateListener> listeners = new ArrayList<>();
 
-    private static LogicStateMachine instance;
-    public static LogicStateMachine getInstance() {
-        if (instance == null) instance = new LogicStateMachine();
+    private static ClientStateMachine instance;
+    public static ClientStateMachine getInstance() {
+        if (instance == null) instance = new ClientStateMachine();
         return instance;
     }
 
-    private LogicStateMachine() {}
+    private ClientStateMachine() {}
 
     public void addListener(StateListener listener) {
         listeners.add(listener);

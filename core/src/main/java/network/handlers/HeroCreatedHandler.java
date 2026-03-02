@@ -2,7 +2,7 @@ package network.handlers;
 
 import com.watabou.utils.Bundle;
 
-import network.LogicStateMachine;
+import network.ClientStateMachine;
 
 public class HeroCreatedHandler implements MessageHandler {
     @Override
@@ -11,7 +11,7 @@ public class HeroCreatedHandler implements MessageHandler {
     @Override
     public void msgHandle(int senderId, Bundle bundle) {
         int playerId = bundle.getInt("playerId");
-        LogicStateMachine.getInstance().onHeroCreated(playerId);
+        ClientStateMachine.getInstance().onHeroCreated(playerId);
     }
 }
 

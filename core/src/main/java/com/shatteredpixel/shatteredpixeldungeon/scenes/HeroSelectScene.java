@@ -76,7 +76,7 @@ import com.watabou.utils.PointF;
 import com.watabou.utils.Random;
 import com.watabou.utils.RectF;
 
-import network.LogicStateMachine;
+import network.ClientStateMachine;
 import network.NetworkManager;
 import network.windows.WndMultiplayer;
 
@@ -98,7 +98,7 @@ public class HeroSelectScene extends PixelScene {
 	private GameOptions optionsPane;
 	private IconButton btnExit;
 
-	private LogicStateMachine stateMachine;
+	private ClientStateMachine stateMachine;
 	private boolean waitingForLocalServer = false;
 
 	private RectF insets;
@@ -161,7 +161,7 @@ public class HeroSelectScene extends PixelScene {
 		PixelScene.align(title);
 		add(title);
 
-		stateMachine = LogicStateMachine.getInstance();
+		stateMachine = ClientStateMachine.getInstance();
 		stateMachine.addListener(newState -> {
 			Game.runOnRenderThread(() -> {
 				switch (newState) {
@@ -203,11 +203,12 @@ public class HeroSelectScene extends PixelScene {
 							return;
 						}
 						NetworkManager.sendHeroClass(GamesInProgress.selectedClass);
-						LogicStateMachine.getInstance().onHeroClassSent();
+						ClientStateMachine.getInstance().onHeroClassSent();
 						startBtn.text(Messages.get(this, "waiting_for_hero"));
 						startBtn.enable(false);
 					case NONE:                     // Добавляем обработку NONE
-						LogicStateMachine.getInstance().startLocalServer();
+						ClientStateMachine.getInstance().startLocalServer();
+						NetworkManager.getInstance().connectToServer("localhost");
 						// startBtn.text(Messages.get(this, "connecting"));
 						// startBtn.enable(false);
 						break;
@@ -217,7 +218,7 @@ public class HeroSelectScene extends PixelScene {
 							return;
 						}
 						NetworkManager.sendHeroClass(GamesInProgress.selectedClass);
-						LogicStateMachine.getInstance().onHeroClassSent();
+						ClientStateMachine.getInstance().onHeroClassSent();
 						startBtn.text(Messages.get(this, "waiting_for_hero"));
 						startBtn.enable(false);
 						break;

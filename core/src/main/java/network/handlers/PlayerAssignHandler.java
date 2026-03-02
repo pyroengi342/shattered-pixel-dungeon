@@ -3,7 +3,7 @@ package network.handlers;
 import com.watabou.noosa.Game;
 import com.watabou.utils.Bundle;
 
-import network.LogicStateMachine;
+import network.ClientStateMachine;
 import network.Multiplayer;
 import network.NetworkManager;
 
@@ -19,7 +19,7 @@ public class PlayerAssignHandler implements MessageHandler {
         Multiplayer.PlayerInfo player = new Multiplayer.PlayerInfo(assignedId, name);
         player.isLocal = true;
         Multiplayer.Players.add(player);
-        LogicStateMachine.getInstance().onPlayerAssign();
+        ClientStateMachine.getInstance().onPlayerAssign();
     }
     // public void msgHandle(int senderId, Bundle bundle) {
     //     Game.runOnRenderThread(() -> {
