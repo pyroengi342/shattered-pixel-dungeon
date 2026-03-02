@@ -1,18 +1,20 @@
 // NetworkManager.java
 package network;
 
-import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryo.io.Input;
-import com.esotericsoftware.kryo.io.Output;
-import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
-import com.shatteredpixel.shatteredpixeldungeon.windows.WndMessage;
-import com.watabou.noosa.Game;
-import com.watabou.utils.Bundle;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
+import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.LloydsBeacon.beaconRecharge;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndMessage;
+import com.watabou.noosa.Game;
+import com.watabou.utils.Bundle;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
@@ -36,328 +38,41 @@ import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.LengthFieldPrepender;
 import io.netty.handler.codec.MessageToByteEncoder;
-import network.handlers.window.AbilityHandler;
-import network.handlers.window.BlacksmithHandler;
-import network.handlers.window.ComboHandler;
-import network.handlers.window.EnergizeHandler;
-import network.handlers.window.GhostRewardHandler;
 import network.handlers.HeroClassHandler;
-import network.handlers.window.ItemUseHandler;
-import network.handlers.window.MonkAbilityHandler;
 import network.handlers.PlayerAssignHandler;
 import network.handlers.PlayerJoinHandler;
 import network.handlers.PlayerLeaveHandler;
 import network.handlers.SeedInitHandler;
 import network.handlers.ServerShutdownHandler;
+import network.handlers.window.AbilityHandler;
+import network.handlers.window.BlacksmithHandler;
+import network.handlers.window.ComboHandler;
+import network.handlers.window.EnergizeHandler;
+import network.handlers.window.GhostRewardHandler;
+import network.handlers.window.ItemUseHandler;
+import network.handlers.window.MonkAbilityHandler;
 import network.handlers.window.SubclassHandler;
 import network.handlers.window.UpgradeHandler;
 
 public class NetworkManager {
-    public enum Mode { NONE, CLIENT, SERVER }
     private static NetworkManager instance;
-    private final MessageDispatcher messageDispatcher = new MessageDispatcher();
-    private static Mode mode = Mode.NONE;
-    public static boolean seedReceived = false;
-    // Netty
-    private EventLoopGroup bossGroup;
-    private EventLoopGroup workerGroup;
-    private Channel serverChannel;
-    private static Channel clientChannel;
 
-    // Переменные для отслеживания состояния соединения
-    private volatile boolean isDisconnecting = false;
-    // Флаг для предотвращения двойного запуска
-    private volatile boolean isStarting = false;
-    private String lastError = null;
+    public enum Mode { NONE, CLIENT, SERVER, LOCALHOST }
 
-    // Kryo initialize
-    private final Kryo kryo = new Kryo();
+    private final Kryo kryo;
+    private final MessageDispatcher messageDispatcher;
+    private boolean isDisconnecting = false;
+    
+    private ServerCore server;
+    private ClientCore client;
 
-    // Client info
-    private static final Map<Integer, ChannelHandlerContext> connectedClients = new ConcurrentHashMap<>();
-
-    private static int localPlayerId = -1; // -1 reserved for HOST message
-    public static class BundleMessage {
-        public String bundleData;
-        public int playerId;
-        public String type;
-        public BundleMessage() {}
-        public BundleMessage(String type, int playerId) {
-            this.type = type;
-            this.playerId = playerId;
-        }
-    }
-    private void initHandlers() {
-        messageDispatcher.registerHandler(new PlayerAssignHandler());
-        messageDispatcher.registerHandler(new PlayerJoinHandler());
-        messageDispatcher.registerHandler(new PlayerLeaveHandler());
-        messageDispatcher.registerHandler(new ServerShutdownHandler(this)); // требует ссылку на NetworkManager
-        messageDispatcher.registerHandler(new SeedInitHandler());
-        messageDispatcher.registerHandler(new HeroClassHandler());
-        // Wnd dispatchers
-        messageDispatcher.registerHandler(new UpgradeHandler());
-        messageDispatcher.registerHandler(new ItemUseHandler());
-        messageDispatcher.registerHandler(new GhostRewardHandler());
-        messageDispatcher.registerHandler(new MonkAbilityHandler());
-        messageDispatcher.registerHandler(new EnergizeHandler());
-        messageDispatcher.registerHandler(new ComboHandler());
-        messageDispatcher.registerHandler(new SubclassHandler());
-        messageDispatcher.registerHandler(new AbilityHandler());
-        messageDispatcher.registerHandler(new BlacksmithHandler());
-        // Добавьте остальные (GAME_STATE, LEVEL_UPDATE, PLAYER_INPUT) по мере необходимости
-    }
     private NetworkManager() {
+        kryo = new Kryo();
         setupKryo();
+        messageDispatcher = new MessageDispatcher();
+        initHandlers();
     }
 
-    public static NetworkManager getInstance() {
-        if (instance == null) {
-            instance = new NetworkManager();
-        }
-        return instance;
-    }
-
-    public boolean isConnected() {
-        if (mode == Mode.CLIENT && clientChannel != null) {
-            return clientChannel.isActive();
-        } else if (mode == Mode.SERVER && serverChannel != null) {
-            return serverChannel.isActive();
-        }
-        return false;
-    }
-
-    public static Mode getMode() {
-        return mode;
-    }
-    public void disconnect() {
-        seedReceived = false;
-        isDisconnecting = true;
-
-        new Thread(() -> {
-            if (mode == Mode.CLIENT) {
-                stopClient();
-            } else if (mode == Mode.SERVER) {
-                Multiplayer.Players.remove(0);
-                stopServer();
-            }
-
-            Game.runOnRenderThread(() -> {
-                mode = Mode.NONE;
-                localPlayerId = -1;
-                if (!Multiplayer.isHost) {
-                    Multiplayer.Players.clear();
-                }
-                connectedClients.clear();
-
-                if (isDisconnecting) {
-                    showMessage("Disconnected successfully");
-                }
-
-                isDisconnecting = false;
-                network.Multiplayer.isMultiplayer = false;
-                network.Multiplayer.isHost = false;
-            });
-        }, "Network-Disconnect-Thread").start();
-    }
-
-    // Server Handler
-    private class ServerHandler extends SimpleChannelInboundHandler<BundleMessage> {
-        @Override
-        public void channelActive(ChannelHandlerContext ctx) throws Exception {
-            super.channelActive(ctx);
-            Game.runOnRenderThread(() -> {
-                int playerId = ctx.channel().hashCode();
-                connectedClients.put(playerId, ctx);
-                {
-                    BundleMessage assignIdMessage = new BundleMessage("PLAYER_ASSIGN", playerId);
-                    Bundle assignBundle = new Bundle();
-                    assignBundle.put("assignedId", playerId);
-                    assignBundle.put("name", "Player " + playerId);
-
-                    assignIdMessage.bundleData = assignBundle.toString();
-                    ctx.writeAndFlush(assignIdMessage);
-                }
-                {
-                    // Adding player
-                    Multiplayer.PlayerInfo newPlayer = new Multiplayer.PlayerInfo(playerId, "Player " + playerId);
-                    Multiplayer.Players.add(newPlayer);
-
-                    // 2. Tell everybody about new player
-                    BundleMessage joinMessage = new BundleMessage("PLAYER_JOIN", playerId);
-                    Bundle bundle = new Bundle();
-                    bundle.put("name", newPlayer.name);
-                    joinMessage.bundleData = bundle.toString();
-                    broadcastMessageServer(joinMessage, ctx);
-
-                    // 3. Tell the about others for the player
-                    sendExistingPlayersToNewClient(ctx);
-                }
-
-
-                sendCurrGameStateToPlayer(ctx);
-            });
-        }
-        @Override
-        protected void channelRead0(ChannelHandlerContext ctx, BundleMessage msg) throws Exception {
-            Game.runOnRenderThread(() -> {
-                messageDispatcher.dispatch(msg);
-                // Рассылаем всем остальным клиентам (кроме отправителя)
-                broadcastMessageServer(msg, ctx);
-            });
-        }
-
-        @Override
-        public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-            super.channelInactive(ctx);
-
-            Game.runOnRenderThread(() -> {
-                int playerId = ctx.channel().hashCode();
-                connectedClients.remove(playerId);
-                Multiplayer.Players.remove(playerId);
-
-                showMessage("Player " + playerId + " disconnected (" + connectedClients.size() + " remaining)");
-
-                BundleMessage leaveMessage = new BundleMessage("PLAYER_LEAVE", playerId);
-                broadcastMessageServer(leaveMessage);
-            });
-        }
-
-        @Override
-        public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-            String errorMsg = getDetailedErrorMessage(cause);
-            System.err.println("Server client handler error (" + ctx.channel().hashCode() + "): " + errorMsg);
-            cause.printStackTrace();
-
-            Game.runOnRenderThread(() -> {
-                showMessage("Client error: " + getDetailedErrorMessage(cause));
-            });
-
-            ctx.close();
-        }
-    }
-    public void startServer() {
-        if (isStarting) return;
-        isStarting = true;
-        new Thread(() -> {
-            try {
-                mode = Mode.SERVER;
-
-                bossGroup = new NioEventLoopGroup(1);
-                workerGroup = new NioEventLoopGroup();
-
-                ServerBootstrap b = new ServerBootstrap();
-                b.group(bossGroup, workerGroup)
-                        .channel(NioServerSocketChannel.class)
-                        .childHandler(new ChannelInitializer<SocketChannel>() {
-                            @Override
-                            protected void initChannel(SocketChannel ch) {
-                                ChannelPipeline p = ch.pipeline();
-
-                                p.addLast(new LengthFieldPrepender(4));
-                                p.addLast(new LengthFieldBasedFrameDecoder(1048576, 0, 4, 0, 4));
-
-                                p.addLast(new KryoDecoder(kryo));
-                                p.addLast(new KryoEncoder(kryo));
-
-                                p.addLast(new ServerHandler());
-                            }
-                        })
-                        .option(ChannelOption.SO_BACKLOG, 128)
-                        .childOption(ChannelOption.SO_KEEPALIVE, true)
-                        .childOption(ChannelOption.TCP_NODELAY, true);
-
-                int port = MPSettings.multiplayerPort();
-                ChannelFuture f = b.bind(port);
-
-                f.addListener((ChannelFutureListener) future -> {
-                    Game.runOnRenderThread(() -> {
-                        if (future.isSuccess()) {
-                            serverChannel = future.channel();
-                            MPSettings.multiplayerHost(true);
-                            showMessage("Server started on port " + port);
-
-                            network.Multiplayer.isMultiplayer = true;
-                            network.Multiplayer.isHost = true;
-
-                            // Создаем игрока для администратора
-//                            Multiplayer.PlayerInfo hostPlayer = new Multiplayer.PlayerInfo(0, "Host");
-//                            hostPlayer.isLocal = true; // Отмечаем как локального игрока
-//                            Multiplayer.Players.add(hostPlayer);
-                            isStarting = false; // разрешаем подключение
-                            connectToServer("127.0.0.1");
-                        } else {
-                            //showError("Failed to start server: " + future.cause().getMessage());
-                            mode = Mode.NONE;
-                            stopServer();
-                        }
-                        isStarting = false;
-                    });
-                });
-
-            } catch (Exception e) {
-                e.printStackTrace();
-                Game.runOnRenderThread(() -> {
-                    showMessage("Failed to start server: " + e.getMessage());
-                    mode = Mode.NONE;
-                    isStarting = false;
-                });
-            }
-        }, "Network-Server-Thread").start();
-    }
-    private void stopServer() {
-        // Сначала уведомляем всех клиентов
-        Game.runOnRenderThread(() -> {
-            BundleMessage shutdownMsg = new BundleMessage("SERVER_SHUTDOWN", -1);
-            broadcastMessageServer(shutdownMsg);
-        });
-
-        if (serverChannel != null && serverChannel.isOpen()) {
-            try {
-                serverChannel.close().sync();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        if (bossGroup != null) {
-            bossGroup.shutdownGracefully();
-            bossGroup = null;
-        }
-        if (workerGroup != null) {
-            workerGroup.shutdownGracefully();
-            workerGroup = null;
-        }
-        connectedClients.clear();
-    }
-
-    // Sending message for all clients
-    public static void broadcastMessageServer(BundleMessage message) {
-        if (mode != Mode.SERVER) return;
-
-        for (ChannelHandlerContext clientCtx : connectedClients.values()) {
-            if (clientCtx.channel().isActive()) {
-                clientCtx.writeAndFlush(message);
-            }
-        }
-    }
-    public static void broadcastMessageServer(BundleMessage message, ChannelHandlerContext ctxToIgnore) {
-        if (mode != Mode.SERVER) return;
-
-        for (ChannelHandlerContext clientCtx : connectedClients.values()) {
-            if (clientCtx != ctxToIgnore && clientCtx.channel().isActive()) {
-                clientCtx.writeAndFlush(message);
-            }
-        }
-    }
-
-    // Kryo Codec setup
-    private void setupKryo() {
-        kryo.register(BundleMessage.class);
-        kryo.register(String.class);
-        kryo.register(int.class);
-        kryo.register(Multiplayer.PlayerInfo.class);
-        kryo.register(HashMap.class);
-        kryo.register(java.util.ArrayList.class);
-    }
     private static class KryoEncoder extends MessageToByteEncoder<Object> {
         private final Kryo kryo;
 
@@ -391,155 +106,416 @@ public class NetworkManager {
         }
     }
 
-    // Client Handler
-    private class ClientHandler extends SimpleChannelInboundHandler<BundleMessage> {
-            public void channelActive(ChannelHandlerContext ctx) throws Exception {
-                super.channelActive(ctx);
-                Game.runOnRenderThread(() -> {
-                    localPlayerId = ctx.channel().hashCode();
-                    lastError = null; // Сбрасываем ошибку при подключении
-                });
-            }
-            @Override
-            protected void channelRead0(ChannelHandlerContext ctx, BundleMessage msg) throws Exception {
-                Game.runOnRenderThread(() -> {
-                    messageDispatcher.dispatch(msg);
-                    //handleNetworkMessage(msg);
-                });
-            }
+    public static NetworkManager getInstance() {
+        if (instance == null) {
+            instance = new NetworkManager();
+        }
+        return instance;
+    }
 
-            @Override
-            public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-                super.channelInactive(ctx);
-                Game.runOnRenderThread(() -> {
-                    mode = Mode.NONE;
-                    localPlayerId = -1;
-                    Multiplayer.Players.clear();
+    private void initHandlers() {
+        messageDispatcher.registerHandler(new PlayerAssignHandler());
+        messageDispatcher.registerHandler(new PlayerJoinHandler());
+        messageDispatcher.registerHandler(new PlayerLeaveHandler());
+        messageDispatcher.registerHandler(new ServerShutdownHandler(this));
+        messageDispatcher.registerHandler(new SeedInitHandler());
+        messageDispatcher.registerHandler(new HeroClassHandler());
+        // Window handlers
+        messageDispatcher.registerHandler(new UpgradeHandler());
+        messageDispatcher.registerHandler(new ItemUseHandler());
+        messageDispatcher.registerHandler(new GhostRewardHandler());
+        messageDispatcher.registerHandler(new MonkAbilityHandler());
+        messageDispatcher.registerHandler(new EnergizeHandler());
+        messageDispatcher.registerHandler(new ComboHandler());
+        messageDispatcher.registerHandler(new SubclassHandler());
+        messageDispatcher.registerHandler(new AbilityHandler());
+        messageDispatcher.registerHandler(new BlacksmithHandler());
+    }
 
-                    String message;
-                    if (isDisconnecting) {
-                        message = "Disconnected from server (user request)";
-                        isDisconnecting = false;
-                    } else if (lastError != null) {
-                        message = "Connection lost: " + lastError;
-                        lastError = null;
-                    } else {
-                        message = "Connection lost: Server might be offline or network problem";
+    private void setupKryo() {
+        kryo.register(BundleMessage.class);
+        kryo.register(String.class);
+        kryo.register(int.class);
+        kryo.register(Multiplayer.PlayerInfo.class);
+        kryo.register(HashMap.class);
+        kryo.register(java.util.ArrayList.class);
+    }
+
+    // ----- Управление сервером и клиентом -----
+
+    public void startServer() {
+        if (server != null) return;
+        server = new ServerCore();
+        server.start(MPSettings.multiplayerPort());
+    }
+
+    public void connectToServer(String host) {
+        if (client != null && client.isConnected()) return;
+        client = new ClientCore();
+        client.connect(host, MPSettings.multiplayerPort());
+    }
+
+    public void disconnect() {
+        if (client != null) {
+            client.setSeedReceived(false);
+            client.disconnect();
+            client = null;
+        }
+        if (server != null) {
+            server.stop();
+            server = null;
+        }
+        Game.runOnRenderThread(() -> {
+            Multiplayer.isMultiplayer = false;
+            Multiplayer.isHost = false;
+            Multiplayer.Players.clear();
+        });
+    }
+
+    // ----- Состояние -----
+
+    public Mode getModeImpl() {
+        if (server != null && client != null && client.isConnected()) {
+            return Mode.LOCALHOST;
+        } else if (server != null) {
+            return Mode.SERVER;
+        } else if (client != null && client.isConnected()) {
+            return Mode.CLIENT;
+        } else {
+            return Mode.NONE;
+        }
+    }
+
+    public boolean isConnected() {
+        return client != null && client.isConnected();
+    }
+
+    public int getLocalPlayerIdImpl() {
+        return client != null ? client.getLocalPlayerId() : -1;
+    }
+
+    public void setLocalPlayerIdImpl(int id) {
+        if (client != null) client.setLocalPlayerId(id);
+    }
+
+    // ----- Отправка сообщений -----
+
+    public void sendMessageImpl(String type, Bundle bundle) {
+        BundleMessage msg = new BundleMessage(type, getLocalPlayerId());
+        msg.bundleData = bundle.toString();
+        if (client != null && client.isConnected()) {
+            client.sendMessage(msg);
+        } else if (server != null) {
+            server.broadcastMessage(msg, null);
+        }
+    }
+
+    public void sendToServerImpl(BundleMessage msg) {
+        if (client != null && client.isConnected()) {
+            client.sendMessage(msg);
+        }
+    }
+
+    public void broadcastMessageServerImpl(BundleMessage msg) {
+        if (server != null) {
+            server.broadcastMessage(msg, null);
+        }
+    }
+
+    public void broadcastMessageServerImpl(BundleMessage msg, ChannelHandlerContext ctxToIgnore) {
+        if (server != null) {
+            server.broadcastMessage(msg, ctxToIgnore);
+        }
+    }
+
+    // ----- Специализированные методы (для удобства) -----
+
+    public void broadcastSeedImpl(long seed, String customSeedText) {
+        Bundle bundle = new Bundle();
+        bundle.put("seed", seed);
+        bundle.put("customSeedText", customSeedText);
+        sendMessage("SEED_INIT", bundle);
+    }
+
+    public void sendHeroClassImpl(HeroClass heroClass) {
+        Bundle bundle = new Bundle();
+        bundle.put("heroClass", heroClass.name());
+        sendMessage("HERO_CLASS", bundle);
+    }
+
+    // ----- Вспомогательные методы -----
+
+    public void showMessage(String text) {
+        Game.runOnRenderThread(() -> {
+            if (ShatteredPixelDungeon.scene() != null) {
+                ShatteredPixelDungeon.scene().addToFront(new WndMessage(text));
+            }
+        });
+    }
+
+    // ======================== Внутренние классы ========================
+
+    public static class BundleMessage {
+        public String bundleData;
+        public int playerId;
+        public String type;
+        public BundleMessage() {}
+        public BundleMessage(String type, int playerId) {
+            this.type = type;
+            this.playerId = playerId;
+        }
+    }
+
+    // ----- Серверное ядро -----
+    private class ServerCore {
+        private EventLoopGroup bossGroup;
+        private EventLoopGroup workerGroup;
+        private Channel serverChannel;
+        private final Map<Integer, ChannelHandlerContext> connectedClients = new ConcurrentHashMap<>();
+
+        public void start(int port) {
+            new Thread(() -> {
+                try {
+                    bossGroup = new NioEventLoopGroup(1);
+                    workerGroup = new NioEventLoopGroup();
+
+                    ServerBootstrap b = new ServerBootstrap();
+                    b.group(bossGroup, workerGroup)
+                            .channel(NioServerSocketChannel.class)
+                            .childHandler(new ChannelInitializer<SocketChannel>() {
+                                @Override
+                                protected void initChannel(SocketChannel ch) {
+                                    ChannelPipeline p = ch.pipeline();
+                                    p.addLast(new LengthFieldPrepender(4));
+                                    p.addLast(new LengthFieldBasedFrameDecoder(1048576, 0, 4, 0, 4));
+                                    p.addLast(new KryoDecoder(kryo));
+                                    p.addLast(new KryoEncoder(kryo));
+                                    p.addLast(new ServerHandler());
+                                }
+                            })
+                            .option(ChannelOption.SO_BACKLOG, 128)
+                            .childOption(ChannelOption.SO_KEEPALIVE, true)
+                            .childOption(ChannelOption.TCP_NODELAY, true);
+
+                    ChannelFuture f = b.bind(port).sync();
+                    serverChannel = f.channel();
+                    Game.runOnRenderThread(() -> {
+                        showMessage("Server started on port " + port);
+                        Multiplayer.isMultiplayer = true;
+                        Multiplayer.isHost = true;
+                        // Генерируем seed для игры
+                        Dungeon.initSeed();
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Game.runOnRenderThread(() -> showMessage("Failed to start server"));
+                }
+            }, "Server-Thread").start();
+        }
+
+        public void stop() {
+            if (serverChannel != null) serverChannel.close();
+            if (bossGroup != null) bossGroup.shutdownGracefully();
+            if (workerGroup != null) workerGroup.shutdownGracefully();
+            connectedClients.clear();
+        }
+
+        public void broadcastMessage(BundleMessage msg, ChannelHandlerContext ignore) {
+            for (ChannelHandlerContext ctx : connectedClients.values()) {
+                if (ctx != ignore && ctx.channel().isActive()) {
+                    ctx.writeAndFlush(msg);
+                }
+            }
+        }
+
+        private class ServerHandler extends SimpleChannelInboundHandler<BundleMessage> {
+            @Override
+            public void channelActive(ChannelHandlerContext ctx) {
+                Game.runOnRenderThread(() -> {
+                    int playerId = ctx.channel().hashCode();
+                    connectedClients.put(playerId, ctx);
+                    // Отправляем PLAYER_ASSIGN
+                    Bundle assignBundle = new Bundle();
+                    assignBundle.put("assignedId", playerId);
+                    assignBundle.put("name", "Player " + playerId);
+                    BundleMessage assignMsg = new BundleMessage("PLAYER_ASSIGN", playerId);
+                    assignMsg.bundleData = assignBundle.toString();
+                    ctx.writeAndFlush(assignMsg);
+
+                    // Добавляем игрока в список
+                    Multiplayer.PlayerInfo newPlayer = new Multiplayer.PlayerInfo(playerId, "Player " + playerId);
+                    Multiplayer.Players.add(newPlayer);
+
+                    // Рассылаем PLAYER_JOIN остальным
+                    Bundle joinBundle = new Bundle();
+                    joinBundle.put("name", newPlayer.name);
+                    BundleMessage joinMsg = new BundleMessage("PLAYER_JOIN", playerId);
+                    joinMsg.bundleData = joinBundle.toString();
+                    broadcastMessage(joinMsg, ctx);
+
+                    // Отправляем SEED_INIT
+                    if (Dungeon.seed != 0) {
+                        Bundle seedBundle = new Bundle();
+                        seedBundle.put("seed", Dungeon.seed);
+                        seedBundle.put("customSeedText", Dungeon.customSeedText);
+                        BundleMessage seedMsg = new BundleMessage("SEED_INIT", -1);
+                        seedMsg.bundleData = seedBundle.toString();
+                        ctx.writeAndFlush(seedMsg);
                     }
 
-                    showMessage(message);
-                    network.Multiplayer.isMultiplayer = false;
-                    network.Multiplayer.isHost = false;
+                    // Отправляем информацию о других игроках
+                    for (Map.Entry<Integer, ChannelHandlerContext> entry : connectedClients.entrySet()) {
+                        if (entry.getKey() != playerId) {
+                            Multiplayer.PlayerInfo existing = Multiplayer.Players.get(entry.getKey());
+                            if (existing != null) {
+                                Bundle existBundle = new Bundle();
+                                existBundle.put("name", existing.name);
+                                BundleMessage existMsg = new BundleMessage("PLAYER_JOIN", existing.connectionID);
+                                existMsg.bundleData = existBundle.toString();
+                                ctx.writeAndFlush(existMsg);
+                            }
+                        }
+                    }
+                });
+            }
+
+            @Override
+            protected void channelRead0(ChannelHandlerContext ctx, BundleMessage msg) {
+                Game.runOnRenderThread(() -> {
+                    messageDispatcher.dispatch(msg);
+                    broadcastMessage(msg, ctx);
+                });
+            }
+
+            @Override
+            public void channelInactive(ChannelHandlerContext ctx) {
+                Game.runOnRenderThread(() -> {
+                    int playerId = ctx.channel().hashCode();
+                    connectedClients.remove(playerId);
+                    Multiplayer.Players.remove(playerId);
+                    BundleMessage leaveMsg = new BundleMessage("PLAYER_LEAVE", playerId);
+                    broadcastMessage(leaveMsg, ctx);
                 });
             }
 
             @Override
             public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-                String errorMsg = getDetailedErrorMessage(cause);
-                lastError = errorMsg;
-
-                System.err.println("Client network error: " + errorMsg);
-                cause.printStackTrace();
+                String err = getDetailedErrorMessage(cause);
+                Game.runOnRenderThread(() -> showMessage("Client error: " + err));
                 ctx.close();
             }
         }
-    public void connectToServer(String host) {
-        if (isStarting) return;
-        isStarting = true;
+    }
 
-        // Если мы администратор и уже создали себя как игрока
-//        if (mode == Mode.SERVER && host.equals("127.0.0.1")) {
-//            // Пропускаем обычное подключение для администратора
-//            Game.runOnRenderThread(() -> {
-//                showMessage("Host connected as player");
-//                isStarting = false;
-//            });
-//            return;
-//        }
+    // ----- Клиентское ядро -----
+    private class ClientCore {
+        private EventLoopGroup workerGroup;
+        private Channel clientChannel;
+        private int localPlayerId = -1;
+        private String lastError;
 
-        new Thread(() -> {
-            try {
-                mode = Mode.CLIENT;
+        public void connect(String host, int port) {
+            new Thread(() -> {
+                try {
+                    workerGroup = new NioEventLoopGroup();
+                    Bootstrap b = new Bootstrap();
+                    b.group(workerGroup)
+                            .channel(NioSocketChannel.class)
+                            .handler(new ChannelInitializer<SocketChannel>() {
+                                @Override
+                                protected void initChannel(SocketChannel ch) {
+                                    ChannelPipeline p = ch.pipeline();
+                                    p.addLast(new LengthFieldPrepender(4));
+                                    p.addLast(new LengthFieldBasedFrameDecoder(1048576, 0, 4, 0, 4));
+                                    p.addLast(new KryoDecoder(kryo));
+                                    p.addLast(new KryoEncoder(kryo));
+                                    p.addLast(new ClientHandler());
+                                }
+                            })
+                            .option(ChannelOption.SO_KEEPALIVE, true)
+                            .option(ChannelOption.TCP_NODELAY, true)
+                            .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000);
 
-                workerGroup = new NioEventLoopGroup();
-
-                Bootstrap b = new Bootstrap();
-                b.group(workerGroup)
-                        .channel(NioSocketChannel.class)
-                        .handler(new ChannelInitializer<SocketChannel>() {
-                            @Override
-                            protected void initChannel(SocketChannel ch) {
-                                ChannelPipeline p = ch.pipeline();
-
-                                p.addLast(new LengthFieldPrepender(4));
-                                p.addLast(new LengthFieldBasedFrameDecoder(1048576, 0, 4, 0, 4));
-
-                                p.addLast(new KryoDecoder(kryo));
-                                p.addLast(new KryoEncoder(kryo));
-
-                                p.addLast(new ClientHandler());
-                            }
-                        })
-                        .option(ChannelOption.SO_KEEPALIVE, true)
-                        .option(ChannelOption.TCP_NODELAY, true)
-                        .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000);
-
-                int port = MPSettings.multiplayerPort();
-                ChannelFuture f = b.connect(host, port);
-
-                f.addListener((ChannelFutureListener) future -> {
+                    ChannelFuture f = b.connect(host, port).sync();
+                    clientChannel = f.channel();
                     Game.runOnRenderThread(() -> {
-                        if (future.isSuccess()) {
-                            clientChannel = future.channel();
-                            MPSettings.multiplayerIP(host);
-                            MPSettings.multiplayerHost(false);
-
-                            network.Multiplayer.isMultiplayer = true;
-                            network.Multiplayer.isHost = false;
-                        } else {
-                            showMessage("Connection failed: " + future.cause().getMessage());
-                            mode = Mode.NONE;
-                            stopClient();
-                        }
-                        isStarting = false;
+                        Multiplayer.isMultiplayer = true;
+                        Multiplayer.isHost = false;
                     });
-                });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Game.runOnRenderThread(() -> showMessage("Connection failed"));
+                }
+            }, "Client-Thread").start();
+        }
 
-            } catch (Exception e) {
-                e.printStackTrace();
+        public void disconnect() {
+            if (clientChannel != null) clientChannel.close();
+            if (workerGroup != null) workerGroup.shutdownGracefully();
+            localPlayerId = -1;
+        }
+
+        public boolean isConnected() {
+            return clientChannel != null && clientChannel.isActive();
+        }
+
+        public int getLocalPlayerId() { return localPlayerId; }
+        public void setLocalPlayerId(int id) { this.localPlayerId = id; }
+        private boolean seedReceived = false;
+
+        public boolean isSeedReceived() {
+            return seedReceived;
+        }
+
+        public void setSeedReceived(boolean value) {
+            seedReceived = value;
+        }
+
+        public void sendMessage(BundleMessage msg) {
+            if (isConnected()) {
+                clientChannel.writeAndFlush(msg);
+            }
+        }
+
+        private class ClientHandler extends SimpleChannelInboundHandler<BundleMessage> {
+            @Override
+            public void channelActive(ChannelHandlerContext ctx) {
                 Game.runOnRenderThread(() -> {
-                    showMessage("Connection failed: " + e.getMessage());
-                    mode = Mode.NONE;
-                    isStarting = false;
+                    localPlayerId = ctx.channel().hashCode();
+                    lastError = null;
                 });
             }
-        }, "Network-Client-Thread").start();
-    }
-    private void stopClient() {
-        if (clientChannel != null && clientChannel.isOpen()) {
-            try {
-                clientChannel.close().sync();
-            } catch (Exception e) {
-                e.printStackTrace();
+
+            @Override
+            protected void channelRead0(ChannelHandlerContext ctx, BundleMessage msg) {
+                Game.runOnRenderThread(() -> messageDispatcher.dispatch(msg));
             }
-        }
-        if (workerGroup != null) {
-            workerGroup.shutdownGracefully();
-            workerGroup = null;
+
+            @Override
+            public void channelInactive(ChannelHandlerContext ctx) {
+                Game.runOnRenderThread(() -> {
+                    if (!isDisconnecting) { // нужно добавить флаг в NetworkManager
+                        String message = lastError != null ? "Connection lost: " + lastError
+                                : "Connection lost: Server might be offline";
+                        showMessage(message);
+                    }
+                    Multiplayer.isMultiplayer = false;
+                    Multiplayer.isHost = false;
+                    Multiplayer.Players.clear();
+                });
+            }
+
+            @Override
+            public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+                lastError = getDetailedErrorMessage(cause);
+                ctx.close();
+            }
         }
     }
 
-    public static void setLocalPlayerId(int id) {
-        localPlayerId = id;
-    }
-    // Info
+    // ----- Вспомогательные методы (ошибки) -----
     private String getDetailedErrorMessage(Throwable cause) {
         if (cause == null) return "Unknown error";
-
-        String simpleName = cause.getClass().getSimpleName();
-        String message = cause.getMessage();
-
-        // Анализируем тип ошибки
         if (cause instanceof io.netty.channel.ConnectTimeoutException) {
             return "Connection timeout - server might be offline";
         } else if (cause instanceof java.net.ConnectException) {
@@ -549,97 +525,67 @@ public class NetworkManager {
         } else if (cause instanceof io.netty.handler.timeout.ReadTimeoutException) {
             return "Server timeout - no response received";
         } else if (cause instanceof java.io.IOException) {
-            return "Network error: " + (message != null ? message : "I/O problem");
+            return "Network error: " + cause.getMessage();
         } else if (cause instanceof com.esotericsoftware.kryo.KryoException) {
             return "Data serialization error";
         } else if (cause instanceof io.netty.handler.codec.DecoderException) {
             return "Protocol error - invalid data received";
         }
-
-        // Общий формат
-        return simpleName + (message != null ? ": " + message : "");
-    }
-    public void showMessage(String message) {
-        Game.runOnRenderThread(() -> {
-            if (ShatteredPixelDungeon.scene() != null) {
-                ShatteredPixelDungeon.scene().addToFront(new WndMessage(message));
-            }
-        });
+        return cause.getClass().getSimpleName() + (cause.getMessage() != null ? ": " + cause.getMessage() : "");
     }
 
-    // Game Start
-    public static void broadcastSeed(long seed, String customSeedText) {
-        if (mode != Mode.SERVER) return;
-
-        BundleMessage message = new BundleMessage();
-        message.type = "SEED_INIT";
-        message.playerId = -1; // HOST message
-
-        Bundle bundle = new Bundle();
-        bundle.put("seed", seed);
-        bundle.put("customSeedText", customSeedText != null ? customSeedText : "");
-        message.bundleData = bundle.toString();
-
-        broadcastMessageServer(message);
-    }
-    public static void sendHeroClass(HeroClass heroClassName) {
-        if (mode == Mode.NONE) return;
-
-        if (mode == Mode.CLIENT && clientChannel != null) {
-            BundleMessage message = new BundleMessage();
-            message.type = "HERO_CLASS";
-            message.playerId = getLocalPlayerId();
-
-            Bundle bundle = new Bundle();
-            bundle.put("HERO_CLASS", heroClassName);
-
-            message.bundleData = bundle.toString();
-
-            clientChannel.writeAndFlush(message);
-        }
-    }
-
-    // Player methods
-    public static void sendMessage(String type, Bundle bundle) {
-        BundleMessage msg = new BundleMessage(type, getLocalPlayerId());
-        msg.bundleData = bundle.toString();
-        if (getMode() == Mode.CLIENT) {
-            sendToServer(msg);
-        } else if (getMode() == Mode.SERVER) {
-            broadcastMessageServer(msg);
-        }
-    }
-    private void sendCurrGameStateToPlayer(ChannelHandlerContext ctx) {
-        Bundle gameState = new Bundle();
-        BundleMessage message = new BundleMessage("GAME_STATE", -1);
-        message.bundleData = gameState.toString();
-
-        // Хорошо бы здесь отправлять сид, информацию конкретно по heroes, mobs, items
-        // Если игра началась
-        ctx.writeAndFlush(message);
-    }
-    private void sendExistingPlayersToNewClient(ChannelHandlerContext newClientCtx) {
-        for (ChannelHandlerContext clientCtx : connectedClients.values()) {
-            if (clientCtx != newClientCtx) {
-                Multiplayer.PlayerInfo existingPlayer = Multiplayer.Players.get(clientCtx.channel().hashCode());
-                if (existingPlayer != null) {
-                    BundleMessage existingMessage = new BundleMessage("PLAYER_JOIN", existingPlayer.connectionID);
-                    Bundle existingBundle = new Bundle();
-                    existingBundle.put("name", existingPlayer.name);
-                    existingMessage.bundleData = existingBundle.toString();
-
-                    newClientCtx.writeAndFlush(existingMessage);
-                }
-
-            }
-        }
-    }
-    public static void sendToServer(BundleMessage msg) {
-        if (mode == Mode.CLIENT && clientChannel != null) {
-            clientChannel.writeAndFlush(msg);
-        }
-    }
+    // ----- Статические прокси для обратной совместимости -----
     public static int getLocalPlayerId() {
-        return localPlayerId;
+        return getInstance().getLocalPlayerIdImpl();
     }
+
+    public static void sendMessage(String type, Bundle bundle) {
+        getInstance().sendMessageImpl(type, bundle);
+    }
+
+    public static void sendHeroClass(HeroClass heroClass) {
+        getInstance().sendHeroClassImpl(heroClass);
+    }
+
+    public static void broadcastSeed(long seed, String customSeedText) {
+        getInstance().broadcastSeedImpl(seed, customSeedText);
+    }
+
+    public static void sendToServer(BundleMessage msg) {
+        getInstance().sendToServerImpl(msg);
+    }
+
+    public static void broadcastMessageServer(BundleMessage msg) {
+        getInstance().broadcastMessageServerImpl(msg);
+    }
+
+    public static void broadcastMessageServer(BundleMessage msg, ChannelHandlerContext ctxToIgnore) {
+        getInstance().broadcastMessageServerImpl(msg, ctxToIgnore);
+    }
+
+    public static Mode getMode() {
+        return getInstance().getModeImpl();
+    }
+
+    public static boolean isSeedReceived() {
+        return getInstance().isSeedReceivedImpl();
+    }
+
+    public static void setSeedReceived(boolean value) {
+        getInstance().setSeedReceivedImpl(value);
+    }
+
+    public boolean isSeedReceivedImpl() {
+        return client != null && client.isSeedReceived();
+    }
+
+    public void setSeedReceivedImpl(boolean value) {
+        if (client != null) client.setSeedReceived(value);
+    }
+
+    public static void setLocalPlayerId(int id) {
+        if (getInstance() != null) getInstance().setLocalPlayerIdImpl(id);
+    }
+
+
 }

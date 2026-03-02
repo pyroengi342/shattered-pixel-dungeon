@@ -33,6 +33,10 @@ public class HeroClassHandler implements MessageHandler {
                 player.hero.heroClass = heroClass;
             }
             System.out.println("Player " + senderId + " selected class: " + heroClassName);
+            // В конце, после создания героя:
+            Bundle heroBundle = new Bundle();
+            heroBundle.put("playerId", senderId);
+            NetworkManager.sendMessage("HERO_CREATED", heroBundle);
         });
         }
 }

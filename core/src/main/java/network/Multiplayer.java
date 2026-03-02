@@ -1,6 +1,6 @@
 package network;
 
-import static network.NetworkManager.getLocalPlayerId;
+import network.NetworkManager;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
@@ -113,22 +113,21 @@ public class Multiplayer {
      * Returns the player you control via connection connectionID.
      */
     public static Hero localHero() {
-        PlayerInfo info = Players.get(getLocalPlayerId());
+        PlayerInfo info = Players.get(NetworkManager.getLocalPlayerId());
         if (info == null) return null;
         return info.hero;
     }
 
     public static <T extends Item> T findItemInAllHeroes(Class<T> itemClass) {
-            for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
-                if (player.hero != null && player.hero.isAlive()) {
-                    T item = player.hero.belongings.getItem(itemClass);
-                    if (item != null) {
-                        return item;
-                    }
+        for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+            if (player.hero != null && player.hero.isAlive()) {
+                T item = player.hero.belongings.getItem(itemClass);
+                if (item != null) {
+                    return item;
                 }
             }
-            return null;
-            // Fallback
+        }
+        return null;
     }
 
     // Или метод для получения списка всех предметов у всех героев

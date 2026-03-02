@@ -21,6 +21,12 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.desktop;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.Locale;
+
+import org.lwjgl.util.tinyfd.TinyFileDialogs;
+
 import com.badlogic.gdx.Files;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
@@ -39,16 +45,58 @@ import com.watabou.noosa.Game;
 import com.watabou.utils.FileUtils;
 import com.watabou.utils.Point;
 
-import org.lwjgl.util.tinyfd.TinyFileDialogs;
-
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.util.Locale;
-
 public class DesktopLauncher {
 
 	public static void main (String[] args) {
+		int version = 0;
+		if (args.length > 0) {
+			try {
+				version = Integer.parseInt(args[0]);
+			} catch (NumberFormatException e) {
+				version = 0;
+			}
+		}
 
+		// Определяем версию игры из манифеста или системного свойства
+		String versionStr = DesktopLauncher.class.getPackage().getImplementationVersion();
+		if (versionStr == null) {
+			versionStr = System.getProperty("Implementation-Version");
+		}
+		int versionCode = 0;
+		if (versionStr != null) {
+			try {
+				versionCode = Integer.parseInt(versionStr);
+			} catch (NumberFormatException e) {
+				versionCode = 0;
+			}
+		}
+		Game.versionCode = versionCode;
+
+		// Определяем title
+		String titleTmp = DesktopLauncher.class.getPackage().getSpecificationTitle();
+		if (titleTmp == null) {
+			titleTmp = System.getProperty("Specification-Title");
+		}
+		if (titleTmp == null) {
+			titleTmp = "Shattered Pixel Dungeon";
+		}
+		final String title = titleTmp; // теперь title финальная и может использоваться в анонимном классе
+
+		// vendor
+		String vendor = DesktopLauncher.class.getPackage().getImplementationTitle();
+		if (vendor == null) {
+			vendor = System.getProperty("Implementation-Title");
+		}
+		if (vendor == null) {
+			vendor = "shatteredpixel"; // значение по умолчанию
+		} else {
+			String[] parts = vendor.split("\\.");
+			if (parts.length > 1) {
+				vendor = parts[1];
+			} else {
+				vendor = parts[0];
+			}
+		}
 		if (!DesktopLaunchValidator.verifyValidJVMState(args)){
 			return;
 		}
@@ -63,12 +111,12 @@ public class DesktopLauncher {
 			}
 		}
 		
-		final String title;
+/*		final String title;
 		if (DesktopLauncher.class.getPackage().getSpecificationTitle() == null){
 			title = System.getProperty("Specification-Title");
 		} else {
 			title = DesktopLauncher.class.getPackage().getSpecificationTitle();
-		}
+		}*/
 		
 		Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
 			@Override
@@ -114,17 +162,23 @@ public class DesktopLauncher {
 				System.exit(1);
 			}
 		});
-		
 		Game.version = DesktopLauncher.class.getPackage().getSpecificationVersion();
 		if (Game.version == null) {
 			Game.version = System.getProperty("Specification-Version");
 		}
-		
-		try {
+		if (Game.version == null) {
+			Game.version = "0.0.0"; // значение по умолчанию
+		}
+/*		Game.version = DesktopLauncher.class.getPackage().getSpecificationVersion();
+		if (Game.version == null) {
+			Game.version = System.getProperty("Specification-Version");
+		}
+		*/
+/*		try {
 			Game.versionCode = Integer.parseInt(DesktopLauncher.class.getPackage().getImplementationVersion());
 		} catch (NumberFormatException e) {
 			Game.versionCode = Integer.parseInt(System.getProperty("Implementation-Version"));
-		}
+		}*/
 
 		if (UpdateImpl.supportsUpdates()){
 			Updates.service = UpdateImpl.getUpdateService();
@@ -140,11 +194,20 @@ public class DesktopLauncher {
 		//if I were implementing this from scratch I would use the full implementation title for saves
 		// (e.g. /.shatteredpixel/shatteredpixeldungeon), but we have too much existing save
 		// date to worry about transferring at this point.
-		String vendor = DesktopLauncher.class.getPackage().getImplementationTitle();
+/*		String vendor = DesktopLauncher.class.getPackage().getImplementationTitle();
 		if (vendor == null) {
 			vendor = System.getProperty("Implementation-Title");
 		}
-		vendor = vendor.split("\\.")[1];
+		if (vendor == null || vendor.isEmpty()) {
+			vendor = "shatteredpixel"; // запасной вариант
+		} else {
+			String[] parts = vendor.split("\\.");
+			if (parts.length > 1) {
+				vendor = parts[1];
+			} else {
+				vendor = parts[0];
+			}
+		}*/
 
 		String basePath = "";
 		Files.FileType baseFileType = null;
