@@ -44,11 +44,6 @@ public class ClientStateMachine {
     }
 
     // --- Методы, вызываемые из UI ---
-    public void startLocalServer() {
-        setState(State.CONNECTING);
-        NetworkManager.getInstance().startServer();
-    }
-
     public void connectToServer(String host) {
         setState(State.CONNECTING);
         NetworkManager.getInstance().connectToServer(host);

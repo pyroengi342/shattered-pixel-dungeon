@@ -14,7 +14,7 @@ public class HeroClassHandler implements MessageHandler {
     @Override
     public void msgHandle(int senderId, Bundle bundle) {
         Game.runOnRenderThread(() -> {
-            if (NetworkManager.getMode() == NetworkManager.Mode.NONE) return;
+//            if (NetworkManager.getMode() == NetworkManager.Mode.NONE) return;
             String heroClassName = bundle.getString("heroClass");
             HeroClass heroClass = HeroClass.valueOf(heroClassName);
 

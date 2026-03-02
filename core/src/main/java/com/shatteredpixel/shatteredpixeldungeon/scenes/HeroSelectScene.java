@@ -78,6 +78,7 @@ import com.watabou.utils.RectF;
 
 import network.ClientStateMachine;
 import network.NetworkManager;
+import network.ServerStateMachine;
 import network.windows.WndMultiplayer;
 
 public class HeroSelectScene extends PixelScene {
@@ -161,12 +162,18 @@ public class HeroSelectScene extends PixelScene {
 		PixelScene.align(title);
 		add(title);
 
-		stateMachine = ClientStateMachine.getInstance();
-		stateMachine.addListener(newState -> {
+		ClientStateMachine clientSM = ClientStateMachine.getInstance();
+		clientSM.addListener(newState -> {
 			Game.runOnRenderThread(() -> {
 				switch (newState) {
+					case CONNECTING:
+						startBtn.text(Messages.get(this, "connecting"));
+						startBtn.enable(false);
+						break;
+					case HANDSHAKE:
+						// ничего не делаем или оставляем предыдущий текст
+						break;
 					case SEED_RECEIVED:
-						// Можно активировать кнопку Start
 						startBtn.enable(true);
 						startBtn.text(Messages.get(this, "start"));
 						break;
@@ -175,14 +182,53 @@ public class HeroSelectScene extends PixelScene {
 						startBtn.enable(false);
 						break;
 					case HERO_READY:
-						// Автоматически переходим в игру (или активируем кнопку)
-						startBtn.enable(true);
-						startGame();
+						startGame(); // запускаем игру
+						break;
+					case IN_GAME:
+						startBtn.enable(false); // уже в игре, кнопка не нужна
 						break;
 					case ERROR:
 						startBtn.text(Messages.get(this, "start"));
 						startBtn.enable(true);
-						// Показать сообщение об ошибке
+						NetworkManager.getInstance().showMessage("Connection error");
+						break;
+					default:
+						break;
+				}
+			});
+		});
+
+		ServerStateMachine serverSM = ServerStateMachine.getInstance();
+		serverSM.addListener(newState -> {
+			Game.runOnRenderThread(() -> {
+				switch (newState) {
+					case OFF:
+						break;
+					case STARTING:
+						startBtn.text(Messages.get(this, "connecting"));
+						startBtn.enable(false);
+						// ничего не делаем или оставляем предыдущий текст
+						break;
+					case OPERATIONAL:
+						// Game Start
+						// сервер запущен, принимает подключения, игра не началась
+						startBtn.enable(true);
+						startBtn.text(Messages.get(this, "start"));
+						break;
+					case WAITING_FOR_HERO:
+						break;
+					case HERO_READY:
+						startGame(); // запускаем игру
+						break;
+					case IN_GAME:
+						startBtn.enable(false); // уже в игре, кнопка не нужна
+						break;
+					case ERROR:
+						startBtn.text(Messages.get(this, "start"));
+						startBtn.enable(true);
+						NetworkManager.getInstance().showMessage("Connection error");
+						break;
+					default:
 						break;
 				}
 			});
@@ -198,19 +244,20 @@ public class HeroSelectScene extends PixelScene {
 
 				switch (NetworkManager.getMode()) {
 					case LOCALHOST:
-						if (!NetworkManager.isSeedReceived()) {
-							Game.scene().addToFront(new WndMessage("Waiting for seed from server..."));
-							return;
-						}
-						NetworkManager.sendHeroClass(GamesInProgress.selectedClass);
-						ClientStateMachine.getInstance().onHeroClassSent();
-						startBtn.text(Messages.get(this, "waiting_for_hero"));
+//						if (!NetworkManager.isSeedReceived()) {
+//							Game.scene().addToFront(new WndMessage("Waiting for seed from server..."));
+//							return;
+//						}
+//						NetworkManager.sendHeroClass(GamesInProgress.selectedClass);
+//						ClientStateMachine.getInstance().onHeroClassSent();
+//						startBtn.text(Messages.get(this, "waiting_for_hero"));
+//						startBtn.enable(false);
+						break;
+					case NONE:
+						serverSM.getInstance().startServer();
+						startBtn.text(Messages.get(this, "connecting"));
 						startBtn.enable(false);
-					case NONE:                     // Добавляем обработку NONE
-						ClientStateMachine.getInstance().startLocalServer();
-						NetworkManager.getInstance().connectToServer("localhost");
-						// startBtn.text(Messages.get(this, "connecting"));
-						// startBtn.enable(false);
+						ClientStateMachine.getInstance().connectToServer("127.0.0.1");
 						break;
 					case CLIENT:
 						if (!NetworkManager.isSeedReceived()) {
@@ -222,8 +269,9 @@ public class HeroSelectScene extends PixelScene {
 						startBtn.text(Messages.get(this, "waiting_for_hero"));
 						startBtn.enable(false);
 						break;
-					default: // SERVER или другие (если появятся)
-						// Можно оставить пустым или залогировать ошибку
+
+					case SERVER:
+						// Сервер без клиента – пока не используется, можно залогировать или проигнорировать
 						break;
 				}
 			}

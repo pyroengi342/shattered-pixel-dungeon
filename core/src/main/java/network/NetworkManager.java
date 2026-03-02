@@ -303,6 +303,7 @@ public class NetworkManager {
                         showMessage("Server started on port " + port);
                         Multiplayer.isMultiplayer = true;
                         Multiplayer.isHost = true;
+                        ServerStateMachine.getInstance().onServerStarted();
                         // Генерируем seed для игры
                         Dungeon.initSeed();
                     });

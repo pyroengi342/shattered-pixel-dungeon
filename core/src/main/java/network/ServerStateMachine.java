@@ -7,17 +7,17 @@ import java.util.List;
 public class ServerStateMachine {
     // Состояния сервера
     public enum State {
-        // 
+        //
         OFF,
         STARTING,
         // Game Start
         // сервер запущен, принимает подключения, игра не началась
-        OPERATIONAL,   
+        OPERATIONAL,
         // игра началась, новые подключения не принимаются (или только наблюдатели)
-        
+
         WAITING_FOR_HERO,   // Для каждого игрока!
         HERO_READY,         // Для каждого игрока!
-        // 
+        //
         IN_GAME,
         ERROR
     }
@@ -46,22 +46,27 @@ public class ServerStateMachine {
         for (StateListener l : listeners) l.onStateChanged(newState);
     }
 
-    // Методы, вызываемые из NetworkManager (ServerCore)
-    public void onServerStarting() {
+    // --- Методы, вызываемые из UI или NetworkManager ---
+
+    // Запуск сервера (вызывается из UI, например, из HeroSelectScene для NONE)
+    public void startServer() {
         setState(State.STARTING);
+        NetworkManager.getInstance().startServer();
     }
 
+    // Сообщаем, что сервер успешно запущен (вызывается из ServerCore после bind)
     public void onServerStarted() {
         setState(State.OPERATIONAL);
     }
 
+    // Сообщаем, что игра началась
     public void onGameStarted() {
         setState(State.IN_GAME);
     }
 
+    // Ошибка
     public void onError(String reason) {
         setState(State.ERROR);
-        // Можно залогировать, но UI обычно нет
     }
 
     public void reset() {
