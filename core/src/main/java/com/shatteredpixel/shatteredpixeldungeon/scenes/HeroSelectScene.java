@@ -76,9 +76,9 @@ import com.watabou.utils.PointF;
 import com.watabou.utils.Random;
 import com.watabou.utils.RectF;
 
-import network.ClientStateMachine;
+import network.states.ClientStateMachine;
 import network.NetworkManager;
-import network.ServerStateMachine;
+import network.states.ServerStateMachine;
 import network.windows.WndMultiplayer;
 
 public class HeroSelectScene extends PixelScene {

@@ -1,9 +1,13 @@
 // ==================== ServerStateMachine.java ====================
-package network;
+package network.states;
 
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Машина состояний для сервера.
+ * Изменение данных производится только через специальные методы,
+ */
 public class ServerStateMachine {
     // Состояния сервера
     public enum State {

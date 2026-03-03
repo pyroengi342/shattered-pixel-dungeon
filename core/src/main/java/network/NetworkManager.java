@@ -49,6 +49,8 @@ import network.handlers.window.ItemUseHandler;
 import network.handlers.window.MonkAbilityHandler;
 import network.handlers.window.SubclassHandler;
 import network.handlers.window.UpgradeHandler;
+import network.states.ClientSessionState;
+import network.states.ServerStateMachine;
 
 public class NetworkManager {
     private static NetworkManager instance;
@@ -251,9 +253,17 @@ public class NetworkManager {
         private EventLoopGroup bossGroup;
         private EventLoopGroup workerGroup;
         private Channel serverChannel;
-        Map<Integer, ClientSession> connectedClients = new ConcurrentHashMap<>();
+        Map<Integer, ClientSessionState> connectedClients = new ConcurrentHashMap<>();
         private final ServerStateMachine stateMachine = ServerStateMachine.getInstance();
-
+        private final ServerCallflow callflow;
+        public ServerCore() {
+            this.callflow = new ServerCallflow(ServerStateMachine.getInstance(), connectedClients);
+            // Подписываем callflow на изменения глобального состояния сервера
+            ServerStateMachine.getInstance().addListener(callflow::onServerStateChanged);
+        }
+        public ClientSessionState getSession(int playerId) {
+            return connectedClients.get(playerId);
+        }
         public void start(int port) {
             Game.runOnRenderThread(() -> stateMachine.onServerStarting());
             new Thread(() -> {
@@ -303,7 +313,8 @@ public class NetworkManager {
         }
 
         public void broadcastMessage(BundleMessage msg, ChannelHandlerContext ignore) {
-            for (ChannelHandlerContext ctx : connectedClients.values()) {
+            for (ClientSessionState session : connectedClients.values()) {
+                ChannelHandlerContext ctx = session.ctx;
                 if (ctx != ignore && ctx.channel().isActive()) {
                     ctx.writeAndFlush(msg);
                 }
@@ -325,29 +336,12 @@ public class NetworkManager {
                 Game.runOnRenderThread(() -> {
                     int playerId = ctx.channel().hashCode();
                     String name = "Player " + playerId;
-                    ClientSession session = new ClientSession(playerId, ctx, name);
+                    ClientSessionState session = new ClientSessionState(playerId, ctx, name, callflow);
                     connectedClients.put(playerId, session);
 
-
-                    // Отправляем PLAYER_ASSIGN
-                    PlayerAssignHandler.send(ctx, playerId, "Player " + playerId);
-
-                    // Добавляем игрока в список
-                    Multiplayer.PlayerInfo newPlayer = new Multiplayer.PlayerInfo(playerId, "Player " + playerId);
-                    Multiplayer.Players.add(newPlayer);
-
-                    // Рассылаем PLAYER_JOIN остальным
-                    PlayerJoinHandler.broadcast(newPlayer, ctx);
-
-                    // Отправляем информацию о других игроках
-                    for (ClientSession other : connectedClients.values()) {
-                        if (other.playerId != playerId) {
-                            PlayerJoinHandler.send(ctx, other.playerId, other.name);
-                        }
-                    }
-
-                    // Отправляем seed, если игра уже инициализирована
-                    SeedInitHandler.send(ctx);
+                    Game.runOnRenderThread(() -> {
+                        callflow.onClientConnected(session);
+                    });
                 });
             }
 
@@ -365,6 +359,7 @@ public class NetworkManager {
                     int playerId = ctx.channel().hashCode();
                     connectedClients.remove(playerId);
                     Multiplayer.Players.remove(playerId);
+
                     BundleMessage leaveMsg = new BundleMessage("PLAYER_LEAVE", playerId);
                     broadcastMessage(leaveMsg, ctx);
                 });
@@ -526,5 +521,11 @@ public class NetworkManager {
         if (getInstance() != null) getInstance().setLocalPlayerIdImpl(id);
     }
 
-
+    public static ClientSessionState getSession(int playerId) {
+        NetworkManager nm = getInstance();
+        if (nm.server != null) {
+            return nm.server.getSession(playerId);
+        }
+        return null;
+    }
 }

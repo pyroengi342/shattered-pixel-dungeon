@@ -6,6 +6,8 @@ import com.watabou.noosa.Game;
 import com.watabou.utils.Bundle;
 import network.Multiplayer;
 import network.NetworkManager;
+import network.states.ClientSessionState;
+import network.states.ClientStateMachine;
 
 public class HeroClassHandler implements MessageHandler {
     @Override
@@ -14,29 +16,26 @@ public class HeroClassHandler implements MessageHandler {
     @Override
     public void msgHandle(int senderId, Bundle bundle) {
         Game.runOnRenderThread(() -> {
-//            if (NetworkManager.getMode() == NetworkManager.Mode.NONE) return;
+            ClientSessionState session = NetworkManager.getSession(senderId);
+            if (session == null) return;
+
             String heroClassName = bundle.getString("heroClass");
             HeroClass heroClass = HeroClass.valueOf(heroClassName);
 
             Multiplayer.PlayerInfo player = Multiplayer.Players.get(senderId);
-            if (player == null) {
-                player = new Multiplayer.PlayerInfo(senderId, "Player " + senderId);
-                Multiplayer.Players.add(player);
-            }
 
             if (player.hero == null) {
-                Hero hero = new Hero();
-                hero.live();
-                heroClass.initHero(hero);
-                player.hero = hero;
+                player.hero = new Hero();
             } else {
                 player.hero.heroClass = heroClass;
             }
+            session.setHero(player.hero);
             System.out.println("Player " + senderId + " selected class: " + heroClassName);
-            // В конце, после создания героя:
-            Bundle heroBundle = new Bundle();
-            heroBundle.put("playerId", senderId);
-            NetworkManager.sendMessage("HERO_CREATED", heroBundle);
         });
-        }
+    }
+     public void sendHeroClassImpl(HeroClass heroClass) {
+         Bundle bundle = new Bundle();
+         bundle.put("heroClass", heroClass.name());
+         sendMessage("HERO_CLASS", bundle);
+     }
 }

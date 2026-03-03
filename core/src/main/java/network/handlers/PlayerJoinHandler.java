@@ -19,12 +19,14 @@ public class PlayerJoinHandler implements MessageHandler {
             String name = bundle.getString("name");
             Multiplayer.PlayerInfo player = new Multiplayer.PlayerInfo(senderId, name);
             player.isLocal = false;
+
             Multiplayer.Players.add(player);
+
             System.out.println("Player joined: " + name + " (ID: " + senderId + ")");
         });
     }
 
-    // Отправка конкретному клиенту (например, новому игроку информация о существующем)
+    // Отправка конкретному клиенту
     public static void send(ChannelHandlerContext ctx, int playerId, String name) {
         Bundle bundle = new Bundle();
         bundle.put("name", name);
