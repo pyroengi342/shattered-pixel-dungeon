@@ -2,6 +2,7 @@ package network;
 
 import com.shatteredpixel.shatteredpixeldungeon.GamesInProgress;
 
+import io.netty.channel.ChannelHandlerContext;
 import network.handlers.SeedInitHandler;
 
 import java.util.ArrayList;
@@ -30,7 +31,9 @@ public class ClientStateMachine {
         return instance;
     }
 
-    private ClientStateMachine() {}
+    private ClientStateMachine() {
+    }
+    }
 
     public void addListener(StateListener listener) {
         listeners.add(listener);
