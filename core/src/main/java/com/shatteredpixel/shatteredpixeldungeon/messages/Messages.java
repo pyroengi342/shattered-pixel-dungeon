@@ -26,6 +26,7 @@ import com.badlogic.gdx.utils.I18NBundle;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
+import com.watabou.noosa.Game;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -91,7 +92,8 @@ public class Messages {
 			locale = Locale.ENGLISH;
 			bundleLocal = Locale.ROOT; //english is source, uses root locale for fetching bundle
 		} else {
-			locale = new Locale(lang.code());
+			locale = Locale.forLanguageTag(lang.code());  // ✅ Replaces deprecated constructor
+			// locale = new Locale(lang.code());
 			bundleLocal = locale;
 		}
 		formatters.clear();
@@ -168,7 +170,8 @@ public class Messages {
 		try {
 			return String.format(locale(), format, args);
 		} catch (IllegalFormatException e) {
-			ShatteredPixelDungeon.reportException( new Exception("formatting error for the string: " + format, e) );
+//			Game.reportException( new Exception("formatting error for the string: " + format, e) );
+			Game.reportException( new Exception("formatting error for the string: " + format, e) );
 			return format;
 		}
 	}
@@ -183,7 +186,7 @@ public class Messages {
 	}
 
 	public static String capitalize( String str ){
-		if (str.length() == 0)  return str;
+		if (str.isEmpty())  return str;
 		else                    return str.substring( 0, 1 ).toUpperCase(locale) + str.substring( 1 );
 	}
 
@@ -193,23 +196,23 @@ public class Messages {
 			Arrays.asList("a", "an", "and", "of", "by", "to", "the", "x", "for")
 	);
 
-	public static String titleCase( String str ){
-		//English capitalizes every word except for a few exceptions
-		if (lang == Languages.ENGLISH){
-			String result = "";
-			//split by any unicode space character
-			for (String word : str.split("(?<=\\p{Zs})")){
-				if (noCaps.contains(word.trim().toLowerCase(Locale.ENGLISH).replaceAll(":|[0-9]", ""))){
-					result += word;
+	public static String titleCase(String str) {
+		// English capitalizes every word except for a few exceptions
+		if (lang == Languages.ENGLISH) {
+			StringBuilder resultBuilder = new StringBuilder();
+			// split by any Unicode space character
+			for (String word : str.split("(?<=\\p{Zs})")) {
+				if (noCaps.contains(word.trim().toLowerCase(Locale.ENGLISH).replaceAll("[:0-9]", ""))) {
+					resultBuilder.append(word);
 				} else {
-					result += capitalize(word);
+					resultBuilder.append(capitalize(word));
 				}
 			}
-			//first character is always capitalized.
-			return capitalize(result);
+			// first character is always capitalized
+			return capitalize(resultBuilder.toString());
 		}
 
-		//Otherwise, use sentence case
+		// Otherwise, use sentence case
 		return capitalize(str);
 	}
 

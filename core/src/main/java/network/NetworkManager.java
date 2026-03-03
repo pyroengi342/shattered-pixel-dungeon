@@ -8,10 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
-import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.LloydsBeacon.beaconRecharge;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndMessage;
 import com.watabou.noosa.Game;
 import com.watabou.utils.Bundle;
@@ -23,7 +20,6 @@ import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.ByteBufOutputStream;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
@@ -157,7 +153,6 @@ public class NetworkManager {
 
     public void disconnect() {
         if (client != null) {
-            client.setSeedReceived(false);
             client.disconnect();
             client = null;
         }
@@ -228,21 +223,6 @@ public class NetworkManager {
         }
     }
 
-    // ----- Специализированные методы (для удобства) -----
-
-    public void broadcastSeedImpl(long seed, String customSeedText) {
-        Bundle bundle = new Bundle();
-        bundle.put("seed", seed);
-        bundle.put("customSeedText", customSeedText);
-        sendMessage("SEED_INIT", bundle);
-    }
-
-    public void sendHeroClassImpl(HeroClass heroClass) {
-        Bundle bundle = new Bundle();
-        bundle.put("heroClass", heroClass.name());
-        sendMessage("HERO_CLASS", bundle);
-    }
-
     // ----- Вспомогательные методы -----
 
     public void showMessage(String text) {
@@ -271,14 +251,15 @@ public class NetworkManager {
         private EventLoopGroup bossGroup;
         private EventLoopGroup workerGroup;
         private Channel serverChannel;
-        private final Map<Integer, ChannelHandlerContext> connectedClients = new ConcurrentHashMap<>();
+        Map<Integer, ClientSession> connectedClients = new ConcurrentHashMap<>();
+        private final ServerStateMachine stateMachine = ServerStateMachine.getInstance();
 
         public void start(int port) {
+            Game.runOnRenderThread(() -> stateMachine.onServerStarting());
             new Thread(() -> {
                 try {
                     bossGroup = new NioEventLoopGroup(1);
                     workerGroup = new NioEventLoopGroup();
-
                     ServerBootstrap b = new ServerBootstrap();
                     b.group(bossGroup, workerGroup)
                             .channel(NioServerSocketChannel.class)
@@ -300,16 +281,14 @@ public class NetworkManager {
                     ChannelFuture f = b.bind(port).sync();
                     serverChannel = f.channel();
                     Game.runOnRenderThread(() -> {
+                        stateMachine.onServerStarted();
                         showMessage("Server started on port " + port);
                         Multiplayer.isMultiplayer = true;
                         Multiplayer.isHost = true;
-                        ServerStateMachine.getInstance().onServerStarted();
-                        // Генерируем seed для игры
-                        Dungeon.initSeed();
                     });
                 } catch (Exception e) {
-                    e.printStackTrace();
-                    Game.runOnRenderThread(() -> showMessage("Failed to start server"));
+                    // e.printStackTrace();
+                    Game.runOnRenderThread(() -> stateMachine.onError("Failed to start server: " + e.getMessage()));
                 }
             }, "Server-Thread").start();
         }
@@ -318,6 +297,8 @@ public class NetworkManager {
             if (serverChannel != null) serverChannel.close();
             if (bossGroup != null) bossGroup.shutdownGracefully();
             if (workerGroup != null) workerGroup.shutdownGracefully();
+
+            Game.runOnRenderThread(() -> stateMachine.reset());
             connectedClients.clear();
         }
 
@@ -332,51 +313,41 @@ public class NetworkManager {
         private class ServerHandler extends SimpleChannelInboundHandler<BundleMessage> {
             @Override
             public void channelActive(ChannelHandlerContext ctx) {
+                if (stateMachine.getCurrentState() != ServerStateMachine.State.OPERATIONAL) {
+                     ctx.close();
+                     return;
+                 }
+                if (connectedClients.size() >= MPSettings.maxPlayers()) {
+                    ctx.close();
+                    return;
+                }
+
                 Game.runOnRenderThread(() -> {
                     int playerId = ctx.channel().hashCode();
-                    connectedClients.put(playerId, ctx);
+                    String name = "Player " + playerId;
+                    ClientSession session = new ClientSession(playerId, ctx, name);
+                    connectedClients.put(playerId, session);
+
+
                     // Отправляем PLAYER_ASSIGN
-                    Bundle assignBundle = new Bundle();
-                    assignBundle.put("assignedId", playerId);
-                    assignBundle.put("name", "Player " + playerId);
-                    BundleMessage assignMsg = new BundleMessage("PLAYER_ASSIGN", playerId);
-                    assignMsg.bundleData = assignBundle.toString();
-                    ctx.writeAndFlush(assignMsg);
+                    PlayerAssignHandler.send(ctx, playerId, "Player " + playerId);
 
                     // Добавляем игрока в список
                     Multiplayer.PlayerInfo newPlayer = new Multiplayer.PlayerInfo(playerId, "Player " + playerId);
                     Multiplayer.Players.add(newPlayer);
 
                     // Рассылаем PLAYER_JOIN остальным
-                    Bundle joinBundle = new Bundle();
-                    joinBundle.put("name", newPlayer.name);
-                    BundleMessage joinMsg = new BundleMessage("PLAYER_JOIN", playerId);
-                    joinMsg.bundleData = joinBundle.toString();
-                    broadcastMessage(joinMsg, ctx);
-
-                    // Отправляем SEED_INIT
-                    if (Dungeon.seed != 0) {
-                        Bundle seedBundle = new Bundle();
-                        seedBundle.put("seed", Dungeon.seed);
-                        seedBundle.put("customSeedText", Dungeon.customSeedText);
-                        BundleMessage seedMsg = new BundleMessage("SEED_INIT", -1);
-                        seedMsg.bundleData = seedBundle.toString();
-                        ctx.writeAndFlush(seedMsg);
-                    }
+                    PlayerJoinHandler.broadcast(newPlayer, ctx);
 
                     // Отправляем информацию о других игроках
-                    for (Map.Entry<Integer, ChannelHandlerContext> entry : connectedClients.entrySet()) {
-                        if (entry.getKey() != playerId) {
-                            Multiplayer.PlayerInfo existing = Multiplayer.Players.get(entry.getKey());
-                            if (existing != null) {
-                                Bundle existBundle = new Bundle();
-                                existBundle.put("name", existing.name);
-                                BundleMessage existMsg = new BundleMessage("PLAYER_JOIN", existing.connectionID);
-                                existMsg.bundleData = existBundle.toString();
-                                ctx.writeAndFlush(existMsg);
-                            }
+                    for (ClientSession other : connectedClients.values()) {
+                        if (other.playerId != playerId) {
+                            PlayerJoinHandler.send(ctx, other.playerId, other.name);
                         }
                     }
+
+                    // Отправляем seed, если игра уже инициализирована
+                    SeedInitHandler.send(ctx);
                 });
             }
 
@@ -462,15 +433,6 @@ public class NetworkManager {
 
         public int getLocalPlayerId() { return localPlayerId; }
         public void setLocalPlayerId(int id) { this.localPlayerId = id; }
-        private boolean seedReceived = false;
-
-        public boolean isSeedReceived() {
-            return seedReceived;
-        }
-
-        public void setSeedReceived(boolean value) {
-            seedReceived = value;
-        }
 
         public void sendMessage(BundleMessage msg) {
             if (isConnected()) {
@@ -544,14 +506,6 @@ public class NetworkManager {
         getInstance().sendMessageImpl(type, bundle);
     }
 
-    public static void sendHeroClass(HeroClass heroClass) {
-        getInstance().sendHeroClassImpl(heroClass);
-    }
-
-    public static void broadcastSeed(long seed, String customSeedText) {
-        getInstance().broadcastSeedImpl(seed, customSeedText);
-    }
-
     public static void sendToServer(BundleMessage msg) {
         getInstance().sendToServerImpl(msg);
     }
@@ -566,22 +520,6 @@ public class NetworkManager {
 
     public static Mode getMode() {
         return getInstance().getModeImpl();
-    }
-
-    public static boolean isSeedReceived() {
-        return getInstance().isSeedReceivedImpl();
-    }
-
-    public static void setSeedReceived(boolean value) {
-        getInstance().setSeedReceivedImpl(value);
-    }
-
-    public boolean isSeedReceivedImpl() {
-        return client != null && client.isSeedReceived();
-    }
-
-    public void setSeedReceivedImpl(boolean value) {
-        if (client != null) client.setSeedReceived(value);
     }
 
     public static void setLocalPlayerId(int id) {

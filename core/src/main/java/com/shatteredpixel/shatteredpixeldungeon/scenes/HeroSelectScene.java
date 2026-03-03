@@ -596,6 +596,7 @@ public class HeroSelectScene extends PixelScene {
 
 	@Override
 	public void update() {
+		
 		if (waitingForLocalServer && NetworkManager.isSeedReceived() && NetworkManager.getLocalPlayerId() != -1) {
 			waitingForLocalServer = false;
 			startBtn.enable(true);
