@@ -31,7 +31,7 @@ public class MPSettings extends GameSettings{
         return getInt(KEY_MULTIPLAYER_PORT, 54555, 1024, 65535);
     }
 
-    public static void maxPlayers(boolean value) {
+    public static void maxPlayers(int value) {
         put(KEY_MAX_PLAYERS, value);
     }
     public static int maxPlayers() {

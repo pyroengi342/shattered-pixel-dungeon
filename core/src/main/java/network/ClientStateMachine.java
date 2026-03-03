@@ -2,6 +2,8 @@ package network;
 
 import com.shatteredpixel.shatteredpixeldungeon.GamesInProgress;
 
+import network.handlers.SeedInitHandler;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,10 +41,38 @@ public class ClientStateMachine {
     }
 
     private void setState(State newState) {
+        if (!isTransitionAllowed(currentState, newState)) {
+            throw new IllegalStateException("Invalid transition from " + currentState + " to " + newState);
+        }
         currentState = newState;
         for (StateListener l : listeners) l.onStateChanged(newState);
     }
-
+    /**
+     * Определяет, разрешён ли переход из состояния from в состояние to.
+     * Переходы в ERROR и OFF разрешены всегда (кроме случая, когда уже в OFF).
+     */
+    private boolean isTransitionAllowed(State from, State to) {
+        if (from == to) return true;               // оставаться в том же состоянии допустимо
+        if (to == State.OFFLINE || to == State.ERROR) return true; // всегда можно остановить или перейти в ошибку
+        switch (from) {
+            case OFFLINE:
+                return to == State.CONNECTING;
+            case CONNECTING:
+                return to == State.HANDSHAKE;
+            case HANDSHAKE:
+                return to == State.WAITING_FOR_HERO || to == State.IN_GAME;
+            case WAITING_FOR_HERO:
+                return to == State.HERO_READY;
+            case HERO_READY:
+                return to == State.IN_GAME;
+            case IN_GAME:
+                return false; // из IN_GAME только в OFF/ERROR (уже обработано выше)
+            case ERROR:
+                return false; // из ERROR только в OFF (обработано выше)
+            default:
+                return false;
+        }
+    }
     // --- Методы, вызываемые из UI ---
     public void startLocalServer() {
         setState(State.CONNECTING);
@@ -67,7 +97,7 @@ public class ClientStateMachine {
             setState(State.SEED_RECEIVED);
             // Если класс уже выбран, отправляем его автоматически
             if (GamesInProgress.selectedClass != null) {
-                NetworkManager.sendHeroClass(GamesInProgress.selectedClass);
+                SeedInitHandler.sendHeroClass(GamesInProgress.selectedClass);
                 setState(State.WAITING_FOR_HERO);
             }
         }
@@ -89,10 +119,6 @@ public class ClientStateMachine {
             }
         }
     }
-                    // Dungeon.daily = false;
-                    // Dungeon.dailyReplay = false;
-                    // InterlevelScene.mode = InterlevelScene.Mode.DESCEND;
-                    // Game.switchScene(InterlevelScene.class);
 
     public void onHeroCreated(int playerId) {
         // При получении HERO_CREATED проверяем, относится ли оно к локальному игроку

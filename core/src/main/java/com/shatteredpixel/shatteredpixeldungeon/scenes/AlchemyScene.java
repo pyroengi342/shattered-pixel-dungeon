@@ -21,6 +21,9 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.scenes;
 
+import java.io.IOException;
+import java.util.ArrayList;
+
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Chrome;
@@ -81,9 +84,6 @@ import com.watabou.noosa.audio.Sample;
 import com.watabou.noosa.particles.Emitter;
 import com.watabou.noosa.ui.Component;
 import com.watabou.utils.RectF;
-
-import java.io.IOException;
-import java.util.ArrayList;
 
 import network.Multiplayer;
 
@@ -282,7 +282,7 @@ public class AlchemyScene extends PixelScene {
 										if (!Recipe.usableInRecipe(i)) items.remove(i);
 									}
 
-									if (items.size() == 0){
+									if (items.isEmpty()){
 										ShatteredPixelDungeon.scene().addToFront(new WndMessage(Messages.get(AlchemyScene.class, "no_items")));
 										return;
 									}
