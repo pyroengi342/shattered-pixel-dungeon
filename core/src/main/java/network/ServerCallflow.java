@@ -44,11 +44,13 @@ public class ServerCallflow {
     private void handleClientInLobby(ClientSessionState session) {
         // У нового клиента ожидаем состояние HANDSHAKE (hero=null, seed=null)
         PlayerStateMachine.State clientState = session.stateMachine.getCurrentState();
-        if (clientState == PlayerStateMachine.State.HANDSHAKE) {
-            performHandshake(session);
-        } else {
-            // Если состояние не соответствует, закрываем соединение
-            session.ctx.close();
+        switch (clientState){
+            case HANDSHAKE:
+                performHandshake(session);
+                break;
+            default:
+                session.ctx.close();
+                break;
         }
     }
 
