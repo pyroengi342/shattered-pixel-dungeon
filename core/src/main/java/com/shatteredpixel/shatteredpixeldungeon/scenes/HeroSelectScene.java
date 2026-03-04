@@ -198,42 +198,6 @@ public class HeroSelectScene extends PixelScene {
 			});
 		});
 
-		ServerStateMachine serverSM = ServerStateMachine.getInstance();
-		serverSM.addListener(newState -> {
-			Game.runOnRenderThread(() -> {
-				switch (newState) {
-					case OFF:
-						break;
-					case STARTING:
-						startBtn.text(Messages.get(this, "connecting"));
-						startBtn.enable(false);
-						// ничего не делаем или оставляем предыдущий текст
-						break;
-					case OPERATIONAL:
-						// Game Start
-						// сервер запущен, принимает подключения, игра не началась
-						startBtn.enable(true);
-						startBtn.text(Messages.get(this, "start"));
-						break;
-					case WAITING_FOR_HERO:
-						break;
-					case HERO_READY:
-						startGame(); // запускаем игру
-						break;
-					case IN_GAME:
-						startBtn.enable(false); // уже в игре, кнопка не нужна
-						break;
-					case ERROR:
-						startBtn.text(Messages.get(this, "start"));
-						startBtn.enable(true);
-						NetworkManager.getInstance().showMessage("Connection error");
-						break;
-					default:
-						break;
-				}
-			});
-		});
-
 		startBtn = new StyledButton(Chrome.Type.GREY_BUTTON_TR, ""){
             protected void onClick() {
 				super.onClick();

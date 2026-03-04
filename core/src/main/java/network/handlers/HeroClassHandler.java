@@ -33,9 +33,9 @@ public class HeroClassHandler implements MessageHandler {
             System.out.println("Player " + senderId + " selected class: " + heroClassName);
         });
     }
-     public void sendHeroClassImpl(HeroClass heroClass) {
-         Bundle bundle = new Bundle();
-         bundle.put("heroClass", heroClass.name());
-         sendMessage("HERO_CLASS", bundle);
-     }
+    public static void sendHeroClass(HeroClass heroClass) {
+        Bundle bundle = new Bundle();
+        bundle.put("heroClass", heroClass.name());
+        NetworkManager.sendMessage("HERO_CLASS", bundle);
+    }
 }

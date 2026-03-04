@@ -43,32 +43,32 @@ public class ClientStateMachine {
         NetworkManager.getInstance().connectToServer(host);
     }
 
-    // --- Методы, вызываемые из обработчиков сообщений ---
-    public void onPlayerAssign(int playerId, String name) {
-        // Обновляем данные локального игрока
-        // (в текущей реализации PlayerStateMachine не позволяет менять id, но можно создать новый или добавить сеттер)
-        // Для простоты предположим, что мы можем создать новый экземпляр или добавить метод setId.
-        // В данном примере мы не меняем id, так как он фиксирован в конструкторе.
-        // Альтернатива: добавить в PlayerStateMachine метод setPlayerId, но обычно id не меняется.
-        // Можно просто игнорировать, если id уже установлен.
-        // Здесь для простоты оставим как есть, предполагая, что изначальный id = -1, и мы его не используем.
-        // В реальности нужно или пересоздавать stateMachine, или добавить сеттер.
-        // Пока просто установим имя.
-        stateMachine.setName(name);
-        // Состояние должно перейти в HANDSHAKE автоматически? Нет, данные не изменились.
-        // Поэтому нам нужно явно инициировать переход? По логике computeState, если нет seed и hero, состояние = HANDSHAKE.
-        // Если начальное состояние было OFFLINE, а мы хотим HANDSHAKE, то нужно либо установить начальное состояние в HANDSHAKE,
-        // либо изменить данные так, чтобы computeState дал HANDSHAKE. Сейчас hero=null, seed=null => HANDSHAKE.
-        // Так что состояние уже должно быть HANDSHAKE после конструктора, если начальное состояние вычислялось как HANDSHAKE.
-        // В конструкторе мы вызываем computeState, который при hero=null, seed=null возвращает HANDSHAKE.
-        // Значит, сразу после создания stateMachine состояние HANDSHAKE. Это хорошо.
-        // Но нам нужно также сохранить playerId и name. Добавим сеттер для имени, как выше.
-    }
+    // // --- Методы, вызываемые из обработчиков сообщений ---
+    // public void onPlayerAssign(int playerId, String name) {
+    //     // Обновляем данные локального игрока
+    //     // (в текущей реализации PlayerStateMachine не позволяет менять id, но можно создать новый или добавить сеттер)
+    //     // Для простоты предположим, что мы можем создать новый экземпляр или добавить метод setId.
+    //     // В данном примере мы не меняем id, так как он фиксирован в конструкторе.
+    //     // Альтернатива: добавить в PlayerStateMachine метод setPlayerId, но обычно id не меняется.
+    //     // Можно просто игнорировать, если id уже установлен.
+    //     // Здесь для простоты оставим как есть, предполагая, что изначальный id = -1, и мы его не используем.
+    //     // В реальности нужно или пересоздавать stateMachine, или добавить сеттер.
+    //     // Пока просто установим имя.
+    //     stateMachine.setName(name);
+    //     // Состояние должно перейти в HANDSHAKE автоматически? Нет, данные не изменились.
+    //     // Поэтому нам нужно явно инициировать переход? По логике computeState, если нет seed и hero, состояние = HANDSHAKE.
+    //     // Если начальное состояние было OFFLINE, а мы хотим HANDSHAKE, то нужно либо установить начальное состояние в HANDSHAKE,
+    //     // либо изменить данные так, чтобы computeState дал HANDSHAKE. Сейчас hero=null, seed=null => HANDSHAKE.
+    //     // Так что состояние уже должно быть HANDSHAKE после конструктора, если начальное состояние вычислялось как HANDSHAKE.
+    //     // В конструкторе мы вызываем computeState, который при hero=null, seed=null возвращает HANDSHAKE.
+    //     // Значит, сразу после создания stateMachine состояние HANDSHAKE. Это хорошо.
+    //     // Но нам нужно также сохранить playerId и name. Добавим сеттер для имени, как выше.
+    // }
 
-    public void onSeedInit(long seed) {
-//        // Устанавливаем seed, состояние обновится автоматически
-//        stateMachine.setSeed(seed);
-    }
+//     public void onSeedInit(long seed) {
+// //        // Устанавливаем seed, состояние обновится автоматически
+// //        stateMachine.setSeed(seed);
+//     }
 
     public void onHeroCreated(Hero hero) {
         stateMachine.setHero(hero);
@@ -101,5 +101,25 @@ public class ClientStateMachine {
         // В простейшем случае можно заменить stateMachine новым.
         // Но осторожно со слушателями.
         // Пропустим для brevity.
+    }
+
+    // ClientStateMachine.java
+    public void onSeedInit(long seed) {
+        stateMachine.setSeed(seed);   // теперь seed будет установлен
+    }
+
+    public void onPlayerAssign(int playerId, String name) {
+        // Обновляем ID и имя в stateMachine
+        stateMachine.setPlayerId(playerId);
+        stateMachine.setName(name);
+        // состояние пересчитается автоматически (hero=null, seed=null -> HANDSHAKE)
+    }
+
+    public boolean isSeedReceived() {
+        return stateMachine.getSeed() != null;
+    }
+
+    public boolean isLocalPlayerIdSet() {
+        return stateMachine.getPlayerId() != -1;
     }
 }
