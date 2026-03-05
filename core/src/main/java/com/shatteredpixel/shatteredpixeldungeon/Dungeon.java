@@ -280,12 +280,12 @@ public class Dungeon {
 		Blacksmith.Quest.reset();
 		Imp.Quest.reset();
 
-		host.hero.live();
-		GamesInProgress.selectedClass.initHero(host.hero);
+		for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+			player.hero.live();
+			GamesInProgress.selectedClass.initHero(player.hero);
+		}
 
         Badges.reset();
-        // TODO better show the player you actually play
-//        GamesInProgress.selectedClass.initHero( hero );
 	}
 
 	public static boolean isChallenged( int mask ) {

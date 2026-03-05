@@ -221,7 +221,7 @@ public abstract class Scroll extends Item {
 				updateQuickslot();
 			}
 			
-			if (curUser.isAlive()) {
+			if (curUser != null && curUser.isAlive()) {
 				Catalog.setSeen(getClass());
 				Statistics.itemTypesDiscovered.add(getClass());
 			}

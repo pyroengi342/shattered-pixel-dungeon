@@ -132,7 +132,10 @@ public class HighGrass {
 				float lootChance = 1/(25f - naturalismLevel*4f);
 
 				// absolute max drop rate is ~1/6.5 with footwear of nature, ~1/18 without
-				lootChance *= PetrifiedSeed.grassLootMultiplier(((Hero) ch));
+				if(ch instanceof Hero)
+				{
+					lootChance *= PetrifiedSeed.grassLootMultiplier(((Hero) ch));
+				}
 
 				if (Random.Float() < lootChance) {
 					if (Random.Float() < PetrifiedSeed.stoneInsteadOfSeedChance(((Hero) ch))) {

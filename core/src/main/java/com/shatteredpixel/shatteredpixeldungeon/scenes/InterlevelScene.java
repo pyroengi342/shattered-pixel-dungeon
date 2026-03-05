@@ -108,7 +108,6 @@ public class InterlevelScene extends PixelScene {
 	private IconButton btnHideStory;
 	
 	private static Thread thread;
-	private boolean GameStart = true;
 	private static Exception error = null;
 	private float waitingTime;
 
@@ -639,8 +638,8 @@ public class InterlevelScene extends PixelScene {
 
 	private void descend() throws IOException {
 
-		if (GameStart) {
-			GameStart = false;
+		if (Multiplayer.GameStart) {
+			Multiplayer.GameStart = false;
 			Mob.clearHeldAllies();
 			Dungeon.init();
 			GameLog.wipe();

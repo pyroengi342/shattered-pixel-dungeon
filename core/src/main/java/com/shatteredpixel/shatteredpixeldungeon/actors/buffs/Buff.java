@@ -24,6 +24,7 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.buffs;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.watabou.noosa.Image;
 import com.watabou.utils.Bundlable;
@@ -116,12 +117,15 @@ public class Buff extends Actor {
 	
 	public void detach() {
         // Очищаем ссылки перед отсоединением
-        if (target != null) {
-            if (target.remove(this) && target.sprite != null) {
-                fx(false);
-            }
-            target = null;
-        }
+		// TODO я так сделал, потому что полоска хп над героем крашает игру
+		Char oldTarget = target;
+		if (oldTarget != null) {
+			CharSprite sprite = oldTarget.sprite;
+			if (oldTarget.remove(this) && sprite != null) {
+				fx(false);
+			}
+			target = null;
+		}
         clearReferences();
 	}
 	

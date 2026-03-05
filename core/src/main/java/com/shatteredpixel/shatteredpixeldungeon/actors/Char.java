@@ -466,9 +466,10 @@ public abstract class Char extends Actor {
 				dmg *= 0.67f;
 			}
 
-			if (((Hero) this).alignment == enemy.alignment
+			if ((this instanceof Hero
+					&& ((Hero) this).alignment == enemy.alignment
 					&& this.buff(AuraOfProtection.AuraBuff.class) != null
-					&& (Dungeon.level.distance(enemy.pos, ((Hero) this).pos) <= 2 || enemy.buff(LifeLinkSpell.LifeLinkSpellBuff.class) != null)){
+					&& (Dungeon.level.distance(enemy.pos, ((Hero) this).pos) <= 2 || enemy.buff(LifeLinkSpell.LifeLinkSpellBuff.class) != null))){
 				dmg *= 0.9f - 0.1f*((Hero) this).pointsInTalent(Talent.AURA_OF_PROTECTION);
 			}
 

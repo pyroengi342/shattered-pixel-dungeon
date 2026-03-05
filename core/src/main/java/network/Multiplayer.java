@@ -20,6 +20,7 @@ public class Multiplayer {
     public static boolean isMultiplayer = false;
     public static boolean isHost = false;
     // int maxPlayersCount = MPSettings.maxPlayers();
+    public static boolean GameStart = true;
     private static final PlayerContainer playerContainer = new PlayerContainer();
     public static class PlayerInfo {
         public int connectionID;
