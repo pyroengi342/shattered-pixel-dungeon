@@ -20,7 +20,7 @@ public class ServerStateMachine {
         // игра началась, новые подключения не принимаются (или только наблюдатели)
         
         WAITING_FOR_HERO,   // Для каждого игрока!
-        HERO_READY,         // GAME_READY Для каждого игрока!
+        GAME_READY,         // GAME_READY Для каждого игрока!
         // 
         IN_GAME,
         ERROR
@@ -58,11 +58,9 @@ public class ServerStateMachine {
             case STARTING:
                 return to == State.OPERATIONAL;
             case OPERATIONAL:
-                return to == State.WAITING_FOR_HERO || to == State.IN_GAME;
-            case WAITING_FOR_HERO:
-                return to == State.HERO_READY;
-            case HERO_READY:
-                return to == State.IN_GAME;
+                return to == State.GAME_READY;
+            case GAME_READY:
+                return to == State.IN_GAME || to == State.OPERATIONAL;
             case IN_GAME:
                 return false; // из IN_GAME только в OFF/ERROR (уже обработано выше)
             case ERROR:
@@ -84,6 +82,7 @@ public class ServerStateMachine {
     public void onServerStarting() {
         setState(State.STARTING);
     }
+
     public void onServerStarted() {
         setState(State.OPERATIONAL);
     }
@@ -94,6 +93,7 @@ public class ServerStateMachine {
         setState(State.ERROR);
         // Можно залогировать, но UI обычно нет
     }
+
     public void reset() {
         setState(State.OFF);
     }

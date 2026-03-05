@@ -17,6 +17,7 @@ public class PlayerJoinHandler implements MessageHandler {
         Game.runOnRenderThread(() -> {
             if (senderId == NetworkManager.getLocalPlayerId()) return;
             String name = bundle.getString("name");
+
             Multiplayer.PlayerInfo player = new Multiplayer.PlayerInfo(senderId, name);
             player.isLocal = false;
 

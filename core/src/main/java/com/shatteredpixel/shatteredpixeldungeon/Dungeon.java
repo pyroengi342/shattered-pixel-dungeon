@@ -212,7 +212,7 @@ public class Dungeon {
 	public static boolean daily;
 	public static boolean dailyReplay;
 	public static String customSeedText = "";
-	public static long seed;
+	public static long seed = -1;
 	public static long lastPlayed;
 
 	//we initialize the seed separately so that things like interlevelscene can access it early
@@ -280,33 +280,8 @@ public class Dungeon {
 		Blacksmith.Quest.reset();
 		Imp.Quest.reset();
 
-        // Проверяем, есть ли уже игроки (включая администратора)
-//        List<Multiplayer.PlayerInfo> players = Multiplayer.Players.getAll();
-//        boolean hasHostHero = false;
-//        for (Multiplayer.PlayerInfo player : players) {
-//            if (player.hero != null) {
-//                hasHostHero = true;
-//                break;
-//            }
-//        }
-        // Если у администратора еще нет героя, создаем его
-//        if (Multiplayer.isHost && !hasHostHero && !players.isEmpty()) {
-//            Multiplayer.PlayerInfo host = players.get(0);
-//            host.hero = new Hero();
-//            host.hero.live();
-//            GamesInProgress.selectedClass.initHero(host.hero);
-//            System.out.println("Created hero for host in init()");
-//        }
-        // TODO need to add more checks
-        // Adding every connected player right now
-//        for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
-//			if (player.hero == null) {
-//				player.hero = new Hero();
-//				player.hero.live();
-//				System.out.println("Created hero for player: " + player.name + " (ID: " + player.connectionID + ")");
-//				GamesInProgress.selectedClass.initHero( player.hero );
-//			}
-//        }
+		host.hero.live();
+		GamesInProgress.selectedClass.initHero(host.hero);
 
         Badges.reset();
         // TODO better show the player you actually play

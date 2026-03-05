@@ -15,6 +15,7 @@ import com.watabou.noosa.Game;
 import network.MPSettings;
 import network.Multiplayer;
 import network.NetworkManager;
+import network.states.ClientStateMachine;
 
 public class WndMultiplayer extends Window {
     private float updateTimer = 0;

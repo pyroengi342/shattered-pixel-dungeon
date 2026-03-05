@@ -21,7 +21,6 @@ public class PlayerAssignHandler implements MessageHandler {
         Multiplayer.PlayerInfo player = new Multiplayer.PlayerInfo(assignedId, name);
         player.isLocal = true;
         Multiplayer.Players.add(player);
-
         ClientStateMachine.getInstance().onPlayerAssign(assignedId, name);
     }
 

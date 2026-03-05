@@ -1,7 +1,8 @@
 package network;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
-import com.watabou.noosa.Game;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.HeroSelectScene;
+
 import network.handlers.PlayerAssignHandler;
 import network.handlers.PlayerJoinHandler;
 import network.handlers.SeedInitHandler;
@@ -30,6 +31,7 @@ public class ServerCallflow {
         switch (serverState.getCurrentState()) {
             case OPERATIONAL:
                 handleClientInLobby(session);
+                sendSeedIfAny();
                 break;
             case IN_GAME:
                 handleClientInGame(session);
@@ -75,11 +77,15 @@ public class ServerCallflow {
                 PlayerJoinHandler.send(session.ctx, other.playerId, other.name);
             }
         }
-
-        // 5. Если игра уже инициализирована (seed есть), отправляем его и обновляем состояние сессии
-        if (Dungeon.seed != 0) {
-            SeedInitHandler.send(session.ctx);
-            session.stateMachine.setSeed(Dungeon.seed); // автоматически обновит состояние
+    }
+    private void sendSeedIfAny() {
+        Long seed = Dungeon.seed;               // локальная переменная, чтобы избежать проблем с изменением поля
+        if (seed == null || seed == -1L) return; // проверяем и null, и маркер -1 (если используется)
+        for (ClientSessionState clients : connectedClients.values()) {
+            if (clients.stateMachine.getSeed() == null){
+                SeedInitHandler.send(clients.ctx);
+                clients.stateMachine.setSeed(Dungeon.seed); // автоматически обновит состояние
+            }
         }
     }
 
@@ -107,19 +113,15 @@ public class ServerCallflow {
             return; // проверка имеет смысл только в лобби
         }
         for (ClientSessionState session : connectedClients.values()) {
-            if (session.stateMachine.getCurrentState() != PlayerStateMachine.State.HERO_READY) {
+            if (session.stateMachine.getCurrentState() != PlayerStateMachine.State.GAME_READY) {
                 return; // не все готовы
             }
         }
-        // Все клиенты в HERO_READY – можно начинать игру
+        // Все клиенты в GAME_READY – можно начинать игру
         // Здесь вызываем метод старта игры (например, в ServerStateMachine или напрямую)
         startGame();
     }
 
     private void startGame() {
-        // Переводим сервер в состояние STARTING (или сразу в IN_GAME)
-//        serverState.onGameStarting(); // предположим, есть такой метод
-        // Генерируем seed, создаём героев, рассылаем SEED_INIT и т.д.
-        // Эту логику можно реализовать здесь или вынести в отдельный метод
     }
 }

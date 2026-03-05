@@ -20,6 +20,7 @@ public class SeedInitHandler implements MessageHandler {
 
         Dungeon.seed = seed;
         Dungeon.customSeedText = custom;
+
         ClientStateMachine.getInstance().onSeedInit(seed);
     }
 

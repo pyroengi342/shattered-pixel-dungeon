@@ -108,6 +108,7 @@ public class InterlevelScene extends PixelScene {
 	private IconButton btnHideStory;
 	
 	private static Thread thread;
+	private boolean GameStart = true;
 	private static Exception error = null;
 	private float waitingTime;
 
@@ -124,7 +125,7 @@ public class InterlevelScene extends PixelScene {
 		super.create();
 
 		String loadingAsset;
-		int loadingDepth;
+		int loadingDepth = 1;
 		fadeTime = NORM_FADE;
 
 		long seed = Dungeon.seed;
@@ -134,19 +135,33 @@ public class InterlevelScene extends PixelScene {
 				seed = GamesInProgress.check(GamesInProgress.curSlot).seed;
 				break;
 			case DESCEND:
-				if (Multiplayer.localHero() == null){
-					loadingDepth = 1;
-					fadeTime = SLOW_FADE;
+				// TODO
+				if (curTransition != null) {
+					loadingDepth = curTransition.destDepth;
 				} else {
-					if (curTransition != null)  loadingDepth = curTransition.destDepth;
-					else                        loadingDepth = Dungeon.depth+1;
-					if (Statistics.deepestFloor >= loadingDepth) {
-						fadeTime = FAST_FADE;
-					} else if (loadingDepth == 6 || loadingDepth == 11
-							|| loadingDepth == 16 || loadingDepth == 21 || loadingDepth == 26) {
-						fadeTime = SLOW_FADE;
-					}
+					// При первом спуске Dungeon.depth может быть 0 или 1, тогда +1 даст 1 или 2
+					loadingDepth = Dungeon.depth + 1;
 				}
+				// Определение времени затухания
+				if (Statistics.deepestFloor >= loadingDepth) {
+					fadeTime = FAST_FADE;
+				} else if (loadingDepth == 6 || loadingDepth == 11
+						|| loadingDepth == 16 || loadingDepth == 21 || loadingDepth == 26) {
+					fadeTime = SLOW_FADE;
+				} // иначе остаётся NORM_FADE
+//				if (loadingDepth == null){
+//					loadingDepth = 1;
+//					fadeTime = SLOW_FADE;
+//				} else {
+//					if (curTransition != null)  loadingDepth = curTransition.destDepth;
+//					else                        loadingDepth = Dungeon.depth+1;
+//					if (Statistics.deepestFloor >= loadingDepth) {
+//						fadeTime = FAST_FADE;
+//					} else if (loadingDepth == 6 || loadingDepth == 11
+//							|| loadingDepth == 16 || loadingDepth == 21 || loadingDepth == 26) {
+//						fadeTime = SLOW_FADE;
+//					}
+//				}
 				break;
 			case FALL:
 				loadingDepth = Dungeon.depth+1;
@@ -624,7 +639,8 @@ public class InterlevelScene extends PixelScene {
 
 	private void descend() throws IOException {
 
-		if (Multiplayer.localHero() == null) {
+		if (GameStart) {
+			GameStart = false;
 			Mob.clearHeldAllies();
 			Dungeon.init();
 			GameLog.wipe();

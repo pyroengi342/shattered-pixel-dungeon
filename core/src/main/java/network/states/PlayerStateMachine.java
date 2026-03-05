@@ -16,13 +16,13 @@ public class PlayerStateMachine {
         HANDSHAKE,           // после PLAYER_ASSIGN, но без данных
         WAITING_FOR_SEED,    // есть герой, но нет seed (может быть при реконнекте)
         WAITING_FOR_HERO,    // seed получен, но герой ещё не создан
-        HERO_READY,          // и seed, и герой есть, но игрок ещё не нажал "готов"
+        GAME_READY,          // и seed, и герой есть, но игрок ещё не нажал "готов"
         IN_GAME,             // всё есть и ready = true
         ERROR
     }
 
     // Данные игрока
-    private final int playerId;
+    private int playerId;
     private String name;
     private Hero hero;           // null, если ещё не создан
     private Long seed;           // null, если ещё не получен
@@ -51,18 +51,32 @@ public class PlayerStateMachine {
     public boolean isHost() { return isHost; }
 
     // --- Методы для изменения данных (только через них) ---
+
+    public void setPlayerId(int playerId) {
+//        if (this.playerId != -1 && this.playerId != playerId) {
+//            throw new IllegalStateException("Player ID already set to " + this.playerId);
+//        }
+        this.playerId = playerId;
+        updateState();
+    }
+    public void forceError() {
+        currentState = State.ERROR;
+        notifyListeners();
+    }
+
     public void setHero(Hero hero) {
-        if (this.hero != null) {
-            throw new IllegalStateException("Hero already set for player " + playerId);
-        }
+        // Эта проверка убрана, т.к. на локалке setHero осуществляет и SessionState и StateMachine
+//        if (this.hero != null) {
+//            throw new IllegalStateException("Hero already set for player " + playerId);
+//        }
         this.hero = hero;
         updateState();
     }
 
     public void setSeed(long seed) {
-        if (this.seed != null) {
-            throw new IllegalStateException("Seed already set for player " + playerId);
-        }
+//        if (this.seed != null) {
+//            throw new IllegalStateException("Seed already set for player " + playerId);
+//        }
         this.seed = seed;
         updateState();
     }
@@ -75,17 +89,22 @@ public class PlayerStateMachine {
 
     public void setHost(boolean host) {
         this.isHost = host;
+        updateState();
         // состояние не зависит от isHost, но можно учесть, если нужно
     }
 
     // Для обновления имени (например, если игрок переименовался)
     public void setName(String name) {
         this.name = name;
+        updateState();
         // состояние не меняется
     }
 
     // --- Вычисление состояния на основе текущих данных ---
     private State computeState() {
+        if (playerId == -1){
+            return State.OFFLINE;
+        }
         if (hero == null && seed == null) {
             return State.HANDSHAKE;
         }
@@ -95,10 +114,10 @@ public class PlayerStateMachine {
         if (hero == null) {
             return State.WAITING_FOR_HERO;    // seed есть, героя нет
         }
-        if (!ready) {
-            return State.HERO_READY;          // всё есть, но не готов
+        if (true) {
+            return State.GAME_READY;          // всё есть, но не готов
         }
-        return State.IN_GAME;                 // всё есть и готов
+        return State.HANDSHAKE;                 // всё есть и готов
     }
 
     private void updateState() {

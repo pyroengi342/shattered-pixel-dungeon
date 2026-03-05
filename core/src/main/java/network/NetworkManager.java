@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndMessage;
 import com.watabou.noosa.Game;
@@ -35,6 +36,7 @@ import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.LengthFieldPrepender;
 import io.netty.handler.codec.MessageToByteEncoder;
 import network.handlers.HeroClassHandler;
+import network.handlers.HeroCreatedHandler;
 import network.handlers.PlayerAssignHandler;
 import network.handlers.PlayerJoinHandler;
 import network.handlers.PlayerLeaveHandler;
@@ -50,6 +52,7 @@ import network.handlers.window.MonkAbilityHandler;
 import network.handlers.window.SubclassHandler;
 import network.handlers.window.UpgradeHandler;
 import network.states.ClientSessionState;
+import network.states.ClientStateMachine;
 import network.states.ServerStateMachine;
 
 public class NetworkManager {
@@ -110,7 +113,14 @@ public class NetworkManager {
         }
         return instance;
     }
+    private ClientCallflow clientCallflow;
 
+    public ClientCallflow getClientCallflow() {
+        if (clientCallflow == null) {
+            clientCallflow = new ClientCallflow(ClientStateMachine.getInstance(), this);
+        }
+        return clientCallflow;
+    }
     private void initHandlers() {
         messageDispatcher.registerHandler(new PlayerAssignHandler());
         messageDispatcher.registerHandler(new PlayerJoinHandler());
@@ -128,6 +138,7 @@ public class NetworkManager {
         messageDispatcher.registerHandler(new SubclassHandler());
         messageDispatcher.registerHandler(new AbilityHandler());
         messageDispatcher.registerHandler(new BlacksmithHandler());
+        messageDispatcher.registerHandler(new HeroCreatedHandler());
     }
 
     private void setupKryo() {
@@ -149,7 +160,8 @@ public class NetworkManager {
 
     public void connectToServer(String host) {
         if (client != null && client.isConnected()) return;
-        client = new ClientCore();
+        client = new ClientCore(ClientStateMachine.getInstance(),
+                getClientCallflow());
         client.connect(host, MPSettings.multiplayerPort());
     }
 
@@ -292,6 +304,7 @@ public class NetworkManager {
                     serverChannel = f.channel();
                     Game.runOnRenderThread(() -> {
                         stateMachine.onServerStarted();
+                        Dungeon.seed = 1234;
                         showMessage("Server started on port " + port);
                         Multiplayer.isMultiplayer = true;
                         Multiplayer.isHost = true;
@@ -380,7 +393,12 @@ public class NetworkManager {
         private Channel clientChannel;
         private int localPlayerId = -1;
         private String lastError;
-
+        private final ClientStateMachine clientStateMachine;
+        private final ClientCallflow clientCallflow;
+        public ClientCore(ClientStateMachine clientStateMachine, ClientCallflow clientCallflow) {
+            this.clientStateMachine = clientStateMachine;
+            this.clientCallflow = clientCallflow;
+        }
         public void connect(String host, int port) {
             new Thread(() -> {
                 try {
@@ -409,9 +427,12 @@ public class NetworkManager {
                         Multiplayer.isMultiplayer = true;
                         Multiplayer.isHost = false;
                     });
-                } catch (Exception e) {
+                }  catch (Exception e) {
                     e.printStackTrace();
-                    Game.runOnRenderThread(() -> showMessage("Connection failed"));
+                    Game.runOnRenderThread(() -> {
+                        ClientStateMachine.getInstance().onError("Connection failed");
+                        showMessage("Connection failed");
+                    });
                 }
             }, "Client-Thread").start();
         }
@@ -441,6 +462,7 @@ public class NetworkManager {
                 Game.runOnRenderThread(() -> {
                     localPlayerId = ctx.channel().hashCode();
                     lastError = null;
+//                    clientCallflow.onConnected();
                 });
             }
 
@@ -456,6 +478,7 @@ public class NetworkManager {
                         String message = lastError != null ? "Connection lost: " + lastError
                                 : "Connection lost: Server might be offline";
                         showMessage(message);
+                        clientStateMachine.onError(message);
                     }
                     Multiplayer.isMultiplayer = false;
                     Multiplayer.isHost = false;
@@ -466,6 +489,7 @@ public class NetworkManager {
             @Override
             public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
                 lastError = getDetailedErrorMessage(cause);
+                clientStateMachine.onError(lastError);
                 ctx.close();
             }
         }
