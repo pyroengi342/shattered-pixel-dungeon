@@ -57,6 +57,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
+import network.AudioWrapper;
 import network.Multiplayer;
 
 public class Item implements Bundlable {
@@ -133,7 +134,7 @@ public class Item implements Bundlable {
 		if (collect( hero.belongings.backpack )) {
 			
 			GameScene.pickUp( this, pos );
-			Sample.INSTANCE.play( Assets.Sounds.ITEM );
+			AudioWrapper.play( Assets.Sounds.ITEM, pos );
 			hero.spendAndNext( pickupDelay() );
 			return true;
 			
@@ -239,7 +240,8 @@ public class Item implements Bundlable {
 		if (stackable) {
 			for (Item item : items) {
 				if (isSimilar(item)) {
-					// ... слияние ...
+					item.merge( this );
+					item.updateQuickslot();
 					if (owner != null && owner.isAlive()) {
 						Badges.validateItemLevelAquired(this);
 						Talent.onItemCollected(owner, item);
@@ -309,6 +311,8 @@ public class Item implements Bundlable {
 			this.storeInBundle(copy);
 			split.restoreFromBundle(copy);
 			split.quantity(amount);
+			// New items get user set
+			split.setCurrent(curUser);
 			quantity -= amount;
 			
 			return split;

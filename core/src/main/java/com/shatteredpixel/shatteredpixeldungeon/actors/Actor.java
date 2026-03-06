@@ -181,11 +181,7 @@ public abstract class Actor implements Bundlable {
 
 		if (!(Dungeon.level instanceof VaultLevel)) {
 				// TODO: статистика должна быть у каждого героя отдельно
-				for (Multiplayer.PlayerInfo p : Multiplayer.Players.getAll()) {
-					if (p.hero != null && all.contains(p.hero) && p.hero == localHero()) {
 						Statistics.duration += min;
-					}
-				}
 			}
 		now -= min;
 	}
@@ -233,12 +229,7 @@ public abstract class Actor implements Bundlable {
 	public static boolean keepActorThreadAlive = true;
 	
 	public static void process() {
-		// We need to wait for servers response
-//		if (!Multiplayer.isHost) {
-//			clientProcess();
-//		} else {
-//        	serverOrSingleProcess(); // оригинальный цикл (для хоста или одиночной игры)
-//    	}
+		// TODO
 		boolean doNext;
 		boolean interrupted = false;
 
@@ -249,7 +240,6 @@ public abstract class Actor implements Bundlable {
 				float earliest = Float.MAX_VALUE;
 
 				for (Actor actor : all) {
-					
 					//some actors will always go before others if time is equal.
 					if (actor.time < earliest ||
 							actor.time == earliest && (current == null || actor.actPriority > current.actPriority)) {
@@ -286,19 +276,9 @@ public abstract class Actor implements Bundlable {
 					current = null;
 				} else {
 						doNext = acting.act();
-						if (doNext) {
-							// Проверяем, есть ли живые герои
-							boolean anyHeroAlive = false;
-							for (Multiplayer.PlayerInfo p : Multiplayer.Players.getAll()) {
-								if (p.hero != null && p.hero.isAlive()) {
-									anyHeroAlive = true;
-									break;
-								}
-							}
-							if (!anyHeroAlive) {
+						if (doNext && !Multiplayer.AnyHeroAlive()) {
 								doNext = false;
 								current = null;
-							}
 						}
 					}
 			} else {

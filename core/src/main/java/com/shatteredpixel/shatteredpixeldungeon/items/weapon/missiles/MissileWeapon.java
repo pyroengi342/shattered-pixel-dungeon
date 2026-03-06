@@ -39,6 +39,7 @@ import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import network.AudioWrapper;
 import network.Multiplayer;
 
 abstract public class MissileWeapon extends Weapon {
@@ -470,24 +471,17 @@ abstract public class MissileWeapon extends Weapon {
 	@Override
 	public int damageRoll(Char owner) {
 		int damage = augment.damageFactor(super.damageRoll( owner ));
-		
+
 		if (owner instanceof Hero) {
-			Hero hero = (Hero) owner;
-			int exStr = hero.STR() - STRReq();
+			int exStr = ((Hero)owner).STR() - STRReq();
 			if (exStr > 0) {
-				damage += Hero.heroDamageIntRange( 0, exStr, hero);
+				damage += Hero.heroDamageIntRange( 0, exStr, (Hero) owner );
 			}
 			if (owner.buff(Momentum.class) != null && owner.buff(Momentum.class).freerunning()) {
-				damage = Math.round(damage * (1f + 0.15f * hero.pointsInTalent(Talent.PROJECTILE_MOMENTUM)));
+				damage = Math.round(damage * (1f + 0.15f * ((Hero) owner).pointsInTalent(Talent.PROJECTILE_MOMENTUM)));
 			}
-			// Используем новые методы min/max с owner
-			int baseMin = min(owner);
-			int baseMax = max(owner);
-			// но damage уже посчитан через super.damageRoll, который использует min()/max() без owner.
-			// Поэтому мы должны пересчитать урон, чтобы учесть кольцо. Можно сделать так:
-			damage = augment.damageFactor(Random.NormalIntRange(baseMin, baseMax));
 		}
-		
+
 		return damage;
 	}
 	
@@ -509,8 +503,10 @@ abstract public class MissileWeapon extends Weapon {
 				quantity -= 1;
 				durability += MAX_DURABILITY;
 			}
-
-			if (quantity > defaultQuantity() && setID != 0 && setID != getClass().getSimpleName().hashCode()){
+			getClass().getSimpleName().hashCode();
+			if (quantity > defaultQuantity()
+					&& setID != 0
+					&& setID != getClass().getSimpleName().hashCode()){
 				quantity = defaultQuantity();
 				durability = MAX_DURABILITY;
 			}
@@ -568,7 +564,7 @@ abstract public class MissileWeapon extends Weapon {
 	public boolean doPickUp(Hero hero, int pos) {
 		parent = null;
 		if (!UpgradedSetTracker.pickupValid(hero, this)){
-			Sample.INSTANCE.play( Assets.Sounds.ITEM );
+			AudioWrapper.play( Assets.Sounds.ITEM, pos );
 			hero.spendAndNext( pickupDelay() );
 			GLog.w(Messages.get(this, "dust"));
 			quantity(0);

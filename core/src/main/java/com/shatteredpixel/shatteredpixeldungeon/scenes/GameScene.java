@@ -653,6 +653,7 @@ public class GameScene extends PixelScene {
 				GLog.h(Messages.get(this, "return"), Dungeon.depth);
 			}
 
+			// TODO
 			if (Multiplayer.localHero().hasTalent(Talent.ROGUES_FORESIGHT)
 					&& Dungeon.level instanceof RegularLevel && Dungeon.branch == 0){
 				int reqSecrets = Dungeon.level.feeling == Level.Feeling.SECRETS ? 2 : 1;
@@ -720,6 +721,7 @@ public class GameScene extends PixelScene {
 				}
 			}
 
+			// TODO
 			if (Multiplayer.localHero().buff(AscensionChallenge.class) != null){
 				Multiplayer.localHero().buff(AscensionChallenge.class).saySwitch();
 			}
@@ -884,7 +886,7 @@ public class GameScene extends PixelScene {
 			water.offsetTo( 0, waterOfs );
 			waterOfs = water.offsetY(); //re-assign to account for auto adjust
 		}
-
+		// TODO
 		if (!Actor.processing() && Multiplayer.localHero().isAlive()) {
 			if (actorThread == null || !actorThread.isAlive()) {
 				
@@ -945,6 +947,7 @@ public class GameScene extends PixelScene {
 
 		}
 
+		// TODO
 		cellSelector.enable(Multiplayer.localHero().ready);
 
 		if (!toDestroy.isEmpty()) {
@@ -1742,15 +1745,16 @@ public class GameScene extends PixelScene {
 	private static final CellSelector.Listener defaultCellListener = new CellSelector.Listener() {
 		@Override
 		public void onSelect( Integer cell ) {
+			// TODO
 			Hero local = Multiplayer.localHero();
 			if (local == null) return;
 			if (local.handle(cell)) {
-				if (Multiplayer.isMultiplayer) {
-					Bundle bundle = new Bundle();
-					bundle.put("type", "PLAYER_MOVE");
-					bundle.put("cell", cell);
-					NetworkManager.sendMessage("PLAYER_ACTION", bundle);
-				}
+//				if (Multiplayer.isMultiplayer) {
+//					Bundle bundle = new Bundle();
+//					bundle.put("type", "PLAYER_MOVE");
+//					bundle.put("cell", cell);
+//					NetworkManager.sendMessage("PLAYER_ACTION", bundle);
+//				}
 				local.next();
 			}
 		}

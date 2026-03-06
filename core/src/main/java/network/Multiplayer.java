@@ -275,5 +275,15 @@ public class Multiplayer {
         }
         return null;
     }
+
+    public static boolean AnyHeroAlive()
+    {
+        for (Multiplayer.PlayerInfo p : Multiplayer.Players.getAll()) {
+            if (p.hero != null && p.hero.isAlive()) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
 

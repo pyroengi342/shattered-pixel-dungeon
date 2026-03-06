@@ -330,6 +330,7 @@ public abstract class RegularLevel extends Level {
 			Room room = randomRoom(StandardRoom.class);
 			if (room == null || room == roomEntrance) continue;
 			cell = pointToCell(room.random(1));
+			// TODO
 			if (!Multiplayer.isVisibleToAnyHero(cell)           // <-- замена heroFOV
 					&& Actor.findChar(cell) == null
 					&& passable[cell]

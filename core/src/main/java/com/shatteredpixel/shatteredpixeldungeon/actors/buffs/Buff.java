@@ -114,9 +114,8 @@ public class Buff extends Actor {
             return false;
         }
     }
-	
+
 	public void detach() {
-        // Очищаем ссылки перед отсоединением
 		// TODO я так сделал, потому что полоска хп над героем крашает игру
 		Char oldTarget = target;
 		if (oldTarget != null) {
@@ -124,11 +123,9 @@ public class Buff extends Actor {
 			if (oldTarget.remove(this) && sprite != null) {
 				fx(false);
 			}
-			target = null;
 		}
-        clearReferences();
 	}
-	
+
 	@Override
 	public boolean act() {
 		diactivate();
@@ -259,14 +256,14 @@ public class Buff extends Actor {
 	}
 
     // Метод для очистки всех ссылок
-    private void clearReferences() {
-        source = null;
-        target = null;
-    }
-    @Override
-    protected void onRemove() {
-        // Очищаем ссылки при полном удалении баффа
-        clearReferences();
-        super.onRemove();
-    }
+//    private void clearReferences() {
+//        source = null;
+//        target = null;
+//    }
+//    @Override
+//    protected void onRemove() {
+//        // Очищаем ссылки при полном удалении баффа
+//        clearReferences();
+//        super.onRemove();
+//    }
 }

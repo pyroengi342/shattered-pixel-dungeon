@@ -108,7 +108,6 @@ public class CloakOfShadows extends Artifact {
 				}
 				hero.sprite.operate( hero.pos );
 			}
-
 		}
 	}
 
