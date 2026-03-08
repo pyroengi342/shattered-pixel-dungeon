@@ -30,7 +30,7 @@ import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.watabou.utils.Bundle;
 
-import network.AudioWrapper;
+import network.utils.AudioWrapper;
 
 public class Shadows extends Invisibility {
 	

@@ -14,7 +14,7 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 
 import java.util.ArrayList;
 
-import network.AudioWrapper;
+import network.utils.AudioWrapper;
 import network.Multiplayer;
 
 public class ScrollOfRetribution extends Scroll {

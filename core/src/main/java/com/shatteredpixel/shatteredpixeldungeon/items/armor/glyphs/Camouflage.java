@@ -7,10 +7,8 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
-import com.watabou.noosa.audio.Sample;
 
-import network.AudioWrapper;
-import network.Multiplayer;
+import network.utils.AudioWrapper;
 
 public class Camouflage extends Armor.Glyph {
 

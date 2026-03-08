@@ -38,7 +38,7 @@ import com.watabou.utils.PathFinder;
 
 import java.util.ArrayList;
 
-import network.AudioWrapper;
+import network.utils.AudioWrapper;
 import network.Multiplayer;
 
 public class PotionOfPurity extends Potion {

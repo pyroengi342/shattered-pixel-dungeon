@@ -21,7 +21,7 @@ import com.shatteredpixel.shatteredpixeldungeon.windows.WndBag;
 
 import java.util.ArrayList;
 
-import network.AudioWrapper;
+import network.utils.AudioWrapper;
 import network.Multiplayer;
 
 public class LiquidMetal extends Item {

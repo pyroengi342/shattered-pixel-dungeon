@@ -76,7 +76,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 
-import network.AudioWrapper;
+import network.utils.AudioWrapper;
 import network.Multiplayer;
 
 public class Potion extends Item {

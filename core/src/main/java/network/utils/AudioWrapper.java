@@ -1,7 +1,9 @@
-package network;
+package network.utils;
 
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.watabou.noosa.audio.Sample;
+
+import network.Multiplayer;
 
 /**
  * Centralized audio playback with multiplayer support.
@@ -9,6 +11,10 @@ import com.watabou.noosa.audio.Sample;
  * Global sounds are always played.
  */
 public class AudioWrapper {
+    private AudioWrapper() {
+        /* This utility class should not be instantiated */
+    }
+
 
     /**
      * Plays a sound associated with a specific cell.

@@ -14,7 +14,7 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 
-import network.AudioWrapper;
+import network.utils.AudioWrapper;
 import network.Multiplayer;
 
 public class ScrollOfPrismaticImage extends ExoticScroll {

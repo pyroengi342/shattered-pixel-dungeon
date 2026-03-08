@@ -183,7 +183,7 @@ public class HeroSelectScene extends PixelScene {
 						break;
 					case GAME_READY:
 						// Герой создан – можно запускать игру
-//						NetworkManager.getInstance().showMessage("GAME_READY");
+//						NetworkManager.getInstance().showMessage("LOBBY_GAME_READY");
 						startGame();
 						break;
 					case IN_GAME:

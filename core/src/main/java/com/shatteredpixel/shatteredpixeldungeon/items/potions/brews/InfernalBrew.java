@@ -30,7 +30,7 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.watabou.utils.PathFinder;
 
-import network.AudioWrapper;
+import network.utils.AudioWrapper;
 
 public class InfernalBrew extends Brew {
 	

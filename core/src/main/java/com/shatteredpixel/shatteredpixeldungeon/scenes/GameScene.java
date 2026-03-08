@@ -38,6 +38,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AscensionChallenge;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ChampionEnemy;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroAction;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DemonSpawner;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Ghoul;
@@ -139,9 +140,9 @@ import com.watabou.noosa.Visual;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.noosa.particles.Emitter;
 import com.watabou.noosa.tweeners.Tweener;
-import com.watabou.utils.Bundle;
 import com.watabou.utils.Callback;
 import com.watabou.utils.GameMath;
+import com.watabou.utils.PathFinder;
 import com.watabou.utils.PlatformSupport;
 import com.watabou.utils.Point;
 import com.watabou.utils.PointF;
@@ -151,22 +152,13 @@ import com.watabou.utils.RectF;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Locale;
 
 import network.Multiplayer;
-import network.NetworkManager;
+import network.utils.PathVisual;
 
 public class GameScene extends PixelScene {
-//    public static void handleCell(Integer cell) {
-//        if (network.Multiplayer.isMultiplayer && !network.Multiplayer.isHost) {
-//            // Клиент отправляет команду на сервер
-//            PlayerCommand cmd = new PlayerCommand(PlayerCommand.Type.MOVE, cell);
-//            NetworkManager.getInstance().sendPlayerAction(cmd.toBundle());
-//        } else {
-//            // Локальная обработка (хост или одиночная игра)
-//            cellSelector.select(cell, PointerEvent.LEFT);
-//        }
-//    }
 	static GameScene scene;
 
 	private SkinnedBlock water;
@@ -873,7 +865,7 @@ public class GameScene extends PixelScene {
 			}
 		}
 
-		if (Multiplayer.localHero() == null || scene == null) {
+		if (!Multiplayer.anyHeroAlive() || scene == null) {
 			return;
 		}
 
@@ -887,9 +879,8 @@ public class GameScene extends PixelScene {
 			waterOfs = water.offsetY(); //re-assign to account for auto adjust
 		}
 		// TODO
-		if (!Actor.processing() && Multiplayer.localHero().isAlive()) {
+		if (!Actor.processing() && Multiplayer.anyHeroAlive()) {
 			if (actorThread == null || !actorThread.isAlive()) {
-				
 				actorThread = new Thread() {
 					@Override
 					public void run() {
@@ -1741,7 +1732,12 @@ public class GameScene extends PixelScene {
 		}
 	}
 
-	
+	public static void showPath(List<Integer> path, float thickness, int color) {
+		if (scene != null) {
+			PathVisual pv = new PathVisual(path, thickness, color);
+			scene.add(pv);
+		}
+	}
 	private static final CellSelector.Listener defaultCellListener = new CellSelector.Listener() {
 		@Override
 		public void onSelect( Integer cell ) {
@@ -1749,12 +1745,22 @@ public class GameScene extends PixelScene {
 			Hero local = Multiplayer.localHero();
 			if (local == null) return;
 			if (local.handle(cell)) {
-//				if (Multiplayer.isMultiplayer) {
-//					Bundle bundle = new Bundle();
-//					bundle.put("type", "PLAYER_MOVE");
-//					bundle.put("cell", cell);
-//					NetworkManager.sendMessage("PLAYER_ACTION", bundle);
-//				}
+				// После того как герой начал действие (например, движение), отображаем путь
+				if (local.curAction instanceof HeroAction.Move) {
+					// Получаем проходимость и поле зрения для поиска пути
+					// Ищем путь от текущей позиции до целевой клетки
+					boolean[] passable = new boolean[Dungeon.level.length()];
+					for (int i = 0; i < Dungeon.level.length(); i++) {
+						passable[i] = Dungeon.level.passable[i] && (Dungeon.level.visited[i] || Dungeon.level.mapped[i]);
+					}
+					PathFinder.Path path = Dungeon.findPath(local, cell, passable, local.fieldOfView, true);
+					if (path != null && !path.isEmpty()) {
+						// Преобразуем путь в список индексов клеток (он уже является списком)
+						List<Integer> pathCells = new ArrayList<>(path);
+						// Отображаем путь толщиной 2 пикселя полупрозрачным белым цветом
+						GameScene.showPath(pathCells, 2f, 0xFFFF0000);
+					}
+				}
 				local.next();
 			}
 		}

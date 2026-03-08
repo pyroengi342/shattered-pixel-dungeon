@@ -21,8 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors;
 
-import static network.Multiplayer.localHero;
-
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
@@ -276,7 +274,7 @@ public abstract class Actor implements Bundlable {
 					current = null;
 				} else {
 						doNext = acting.act();
-						if (doNext && !Multiplayer.AnyHeroAlive()) {
+						if (doNext && !Multiplayer.anyHeroAlive()) {
 								doNext = false;
 								current = null;
 						}

@@ -39,7 +39,7 @@ import com.watabou.utils.Random;
 
 import java.util.ArrayList;
 
-import network.AudioWrapper;
+import network.utils.AudioWrapper;
 
 public class GravityChaosTracker extends Buff {
 

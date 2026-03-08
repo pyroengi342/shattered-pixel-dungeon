@@ -1,7 +1,5 @@
 package network;
 
-import network.NetworkManager;
-
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
@@ -19,7 +17,6 @@ import java.util.Map;
 public class Multiplayer {
     public static boolean isMultiplayer = false;
     public static boolean isHost = false;
-    // int maxPlayersCount = MPSettings.maxPlayers();
     public static boolean GameStart = true;
     private static final PlayerContainer playerContainer = new PlayerContainer();
     public static class PlayerInfo {
@@ -108,6 +105,10 @@ public class Multiplayer {
                 player.hero.heroClass = heroClassName;
             }
         }
+    }
+
+    private Multiplayer() {
+        /* This utility class should not be instantiated */
     }
 
     /**
@@ -276,7 +277,7 @@ public class Multiplayer {
         return null;
     }
 
-    public static boolean AnyHeroAlive()
+    public static boolean anyHeroAlive()
     {
         for (Multiplayer.PlayerInfo p : Multiplayer.Players.getAll()) {
             if (p.hero != null && p.hero.isAlive()) {

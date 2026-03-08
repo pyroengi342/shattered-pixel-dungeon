@@ -40,7 +40,7 @@ import com.watabou.noosa.particles.Emitter;
 
 import java.util.ArrayList;
 
-import network.AudioWrapper;
+import network.utils.AudioWrapper;
 
 public class TengusMask extends Item {
 	

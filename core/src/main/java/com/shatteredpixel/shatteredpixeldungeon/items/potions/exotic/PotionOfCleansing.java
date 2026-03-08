@@ -35,7 +35,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.watabou.noosa.Image;
 
-import network.AudioWrapper;
+import network.utils.AudioWrapper;
 
 public class PotionOfCleansing extends ExoticPotion {
 	

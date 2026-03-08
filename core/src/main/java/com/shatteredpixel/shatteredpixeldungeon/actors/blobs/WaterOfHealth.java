@@ -43,7 +43,7 @@ import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 
-import network.AudioWrapper;
+import network.utils.AudioWrapper;
 
 public class WaterOfHealth extends WellWater {
 	

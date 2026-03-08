@@ -32,8 +32,7 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndJournal;
 import com.watabou.utils.Bundle;
 
-import network.AudioWrapper;
-import network.Multiplayer;
+import network.utils.AudioWrapper;
 
 public abstract class Key extends Item {
 

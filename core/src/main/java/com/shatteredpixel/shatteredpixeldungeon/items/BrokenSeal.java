@@ -27,7 +27,7 @@ import com.watabou.utils.GameMath;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import network.AudioWrapper;
+import network.utils.AudioWrapper;
 import network.Multiplayer;
 
 public class BrokenSeal extends Item {

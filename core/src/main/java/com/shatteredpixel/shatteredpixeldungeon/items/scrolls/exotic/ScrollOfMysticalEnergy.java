@@ -9,7 +9,7 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.SpellSprite;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRecharging;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 
-import network.AudioWrapper;
+import network.utils.AudioWrapper;
 
 public class ScrollOfMysticalEnergy extends ExoticScroll {
 

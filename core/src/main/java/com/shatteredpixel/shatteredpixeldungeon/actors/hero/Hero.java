@@ -1882,7 +1882,7 @@ public class Hero extends Char {
 		}
 
 	}
-	
+
 	public boolean handle( int cell ) {
 		
 		if (cell == -1) {

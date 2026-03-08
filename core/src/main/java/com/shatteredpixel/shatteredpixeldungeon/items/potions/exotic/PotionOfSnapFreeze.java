@@ -31,7 +31,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Roots;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.watabou.utils.PathFinder;
 
-import network.AudioWrapper;
+import network.utils.AudioWrapper;
 
 public class PotionOfSnapFreeze extends ExoticPotion {
 	

@@ -38,7 +38,7 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 
-import network.AudioWrapper;
+import network.utils.AudioWrapper;
 
 public class WaterOfAwareness extends WellWater {
 

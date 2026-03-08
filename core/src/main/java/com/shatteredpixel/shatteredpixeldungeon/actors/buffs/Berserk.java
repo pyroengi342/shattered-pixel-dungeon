@@ -43,7 +43,7 @@ import com.watabou.utils.Bundle;
 import com.watabou.utils.GameMath;
 import com.watabou.utils.Random;
 
-import network.AudioWrapper;
+import network.utils.AudioWrapper;
 
 public class Berserk extends ShieldBuff implements ActionIndicator.Action {
 

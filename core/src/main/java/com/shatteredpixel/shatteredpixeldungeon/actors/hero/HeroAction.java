@@ -26,7 +26,12 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 public class HeroAction {
 	
 	public int dst;
-	
+	//				if (Multiplayer.isMultiplayer) {
+	//					Bundle bundle = new Bundle();
+	//					bundle.put("type", "PLAYER_MOVE");
+	//					bundle.put("cell", cell);
+	//					NetworkManager.sendMessage("PLAYER_ACTION", bundle);
+	//				}
 	public static class Move extends HeroAction {
 		public Move( int dst ) {
 			this.dst = dst;

@@ -19,7 +19,7 @@ import com.watabou.utils.BArray;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
-import network.AudioWrapper;
+import network.utils.AudioWrapper;
 
 abstract public class KindOfWeapon extends EquipableItem {
 

@@ -31,7 +31,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.watabou.utils.BArray;
 import com.watabou.utils.PathFinder;
 
-import network.AudioWrapper;
+import network.utils.AudioWrapper;
 
 public class ShockingBrew extends Brew {
 	

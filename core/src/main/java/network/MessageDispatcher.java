@@ -13,9 +13,8 @@ public class MessageDispatcher {
 
     private final Map<String, MessageHandler> handlers = new HashMap<>();
 
-    public void registerHandler(MessageHandler handler) {
-        handlers.put(handler.getType(), handler);
-    }
+    public void registerHandler(MessageHandler handler)
+    { handlers.put(handler.getType(), handler); }
 
     public void dispatch(NetworkManager.BundleMessage message) {
         Game.runOnRenderThread(() -> {

@@ -22,7 +22,7 @@ import com.shatteredpixel.shatteredpixeldungeon.windows.IconTitle;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions;
 import com.watabou.utils.Random;
 
-import network.AudioWrapper;
+import network.utils.AudioWrapper;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;

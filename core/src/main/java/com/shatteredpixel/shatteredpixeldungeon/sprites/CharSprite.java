@@ -153,7 +153,7 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 		turnTo( ch.pos, Random.Int( Dungeon.level.length() ) );
 		renderShadow = true;
 		
-		if (ch instanceof Hero) {
+		if (!(ch instanceof Hero)) {
 			if (health == null) {
 				health = new CharHealthIndicator(ch);
 			} else {

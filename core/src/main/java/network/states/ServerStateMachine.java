@@ -11,17 +11,10 @@ import java.util.List;
 public class ServerStateMachine {
     // Состояния сервера
     public enum State {
-        // 
         OFF,
         STARTING,
-        // Game Start
-        // сервер запущен, принимает подключения, игра не началась
-        OPERATIONAL,   
-        // игра началась, новые подключения не принимаются (или только наблюдатели)
-        
-        WAITING_FOR_HERO,   // Для каждого игрока!
-        GAME_READY,         // GAME_READY Для каждого игрока!
-        // 
+        LOBBY,
+        LOBBY_GAME_READY,
         IN_GAME,
         ERROR
     }
@@ -56,11 +49,11 @@ public class ServerStateMachine {
             case OFF:
                 return to == State.STARTING;
             case STARTING:
-                return to == State.OPERATIONAL;
-            case OPERATIONAL:
-                return to == State.GAME_READY;
-            case GAME_READY:
-                return to == State.IN_GAME || to == State.OPERATIONAL;
+                return to == State.LOBBY;
+            case LOBBY:
+                return to == State.LOBBY_GAME_READY;
+            case LOBBY_GAME_READY:
+                return to == State.IN_GAME || to == State.LOBBY;
             case IN_GAME:
                 return false; // из IN_GAME только в OFF/ERROR (уже обработано выше)
             case ERROR:
@@ -84,7 +77,7 @@ public class ServerStateMachine {
     }
 
     public void onServerStarted() {
-        setState(State.OPERATIONAL);
+        setState(State.LOBBY);
     }
     public void onGameStarted() {
         setState(State.IN_GAME);

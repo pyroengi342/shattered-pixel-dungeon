@@ -2,6 +2,7 @@ package network.states;
 
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 
 /**
@@ -20,7 +21,6 @@ public class PlayerStateMachine {
         IN_GAME,             // всё есть и ready = true
         ERROR
     }
-
     // Данные игрока
     private int playerId;
     private String name;
@@ -51,11 +51,35 @@ public class PlayerStateMachine {
     public boolean isHost() { return isHost; }
 
     // --- Методы для изменения данных (только через них) ---
+    public enum RequiredData {
+        CONNECTION_ID,
+        SEED,
+        HERO_CLASS,
+        // в будущем: MAP_SNAPSHOT, MOD_VERSION, другие герои и т.д.
+    }
+    public boolean hasData(RequiredData data) {
+        switch (data) {
+            case SEED:
+                return seed != null;
+            case HERO_CLASS:
+                return hero != null && hero.heroClass != null;
+            case CONNECTION_ID:
+                return playerId != -1; // всегда true после присвоения ID
+            default:
+                return false;
+        }
+    }
+    private final EnumSet<RequiredData> sentRequests = EnumSet.noneOf(PlayerStateMachine.RequiredData.class);
+
+    public boolean isRequestSent(PlayerStateMachine.RequiredData data)
+    { return sentRequests.contains(data); }
+    public void markRequestSent(PlayerStateMachine.RequiredData data)
+    { sentRequests.add(data); }
+    // Сбрасываем флаги, если клиент переподключается или данные изменились (опционально)
+    public void resetRequests()
+    { sentRequests.clear(); }
 
     public void setPlayerId(int playerId) {
-//        if (this.playerId != -1 && this.playerId != playerId) {
-//            throw new IllegalStateException("Player ID already set to " + this.playerId);
-//        }
         this.playerId = playerId;
         updateState();
     }
@@ -65,18 +89,11 @@ public class PlayerStateMachine {
     }
 
     public void setHero(Hero hero) {
-        // Эта проверка убрана, т.к. на локалке setHero осуществляет и SessionState и StateMachine
-//        if (this.hero != null) {
-//            throw new IllegalStateException("Hero already set for player " + playerId);
-//        }
         this.hero = hero;
         updateState();
     }
 
     public void setSeed(long seed) {
-//        if (this.seed != null) {
-//            throw new IllegalStateException("Seed already set for player " + playerId);
-//        }
         this.seed = seed;
         updateState();
     }
@@ -90,14 +107,12 @@ public class PlayerStateMachine {
     public void setHost(boolean host) {
         this.isHost = host;
         updateState();
-        // состояние не зависит от isHost, но можно учесть, если нужно
     }
 
     // Для обновления имени (например, если игрок переименовался)
     public void setName(String name) {
         this.name = name;
         updateState();
-        // состояние не меняется
     }
 
     // --- Вычисление состояния на основе текущих данных ---
@@ -146,7 +161,6 @@ public class PlayerStateMachine {
         return currentState;
     }
 
-    public interface StateListener {
-        void onStateChanged(State newState);
-    }
+    public interface StateListener
+    { void onStateChanged(State newState); }
 }

@@ -7,7 +7,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Foresight;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 
-import network.AudioWrapper;
+import network.utils.AudioWrapper;
 
 public class ScrollOfForesight extends ExoticScroll {
 

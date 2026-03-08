@@ -28,7 +28,7 @@ import com.watabou.utils.Random;
 
 import java.util.ArrayList;
 
-import network.AudioWrapper;
+import network.utils.AudioWrapper;
 import network.Multiplayer;
 
 public class ScrollOfTeleportation extends Scroll {

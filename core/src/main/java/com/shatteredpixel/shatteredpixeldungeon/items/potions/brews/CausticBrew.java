@@ -39,7 +39,7 @@ import com.watabou.utils.PathFinder;
 
 import java.util.ArrayList;
 
-import network.AudioWrapper;
+import network.utils.AudioWrapper;
 
 public class CausticBrew extends Brew {
 	

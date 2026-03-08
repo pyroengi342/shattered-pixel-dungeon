@@ -40,7 +40,7 @@ import com.watabou.utils.Bundle;
 import com.watabou.utils.Point;
 import com.watabou.utils.PointF;
 
-import network.AudioWrapper;
+import network.utils.AudioWrapper;
 
 public class SuperNovaTracker extends Buff {
 

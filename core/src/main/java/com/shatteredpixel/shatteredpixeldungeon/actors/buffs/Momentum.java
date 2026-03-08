@@ -38,7 +38,7 @@ import com.watabou.noosa.Visual;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.GameMath;
 
-import network.AudioWrapper;
+import network.utils.AudioWrapper;
 
 public class Momentum extends Buff implements ActionIndicator.Action {
 	

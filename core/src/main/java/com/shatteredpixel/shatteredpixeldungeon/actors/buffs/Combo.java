@@ -51,7 +51,7 @@ import com.watabou.utils.Bundle;
 import com.watabou.utils.Callback;
 import com.watabou.utils.PathFinder;
 
-import network.AudioWrapper;
+import network.utils.AudioWrapper;
 
 public class Combo extends Buff implements ActionIndicator.Action {
 
