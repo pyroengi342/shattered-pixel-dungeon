@@ -1,59 +1,49 @@
-package network.handlers;
+package network.handlers.server;
 
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.watabou.noosa.Game;
 import com.watabou.utils.Bundle;
+
 import io.netty.channel.ChannelHandlerContext;
 import network.Multiplayer;
 import network.NetworkManager;
+import network.handlers.MessageHandler;
 import network.states.ClientSessionState;
-import network.states.ClientStateMachine;
 
-public class HeroCreatedHandler implements MessageHandler {
+public class HeroClassHandler implements MessageHandler {
     @Override
-    public String getType() { return "HERO_CREATED"; }
+    public String getType() { return "HERO_CLASS"; }
 
     @Override
     public void msgHandle(int senderId, Bundle bundle) {
         Game.runOnRenderThread(() -> {
-            int playerId = bundle.getInt("playerId");
+            // SERVER HANDLER
+            ClientSessionState session = NetworkManager.getSession(senderId);
+            if (session == null) return;
+
             String heroClassName = bundle.getString("heroClass");
             HeroClass heroClass = HeroClass.valueOf(heroClassName);
 
-            // Обновляем информацию об игроке
-            Multiplayer.PlayerInfo player = Multiplayer.Players.get(playerId);
-            if (player == null) {
-                // Если игрок ещё не известен (например, мы только что подключились),
-                // можно создать временную запись, но обычно PLAYER_JOIN приходит раньше.
-                // Для надёжности создадим с именем из сессии (если есть) или "Unknown".
-                player = new Multiplayer.PlayerInfo(playerId, "Player " + playerId);
-                Multiplayer.Players.add(player);
-            }
-
+            Multiplayer.PlayerInfo player = Multiplayer.Players.get(senderId);
             if (player.hero == null) {
-                player.hero = new Hero();
-            }
-            player.hero.heroClass = heroClass;
+                player.hero = new Hero(); }
+            else { player.hero.heroClass = heroClass;}
 
-            // Если это локальный игрок, уведомляем ClientStateMachine
-            if (playerId == NetworkManager.getLocalPlayerId()) {
-                ClientStateMachine.getInstance().onHeroCreated(player.hero);
-            }
-
-            System.out.println("Hero created for player " + playerId + ": " + heroClassName);
+            session.setHero(player.hero);
+            System.out.println("Player " + senderId + " selected class: " + heroClassName);
         });
     }
 
+    /// SERVER METHODS
     // Серверный метод рассылки всем клиентам
     public static void broadcast(ClientSessionState session) {
-        // Предполагаем, что у session есть доступ к hero
         if (session.stateMachine.getHero() == null) return;
 
         Bundle bundle = new Bundle();
-        bundle.put("playerId", session.playerId);
+        bundle.put("playerId", session.getPlayerId());
         bundle.put("heroClass", session.stateMachine.getHero().heroClass.name());
-        NetworkManager.BundleMessage msg = new NetworkManager.BundleMessage("HERO_CREATED", session.playerId);
+        NetworkManager.BundleMessage msg = new NetworkManager.BundleMessage("HERO_CREATED", session.getPlayerId());
         msg.bundleData = bundle.toString();
 
         // Рассылаем всем клиентам (включая самого создателя)

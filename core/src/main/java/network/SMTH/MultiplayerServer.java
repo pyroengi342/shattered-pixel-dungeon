@@ -78,6 +78,7 @@ public class MultiplayerServer {
 
                     Dungeon.seed = 1234; // временно
                     NetworkManager.getInstance().showMessage("Server started on port " + port);
+                    NetworkManager.getInstance().connectToServer("127.0.0.1");
 
                     Multiplayer.isMultiplayer = true;
                     Multiplayer.isHost = true;

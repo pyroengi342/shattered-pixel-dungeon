@@ -202,7 +202,7 @@ public class WndMultiplayer extends Window {
         NetworkManager manager = NetworkManager.getInstance();
 
         if (manager.isConnected()) {
-            NetworkManager.Mode mode = manager.getMode();
+            NetworkManager.Mode mode = NetworkManager.getMode();
             if (mode == NetworkManager.Mode.SERVER) {
                 statusText.text(Messages.get("windows.wndmultiplayer.status_hosting") +
                         " (" + Multiplayer.Players.getPlayerCount() + " players)");

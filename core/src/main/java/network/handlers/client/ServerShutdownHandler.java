@@ -1,8 +1,9 @@
-package network.handlers;
+package network.handlers.client;
 
 import com.watabou.noosa.Game;
 import com.watabou.utils.Bundle;
 import network.NetworkManager;
+import network.handlers.MessageHandler;
 
 public class ServerShutdownHandler implements MessageHandler {
     private final NetworkManager networkManager;
@@ -16,6 +17,7 @@ public class ServerShutdownHandler implements MessageHandler {
 
     @Override
     public void msgHandle(int senderId, Bundle bundle) {
+        // CLIENT HANDLER
         Game.runOnRenderThread(() -> {
             networkManager.showMessage("Server has been shut down");
             networkManager.disconnect();

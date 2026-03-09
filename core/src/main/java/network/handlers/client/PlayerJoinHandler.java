@@ -1,4 +1,4 @@
-package network.handlers;
+package network.handlers.client;
 
 import com.watabou.noosa.Game;
 import com.watabou.utils.Bundle;
@@ -7,6 +7,7 @@ import io.netty.channel.ChannelHandlerContext;
 import network.Multiplayer;
 import network.NetworkManager;
 import network.NetworkManager.BundleMessage;
+import network.handlers.MessageHandler;
 
 public class PlayerJoinHandler implements MessageHandler {
     @Override
@@ -15,6 +16,7 @@ public class PlayerJoinHandler implements MessageHandler {
     @Override
     public void msgHandle(int senderId, Bundle bundle) {
         Game.runOnRenderThread(() -> {
+            // CLIENT HANDLER
             if (senderId == NetworkManager.getLocalPlayerId()) return;
             String name = bundle.getString("name");
 
@@ -27,6 +29,7 @@ public class PlayerJoinHandler implements MessageHandler {
         });
     }
 
+    /// SERVER METHODS
     // Отправка конкретному клиенту
     public static void send(ChannelHandlerContext ctx, int playerId, String name) {
         Bundle bundle = new Bundle();

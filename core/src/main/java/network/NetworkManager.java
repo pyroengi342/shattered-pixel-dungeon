@@ -14,13 +14,13 @@ import com.watabou.utils.Bundle;
 import io.netty.channel.ChannelHandlerContext;
 import network.SMTH.MultiplayerClient;
 import network.SMTH.MultiplayerServer;
-import network.handlers.HeroClassHandler;
-import network.handlers.HeroCreatedHandler;
-import network.handlers.PlayerAssignHandler;
-import network.handlers.PlayerJoinHandler;
+import network.handlers.server.HeroClassHandler;
+import network.handlers.client.HeroCreatedHandler;
+import network.handlers.client.PlayerAssignHandler;
+import network.handlers.client.PlayerJoinHandler;
 import network.handlers.PlayerLeaveHandler;
-import network.handlers.SeedInitHandler;
-import network.handlers.ServerShutdownHandler;
+import network.handlers.client.SeedInitHandler;
+import network.handlers.client.ServerShutdownHandler;
 import network.handlers.window.AbilityHandler;
 import network.handlers.window.BlacksmithHandler;
 import network.handlers.window.ComboHandler;
@@ -148,7 +148,7 @@ public class NetworkManager {
         else return Mode.NONE;
     }
 
-    public boolean isConnected() { return client != null && client.isConnected(); }
+    public boolean isConnected() { return server != null || (client != null && client.isConnected()); }
     public int getLocalPlayerIdImpl() { return client != null ? client.getLocalPlayerId() : -1; }
     public void setLocalPlayerIdImpl(int id) { if (client != null) client.setLocalPlayerId(id); }
 

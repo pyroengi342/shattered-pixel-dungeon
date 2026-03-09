@@ -1,10 +1,10 @@
-package network.handlers;
+package network.handlers.client;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.watabou.utils.Bundle;
 
 import io.netty.channel.ChannelHandlerContext;
-import network.Multiplayer;
+import network.handlers.MessageHandler;
 import network.states.ClientStateMachine;
 import network.NetworkManager.BundleMessage;
 
@@ -14,7 +14,7 @@ public class SeedInitHandler implements MessageHandler {
 
     @Override
     public void msgHandle(int senderId, Bundle bundle) {
-        // Server does not need to know the seed
+        // CLIENT HANDLER
         long seed = bundle.getLong("seed");
         String custom = bundle.getString("customSeedText");
 
@@ -24,7 +24,7 @@ public class SeedInitHandler implements MessageHandler {
         ClientStateMachine.getInstance().onSeedInit(seed);
     }
 
-    // Send seed to clients
+    // SERVER SEND
     public static void send(ChannelHandlerContext ctx) {
         if (Dungeon.seed == 0) return;
 

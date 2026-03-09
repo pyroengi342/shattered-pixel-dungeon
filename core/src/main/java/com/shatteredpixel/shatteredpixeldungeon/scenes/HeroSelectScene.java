@@ -25,6 +25,7 @@ package com.shatteredpixel.shatteredpixeldungeon.scenes;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -76,6 +77,7 @@ import com.watabou.utils.PointF;
 import com.watabou.utils.Random;
 import com.watabou.utils.RectF;
 
+import network.ClientAgent;
 import network.Multiplayer;
 import network.states.ClientStateMachine;
 import network.NetworkManager;
@@ -100,8 +102,10 @@ public class HeroSelectScene extends PixelScene {
 	private GameOptions optionsPane;
 	private IconButton btnExit;
 
-	private ClientStateMachine stateMachine;
-	private boolean waitingForLocalServer = false;
+	private final ArrayList<StyledButton> playerBtns = new ArrayList<>();
+	private float playerListUpdateTimer = 0;
+	private static final float PLAYER_LIST_UPDATE_INTERVAL = 0.5f;
+	private float playerListX, playerListY;          // координаты начала списка
 
 	private RectF insets;
 
@@ -115,6 +119,56 @@ public class HeroSelectScene extends PixelScene {
 		InterlevelScene.mode = InterlevelScene.Mode.DESCEND;
 		Game.switchScene( InterlevelScene.class );
 	}
+
+	private void updatePlayerList() {
+		// Проверяем, активен ли мультиплеер
+		if (!network.Multiplayer.isMultiplayer) {
+			for (StyledButton btn : playerBtns) {
+				btn.visible = false;
+			}
+			return;
+		}
+
+		List<Multiplayer.PlayerInfo> players = Multiplayer.Players.getAll();
+		int count = players.size();
+
+		if (count == 0) {
+			for (StyledButton btn : playerBtns) {
+				btn.visible = false;
+			}
+			return;
+		}
+
+		// Создаём недостающие кнопки
+		while (playerBtns.size() < count) {
+			PlayerBtn btn = new PlayerBtn();
+			btn.setSize(20, 24); // размер как у HeroBtn (можно подогнать)
+			add(btn);
+			playerBtns.add(btn);
+		}
+
+		float y = playerListY;
+		for (int i = 0; i < count; i++) {
+			PlayerBtn btn = (PlayerBtn) playerBtns.get(i);
+			Multiplayer.PlayerInfo player = players.get(i);
+
+			// Предполагаем, что у PlayerInfo есть методы getHeroClass() и isReady()
+			HeroClass heroClass = player.hero.heroClass; // адаптируйте под свою структуру
+			boolean ready = false;            // адаптируйте
+
+			btn.setHero(heroClass, ready);
+			btn.setPos(playerListX, y);
+			btn.visible = true;
+
+			y += btn.height() + 2;
+		}
+
+		// Скрываем лишние кнопки
+		for (int i = count; i < playerBtns.size(); i++) {
+			playerBtns.get(i).visible = false;
+		}
+	}
+
 	@Override
 	public void create() {
 		super.create();
@@ -169,7 +223,6 @@ public class HeroSelectScene extends PixelScene {
 				switch (newState) {
 					case HANDSHAKE:
 						Game.scene().addToFront(new WndMessage("HANDSHAKE..."));
-//						NetworkManager.getInstance().showMessage("HANDSHAKE");
 						// Seed ещё не получен, кнопка disabled
 						startBtn.text(Messages.get(HeroSelectScene.this, "start"));
 						startBtn.enable(false);
@@ -177,23 +230,15 @@ public class HeroSelectScene extends PixelScene {
 					case WAITING_FOR_HERO:
 						// Seed получен, ждём создания героя
 						Game.scene().addToFront(new WndMessage("WAITING_FOR_HERO..."));
-//						startBtn.text(Messages.get(HeroSelectScene.this, "waiting_for_hero"));
 						startBtn.enable(false);
-//						NetworkManager.getInstance().showMessage("WAITING_FOR_HERO");
 						break;
 					case GAME_READY:
 						// Герой создан – можно запускать игру
-//						NetworkManager.getInstance().showMessage("LOBBY_GAME_READY");
 						startGame();
-						break;
-					case IN_GAME:
-						// Уже в игре – кнопка не нужна
-						startBtn.enable(false);
 						break;
 					case ERROR:
 						startBtn.text(Messages.get(HeroSelectScene.this, "ERROR"));
 						startBtn.enable(true);
-//						NetworkManager.getInstance().showMessage("Connection error");
 						break;
 					default:
 						// OFFLINE, WAITING_FOR_SEED и т.д. – кнопка disabled
@@ -222,14 +267,13 @@ public class HeroSelectScene extends PixelScene {
 							return;
 						}
 						Game.scene().addToFront(new WndMessage("Ready for game!"));
-//						startBtn.text(Messages.get(HeroSelectScene.this, "waiting_for_hero"));
-//						startBtn.enable(false);
 						break;
 					case NONE:
 						NetworkManager.getInstance().startServer();
-						NetworkManager.getInstance().connectToServer("127.0.0.1");
 						break;
 					case CLIENT:
+//						boolean currentReady = ClientStateMachine.getInstance().getReady();
+//						ClientStateMachine.getInstance().setReady(!currentReady);
 						break;
 					case SERVER:
 						// Сервер без клиента – пока не используется, можно залогировать или проигнорировать
@@ -470,6 +514,16 @@ public class HeroSelectScene extends PixelScene {
 			SPDSettings.victoryNagged(true);
 			add(new WndVictoryCongrats());
 		}
+		// ТЕПЕРЬ heroBtns уже заполнены и имеют корректные координаты
+		// Можно безопасно вычислять позицию списка игроков
+		if (landscape()) {
+			playerListX = heroBtns.get(heroBtns.size() - 1).right() + 15;
+			playerListY = heroBtns.get(0).top();
+		} else {
+			playerListX = insets.left + 2;
+			playerListY = heroBtns.get(0).top() - 25;
+			if (playerListY < insets.top + 5) playerListY = insets.top + 5;
+		}
 
 		fadeIn();
 
@@ -550,6 +604,7 @@ public class HeroSelectScene extends PixelScene {
 			align(optionsPane);
 		}
 
+
 		updateOptionsColor();
 	}
 
@@ -558,6 +613,11 @@ public class HeroSelectScene extends PixelScene {
 	@Override
 	public void update() {
 		super.update();
+		playerListUpdateTimer += Game.elapsed;
+		if (playerListUpdateTimer >= PLAYER_LIST_UPDATE_INTERVAL) {
+			playerListUpdateTimer = 0;
+			updatePlayerList();
+		}
 		if (SPDSettings.intro() && Rankings.INSTANCE.totalNumber > 0){
 			SPDSettings.intro(false);
 		}
@@ -635,7 +695,36 @@ public class HeroSelectScene extends PixelScene {
 			super.onBackPressed();
 		}
 	}
+	private class PlayerBtn extends StyledButton {
+		private Image heroIcon;
 
+		public PlayerBtn() {
+			super(Chrome.Type.GREY_BUTTON_TR, ""); // без текста
+			heroIcon = new Image();
+			icon(heroIcon);
+		}
+
+		public void setHero(HeroClass cl, boolean ready) {
+			// Берём иконку из спрайта героя (так же, как в HeroBtn)
+			heroIcon.copy(new Image(cl.spritesheet(), 0, 90, 12, 15));
+			if (ready) {
+				heroIcon.hardlight(0x00FF00); // зелёный
+			} else {
+				heroIcon.resetColor(); // обычный цвет
+			}
+		}
+
+		@Override
+		protected void layout() {
+			super.layout();
+			// Центрируем иконку внутри кнопки
+			if (heroIcon != null) {
+				heroIcon.x = x + (width - heroIcon.width()) / 2f;
+				heroIcon.y = y + (height - heroIcon.height()) / 2f;
+				PixelScene.align(heroIcon);
+			}
+		}
+	}
 	private class HeroBtn extends StyledButton {
 
 		private final HeroClass cl;

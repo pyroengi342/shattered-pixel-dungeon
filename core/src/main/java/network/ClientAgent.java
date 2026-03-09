@@ -3,7 +3,10 @@ package network;
 import com.shatteredpixel.shatteredpixeldungeon.GamesInProgress;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
-import network.handlers.HeroClassHandler;
+
+import network.handlers.client.HeroCreatedHandler;
+import network.handlers.server.HeroClassHandler;
+import network.handlers.server.PlayerReadyHandler;
 import network.states.ClientStateMachine;
 import network.states.PlayerStateMachine;
 
@@ -13,12 +16,14 @@ import java.util.Map;
 public class ClientAgent {
     private final ClientStateMachine clientState;
     private HeroClass pendingHeroClass;
+    private boolean pendingReady;
 
     // Перечисление данных, которые клиент должен отправить на сервер
     private enum RequiredData {
         CONNECTION_ID,
         SEED,
         HERO_CLASS,
+        READY
     }
 
     // Собственный функциональный интерфейс для обратной совместимости
@@ -36,12 +41,16 @@ public class ClientAgent {
 
         // Инициализация обработчиков
         requestHandlers.put(RequiredData.HERO_CLASS, () -> {
+            if (clientState.getCurrentState() == PlayerStateMachine.State.ERROR
+            || clientState.getCurrentState() == PlayerStateMachine.State.OFFLINE) return;
             // Определяем выбранный класс
             HeroClass heroClass = pendingHeroClass != null ? pendingHeroClass : GamesInProgress.selectedClass;
             if (heroClass == null) return;
 
-            // Создаём локального героя, если его ещё нет
             int localId = NetworkManager.getLocalPlayerId();
+            if (localId == -1) return;
+            // Создаём локального героя, если его ещё нет
+
             if (Multiplayer.Players.get(localId).hero == null) {
                 Multiplayer.Players.get(localId).hero = new Hero();
                 clientState.onHeroCreated(Multiplayer.localHero());
@@ -49,9 +58,26 @@ public class ClientAgent {
 
             // Устанавливаем класс и отправляем на сервер
             Multiplayer.Players.setHeroClass(localId, heroClass);
-            HeroClassHandler.sendHeroClass(heroClass);
+            HeroCreatedHandler.sendHeroClass(heroClass);
 
             markSent(RequiredData.HERO_CLASS);
+        });
+        requestHandlers.put(RequiredData.READY, () -> {
+            if (clientState.getCurrentState() == PlayerStateMachine.State.ERROR
+                    || clientState.getCurrentState() == PlayerStateMachine.State.OFFLINE) return;
+
+            // Проверяем, можно ли отправлять (есть ли все данные)
+            if (!clientState.isSeedReceived() || !clientState.isHeroCreated()) {
+                return; // ещё не готовы — отложим отправку
+            }
+
+            // Обновляем локальное состояние готовности в машине состояний
+            clientState.setReady(pendingReady);
+
+            // Отправляем на сервер
+            PlayerReadyHandler.sendReady(pendingReady);
+
+            markSent(RequiredData.READY);
         });
 
         // Можно добавить обработчики для других RequiredData
@@ -84,6 +110,13 @@ public class ClientAgent {
         this.pendingHeroClass = heroClass;
         // Сбрасываем флаг, чтобы при следующей проверке класс отправился заново
         sentFlags.put(RequiredData.HERO_CLASS, false);
+        checkClientProgress();
+    }
+
+    public void setPlayerReady(boolean ready) {
+        this.pendingReady = ready;
+        // Сбрасываем флаг отправки, чтобы при следующей проверке отправить заново
+        sentFlags.put(RequiredData.READY, false);
         checkClientProgress();
     }
 

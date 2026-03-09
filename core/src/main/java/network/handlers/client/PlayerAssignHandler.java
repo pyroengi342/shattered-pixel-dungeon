@@ -1,8 +1,9 @@
-package network.handlers;
+package network.handlers.client;
 
 import com.watabou.utils.Bundle;
 
 import io.netty.channel.ChannelHandlerContext;
+import network.handlers.MessageHandler;
 import network.states.ClientStateMachine;
 import network.Multiplayer;
 import network.NetworkManager;
@@ -14,6 +15,7 @@ public class PlayerAssignHandler implements MessageHandler {
 
     @Override
     public void msgHandle(int senderId, Bundle bundle) {
+        // CLIENT HANDLER
         int assignedId = bundle.getInt("assignedId");
         String name = bundle.getString("name");
         NetworkManager.setLocalPlayerId(assignedId);
@@ -24,8 +26,9 @@ public class PlayerAssignHandler implements MessageHandler {
         ClientStateMachine.getInstance().onPlayerAssign(assignedId, name);
     }
 
-    // Статический метод для отправки сообщения конкретному клиенту ОТ СЕРВЕРА
+    /// SERVER METHODS
     public static void send(ChannelHandlerContext ctx, int playerId, String name) {
+        // SERVER SENDS
         Bundle bundle = new Bundle();
         bundle.put("assignedId", playerId);
         bundle.put("name", name);

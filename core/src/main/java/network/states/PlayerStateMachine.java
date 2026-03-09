@@ -47,7 +47,7 @@ public class PlayerStateMachine {
     public String getName() { return name; }
     public Hero getHero() { return hero; }
     public Long getSeed() { return seed; }
-    public boolean isReady() { return ready; }
+    public boolean getReady() { return ready; }
     public boolean isHost() { return isHost; }
 
     // --- Методы для изменения данных (только через них) ---
@@ -55,6 +55,7 @@ public class PlayerStateMachine {
         CONNECTION_ID,
         SEED,
         HERO_CLASS,
+        READY,
         // в будущем: MAP_SNAPSHOT, MOD_VERSION, другие герои и т.д.
     }
     public boolean hasData(RequiredData data) {
@@ -65,6 +66,8 @@ public class PlayerStateMachine {
                 return hero != null && hero.heroClass != null;
             case CONNECTION_ID:
                 return playerId != -1; // всегда true после присвоения ID
+            case READY:
+                return ready;
             default:
                 return false;
         }
@@ -76,16 +79,21 @@ public class PlayerStateMachine {
     public void markRequestSent(PlayerStateMachine.RequiredData data)
     { sentRequests.add(data); }
     // Сбрасываем флаги, если клиент переподключается или данные изменились (опционально)
-    public void resetRequests()
-    { sentRequests.clear(); }
+    public void resetRequests() {
+        this.playerId = -1;
+        this.name = null;
+        this.hero = null;
+        this.seed = null;
+        this.ready = false;
+        this.isHost = false;
+        this.sentRequests.clear();
+        updateState();
+        sentRequests.clear();
+    }
 
     public void setPlayerId(int playerId) {
         this.playerId = playerId;
         updateState();
-    }
-    public void forceError() {
-        currentState = State.ERROR;
-        notifyListeners();
     }
 
     public void setHero(Hero hero) {
@@ -114,25 +122,28 @@ public class PlayerStateMachine {
         this.name = name;
         updateState();
     }
-
+    public void forceError() {
+        currentState = State.ERROR;
+        notifyListeners();
+    }
     // --- Вычисление состояния на основе текущих данных ---
     private State computeState() {
         if (playerId == -1){
             return State.OFFLINE;
         }
-        if (hero == null && seed == null) {
+        if (hero != null && hero.heroClass != null && seed == null) {
             return State.HANDSHAKE;
         }
         if (seed == null) {
             return State.WAITING_FOR_SEED;   // есть герой, но нет seed (возможно после реконнекта)
         }
-        if (hero == null) {
+        if (hero != null && hero.heroClass != null) {
             return State.WAITING_FOR_HERO;    // seed есть, героя нет
         }
-        if (true) {
-            return State.GAME_READY;          // всё есть, но не готов
+        if (!ready) {
+            return State.HANDSHAKE;          // всё есть, но не готов
         }
-        return State.HANDSHAKE;                 // всё есть и готов
+        return State.GAME_READY;                 // всё есть и готов
     }
 
     private void updateState() {

@@ -1,9 +1,9 @@
 package network;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
-import network.handlers.PlayerAssignHandler;
-import network.handlers.PlayerJoinHandler;
-import network.handlers.SeedInitHandler;
+import network.handlers.client.PlayerAssignHandler;
+import network.handlers.client.PlayerJoinHandler;
+import network.handlers.client.SeedInitHandler;
 import network.states.ClientSessionState;
 import network.states.PlayerStateMachine;
 import network.states.ServerStateMachine;
@@ -63,10 +63,10 @@ public class ServerAgent {
     }
 
     private void initializeNewClient(ClientSessionState session) {
-        if (session.stateMachine.getCurrentState() != PlayerStateMachine.State.HANDSHAKE) {
-            session.ctx.close();
-            return;
-        }
+//        if (session.stateMachine.getCurrentState() != PlayerStateMachine.State.HANDSHAKE) {
+//            session.ctx.close();
+//            return;
+//        }
 
         Multiplayer.PlayerInfo newPlayer = new Multiplayer.PlayerInfo(session.getPlayerId(), session.getName());
         Multiplayer.Players.add(newPlayer);
