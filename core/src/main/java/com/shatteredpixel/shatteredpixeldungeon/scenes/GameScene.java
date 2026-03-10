@@ -314,6 +314,7 @@ public class GameScene extends PixelScene {
 		add( mobs );
 
 		// Создаём спрайты для всех героев
+		// Создаём спрайты для всех героев
 		for (Multiplayer.PlayerInfo info : Multiplayer.Players.getAll()) {
 			Hero h = info.hero;
 			if (h != null) {
@@ -904,6 +905,7 @@ public class GameScene extends PixelScene {
 			}
 		}
 
+		// TODO
 		if (Multiplayer.localHero().ready && Multiplayer.localHero().paralysed == 0) {
 			log.newLine();
 		}

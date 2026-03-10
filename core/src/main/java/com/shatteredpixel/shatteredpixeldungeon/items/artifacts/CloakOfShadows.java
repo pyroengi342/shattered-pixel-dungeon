@@ -365,6 +365,7 @@ public class CloakOfShadows extends Artifact {
 
 		@Override
 		public void fx(boolean on) {
+			if (target == null || target.sprite == null) return;
 			if (on) target.sprite.add( CharSprite.State.INVISIBLE );
 			else if (target.invisible == 0) target.sprite.remove( CharSprite.State.INVISIBLE );
 		}
@@ -373,12 +374,20 @@ public class CloakOfShadows extends Artifact {
 		public void detach() {
 			activeBuff = null;
 
-			if (target.invisible > 0)   target.invisible--;
+			if (target != null) {
+				if (target.invisible > 0) {
+					target.invisible--;
+				}
+				// Явно снимаем визуальный эффект
+				if (target.sprite != null) {
+					fx(false);
+				}
+			}
 
 			updateQuickslot();
 			super.detach();
 		}
-		
+				
 		private static final String TURNSTOCOST = "turnsToCost";
 		private static final String BARRIER_INC = "barrier_inc";
 		

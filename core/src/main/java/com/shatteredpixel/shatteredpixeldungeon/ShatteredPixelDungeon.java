@@ -67,7 +67,11 @@ public class ShatteredPixelDungeon extends Game {
 		Sample.INSTANCE.volume( SPDSettings.SFXVol()*SPDSettings.SFXVol()/100f );
 
 		Sample.INSTANCE.load( Assets.Sounds.all );
-		
+
+		// Отключаем туториал для отладки
+		if (DeviceCompat.isDebug()) {
+			SPDSettings.intro(false);
+		}
 	}
 
 	@Override
