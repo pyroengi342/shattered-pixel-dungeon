@@ -352,19 +352,22 @@ public class Hero extends Char {
 		if (bundle.contains(QUICKSLOT)) {
         	quickslot.restorePlaceholders(bundle.getBundle(QUICKSLOT));
     	}
-	}
-	
-	public static void preview( GamesInProgress.Info info, Bundle bundle ) {
-		info.level = bundle.getInt( LEVEL );
-		info.str = bundle.getInt( STRENGTH );
-		info.exp = bundle.getInt( EXPERIENCE );
-		info.hp = bundle.getInt( Char.TAG_HP );
-		info.ht = bundle.getInt( Char.TAG_HT );
-		info.shld = bundle.getInt( Char.TAG_SHLD );
-		info.heroClass = bundle.getEnum( CLASS, HeroClass.class );
-		info.subClass = bundle.getEnum( SUBCLASS, HeroSubClass.class );
-		Belongings.preview( info, bundle );
-	}
+    	}
+ 	
+ 	public static void preview( GamesInProgress.Info info, Bundle bundle ) {
+ 		if (bundle == null || !bundle.contains(LEVEL)) {
+ 			return;
+ 		}
+ 		info.level = bundle.getInt( LEVEL );
+ 		info.str = bundle.getInt( STRENGTH );
+ 		info.exp = bundle.getInt( EXPERIENCE );
+ 		info.hp = bundle.getInt( Char.TAG_HP );
+ 		info.ht = bundle.getInt( Char.TAG_HT );
+ 		info.shld = bundle.getInt( Char.TAG_SHLD );
+ 		info.heroClass = bundle.getEnum( CLASS, HeroClass.class );
+ 		info.subClass = bundle.getEnum( SUBCLASS, HeroSubClass.class );
+ 		Belongings.preview( info, bundle );
+ 	}
 
 	public boolean hasTalent( Talent talent ){
 		return pointsInTalent(talent) > 0;

@@ -867,6 +867,9 @@ public class Dungeon {
 	}
 	
 	public static void preview( GamesInProgress.Info info, Bundle bundle ) {
+		if (bundle == null || !bundle.contains(DEPTH)) {
+			return;
+		}
 		info.depth = bundle.getInt( DEPTH );
 		info.version = bundle.getInt( VERSION );
 		info.challenges = bundle.getInt( CHALLENGES );
