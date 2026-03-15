@@ -577,9 +577,9 @@ public class HeroSelectScene extends PixelScene {
 			playerListX = heroBtns.get(heroBtns.size() - 1).right() + 15;
 			playerListY = centerY;
 		} else {
-			playerListX = insets.left + 2;
-			playerListY = heroBtns.get(0).top() - 25;
-			if (playerListY < insets.top + 5) playerListY = insets.top + 5;
+			// Портретный режим - справа по центру
+			playerListX = Camera.main.width - 50; // справа
+			playerListY = centerY; // по центру
 		}
 
 		fadeIn();
