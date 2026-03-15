@@ -167,11 +167,10 @@ public class MultiplayerServer {
             String err = ErrorMessageUtil.getDetailedErrorMessage(cause);
             UiThreadExecutor.run(() -> {
                 NetworkManager.getInstance().showMessage("Client error: " + err);
-                // Optionally: remove the client from connectedClients
-                ServerSession session = connectedClients.get(ctx.channel());
+                ClientSessionState session = connectedClients.get(ctx.channel().hashCode());
                 if (session != null) {
-                    connectedClients.remove(ctx.channel());
-                    Multiplayer.Players.remove(session.playerId);
+                    connectedClients.remove(ctx.channel().hashCode());
+                    Multiplayer.Players.remove(session.getPlayerId());
                 }
             });
             ctx.close();

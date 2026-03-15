@@ -280,21 +280,6 @@ public class HeroSelectScene extends PixelScene {
 						Game.scene().addToFront(new WndMessage("Ready for game!"));
 						break;
 					case NONE:
-						NetworkManager.getInstance().startServer();
-						break;
-					case CLIENT:
-//						boolean currentReady = ClientStateMachine.getInstance().getReady();
-//						ClientStateMachine.getInstance().setReady(!currentReady);
-						break;
-					case SERVER:
-						// Сервер без клиента – пока не используется, можно залогировать или проигнорировать
-						break;
-					case CLIENT:
-						// Переключение готовности
-						localPlayerReady = !localPlayerReady;
-						network.handlers.server.PlayerReadyHandler.sendReady(localPlayerReady);
-						break;
-					case NONE:
 						if (Multiplayer.isMultiplayer) {
 							// Хост запускает игру
 							if (Multiplayer.Players.allReady()) {
@@ -305,6 +290,14 @@ public class HeroSelectScene extends PixelScene {
 						} else {
 							NetworkManager.getInstance().startServer();
 						}
+						break;
+					case CLIENT:
+						// Переключение готовности
+						localPlayerReady = !localPlayerReady;
+						network.handlers.server.PlayerReadyHandler.sendReady(localPlayerReady);
+						break;
+					case SERVER:
+						// Сервер без клиента – пока не используется
 						break;
 				}
 			}
