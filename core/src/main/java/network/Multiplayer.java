@@ -26,11 +26,13 @@ public class Multiplayer {
         //public int heroClass;
         public Hero hero;  // Ссылка на героя в игре
         public boolean isLocal; // Является ли локальным игроком
+        public boolean isReady; // Готов ли игрок к игре
         public PlayerInfo() {}
         public PlayerInfo(int connectionID, String name) {
             this.connectionID = connectionID;
             this.name = name;
             this.isLocal = false;
+            this.isReady = false;
         }
     }
     private static class PlayerContainer {
@@ -104,6 +106,44 @@ public class Multiplayer {
             if (player.hero != null) {
                 player.hero.heroClass = heroClassName;
             }
+        }
+        public static void setReady(int playerId, boolean ready) {
+            PlayerInfo player = playerContainer.get(playerId);
+            if (player != null) {
+                player.isReady = ready;
+            }
+        }
+        public static boolean getReady(int playerId) {
+            PlayerInfo player = playerContainer.get(playerId);
+            return player != null && player.isReady;
+        }
+        public static boolean allReady() {
+            for (PlayerInfo p : playerContainer.getAll()) {
+                if (!p.isReady) return false;
+            }
+            return playerContainer.size() > 0;
+        }
+        
+        // Player options (для будущего использования)
+        public enum PlayerOption {
+            KICK,           // Кикнуть игрока
+            TOGGLE_READY,   // Переключить готовность (для хоста)
+            VIEW_PROFILE,   // Посмотреть профиль
+            MUTE,           // Отключить уведомления
+        }
+        
+        public static void kickPlayer(int playerId) {
+            // TODO: Реализовать кик - отправить сообщение игроку, закрыть соединение
+            // PlayerInfo player = playerContainer.get(playerId);
+            // if (player != null) {
+            //     NetworkManager.sendKick(playerId);
+            // }
+            System.out.println("Kick player: " + playerId);
+        }
+        
+        public static boolean canKick(int playerId) {
+            // Только хост может кикать других игроков
+            return isHost && playerId != NetworkManager.getLocalPlayerId();
         }
     }
 

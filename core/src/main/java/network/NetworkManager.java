@@ -15,7 +15,10 @@ import io.netty.channel.ChannelHandlerContext;
 import network.SMTH.MultiplayerClient;
 import network.SMTH.MultiplayerServer;
 import network.handlers.server.HeroClassHandler;
+import network.handlers.server.PlayerKickHandler;
 import network.handlers.client.HeroCreatedHandler;
+import network.handlers.client.ClientPlayerReadyHandler;
+import network.handlers.client.KickNotifyHandler;
 import network.handlers.client.PlayerAssignHandler;
 import network.handlers.client.PlayerJoinHandler;
 import network.handlers.PlayerLeaveHandler;
@@ -87,6 +90,9 @@ public class NetworkManager {
         messageDispatcher.registerHandler(new ServerShutdownHandler(this));
         messageDispatcher.registerHandler(new SeedInitHandler());
         messageDispatcher.registerHandler(new HeroClassHandler());
+        messageDispatcher.registerHandler(new ClientPlayerReadyHandler());
+        messageDispatcher.registerHandler(new PlayerKickHandler());
+        messageDispatcher.registerHandler(new KickNotifyHandler());
         // Window handlers
         messageDispatcher.registerHandler(new UpgradeHandler());
         messageDispatcher.registerHandler(new ItemUseHandler());
