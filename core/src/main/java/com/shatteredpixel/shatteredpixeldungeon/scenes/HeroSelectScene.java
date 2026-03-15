@@ -784,11 +784,12 @@ public class HeroSelectScene extends PixelScene {
 			if (cl != null) {
 				// Берём иконку из спрайта героя (так же, как в HeroBtn)
 				heroIcon.copy(new Image(cl.spritesheet(), 0, 90, 12, 15));
+				heroIcon.visible = true;
 			} else {
-				// Если класс ещё не выбран --placeholder
-				heroIcon.copy(new Image());
+				// Если класс ещё не выбран - скрываем иконку
+				heroIcon.visible = false;
 			}
-			if (ready) {
+			if (ready && cl != null) {
 				heroIcon.hardlight(0x00FF00); // зелёный - готов
 			} else {
 				heroIcon.hardlight(0xFFAA00); // оранжевый - не готов
