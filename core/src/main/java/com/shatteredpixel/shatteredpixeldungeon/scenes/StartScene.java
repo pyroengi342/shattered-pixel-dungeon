@@ -220,23 +220,25 @@ public class StartScene extends PixelScene {
 					name.text(Messages.titleCase(info.heroClass.title()));
 				}
 				
-				if (hero == null){
-					hero = new Image(info.heroClass.spritesheet(), 0, 15*info.armorTier, 12, 15);
-					add(hero);
-					
-					steps = new Image(Icons.get(Icons.STAIRS));
-					add(steps);
-					depth = new BitmapText(PixelScene.pixelFont);
-					add(depth);
-					
-					classIcon = new Image(Icons.get(info.heroClass));
-					add(classIcon);
-					level = new BitmapText(PixelScene.pixelFont);
-					add(level);
-				} else {
-					hero.copy(new Image(info.heroClass.spritesheet(), 0, 15*info.armorTier, 12, 15));
-					
-					classIcon.copy(Icons.get(info.heroClass));
+				if (info.heroClass != null) {
+					if (hero == null){
+						hero = new Image(info.heroClass.spritesheet(), 0, 15*info.armorTier, 12, 15);
+						add(hero);
+						
+						steps = new Image(Icons.get(Icons.STAIRS));
+						add(steps);
+						depth = new BitmapText(PixelScene.pixelFont);
+						add(depth);
+						
+						classIcon = new Image(Icons.get(info.heroClass));
+						add(classIcon);
+						level = new BitmapText(PixelScene.pixelFont);
+						add(level);
+					} else {
+						hero.copy(new Image(info.heroClass.spritesheet(), 0, 15*info.armorTier, 12, 15));
+						
+						classIcon.copy(Icons.get(info.heroClass));
+					}
 				}
 
 				long diff = Game.realTime - info.lastPlayed;
