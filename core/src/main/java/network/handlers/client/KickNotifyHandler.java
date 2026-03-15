@@ -16,7 +16,7 @@ public class KickNotifyHandler implements MessageHandler {
     @Override
     public void msgHandle(int senderId, Bundle bundle) {
         Game.runOnRenderThread(() -> {
-            String reason = bundle.optString("reason", "unknown");
+            String reason = bundle.contains("reason") ? bundle.getString("reason") : "unknown";
             
             // Показываем сообщение
             String message;
