@@ -150,6 +150,7 @@ public class HeroSelectScene extends PixelScene {
 			playerBtns.add(btn);
 		}
 
+		float x = playerListX;
 		float y = playerListY;
 		for (int i = 0; i < count; i++) {
 			PlayerBtn btn = (PlayerBtn) playerBtns.get(i);
@@ -168,10 +169,10 @@ public class HeroSelectScene extends PixelScene {
 			ready = player.isReady;
 
 			btn.setHero(heroClass, ready);
-			btn.setPos(playerListX, y);
+			btn.setPos(x, y);
 			btn.visible = true;
 
-			y += btn.height() + 2;
+			x += btn.width() + 5;
 		}
 
 		// Скрываем лишние кнопки
