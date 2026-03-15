@@ -71,8 +71,11 @@ public class MultiplayerClient {
             } catch (Exception e) {
                 e.printStackTrace();
                 UiThreadExecutor.run(() -> {
-                    clientStateMachine.onError("Connection failed");
-                    NetworkManager.getInstance().showMessage("Connection failed");
+                    clientStateMachine.onError("Connection failed: " + e.getMessage());
+                    Multiplayer.isMultiplayer = false;
+                    Multiplayer.isHost = false;
+                    Multiplayer.Players.clear();
+                    NetworkManager.getInstance().showMessage("Connection failed: " + e.getMessage());
                 });
             }
         }, "Client-Thread").start();
@@ -130,7 +133,13 @@ public class MultiplayerClient {
         @Override
         public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
             lastError = ErrorMessageUtil.getDetailedErrorMessage(cause);
-            clientStateMachine.onError(lastError);
+            UiThreadExecutor.run(() -> {
+                clientStateMachine.onError(lastError);
+                Multiplayer.isMultiplayer = false;
+                Multiplayer.isHost = false;
+                Multiplayer.Players.clear();
+                NetworkManager.getInstance().showMessage("Connection error: " + lastError);
+            });
             ctx.close();
         }
     }

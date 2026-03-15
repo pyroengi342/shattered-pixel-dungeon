@@ -165,7 +165,15 @@ public class MultiplayerServer {
         @Override
         public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
             String err = ErrorMessageUtil.getDetailedErrorMessage(cause);
-            UiThreadExecutor.run(() -> NetworkManager.getInstance().showMessage("Client error: " + err));
+            UiThreadExecutor.run(() -> {
+                NetworkManager.getInstance().showMessage("Client error: " + err);
+                // Optionally: remove the client from connectedClients
+                ServerSession session = connectedClients.get(ctx.channel());
+                if (session != null) {
+                    connectedClients.remove(ctx.channel());
+                    Multiplayer.Players.remove(session.playerId);
+                }
+            });
             ctx.close();
         }
     }

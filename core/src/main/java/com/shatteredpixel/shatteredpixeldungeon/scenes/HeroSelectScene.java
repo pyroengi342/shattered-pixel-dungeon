@@ -97,10 +97,13 @@ public class HeroSelectScene extends PixelScene {
 	private RenderedTextBlock heroName; //only on landscape
 	private RenderedTextBlock heroDesc; //only on landscape
 	private StyledButton startBtn;
+	private StyledButton readyBtn; // Кнопка "Готов" для MP
 	private IconButton infoButton;
 	private IconButton btnOptions;
 	private GameOptions optionsPane;
 	private IconButton btnExit;
+	
+	private boolean localPlayerReady = false; // Статус локального игрока
 
 	private final ArrayList<StyledButton> playerBtns = new ArrayList<>();
 	private float playerListUpdateTimer = 0;
@@ -151,10 +154,18 @@ public class HeroSelectScene extends PixelScene {
 		for (int i = 0; i < count; i++) {
 			PlayerBtn btn = (PlayerBtn) playerBtns.get(i);
 			Multiplayer.PlayerInfo player = players.get(i);
+			if (player == null) {
+				btn.visible = false;
+				continue;
+			}
 
-			// Предполагаем, что у PlayerInfo есть методы getHeroClass() и isReady()
-			HeroClass heroClass = player.hero.heroClass; // адаптируйте под свою структуру
-			boolean ready = false;            // адаптируйте
+			HeroClass heroClass = null;
+			boolean ready = false;
+			
+			if (player.hero != null) {
+				heroClass = player.hero.heroClass;
+			}
+			ready = player.isReady;
 
 			btn.setHero(heroClass, ready);
 			btn.setPos(playerListX, y);
@@ -278,6 +289,23 @@ public class HeroSelectScene extends PixelScene {
 					case SERVER:
 						// Сервер без клиента – пока не используется, можно залогировать или проигнорировать
 						break;
+					case CLIENT:
+						// Переключение готовности
+						localPlayerReady = !localPlayerReady;
+						network.handlers.server.PlayerReadyHandler.sendReady(localPlayerReady);
+						break;
+					case NONE:
+						if (Multiplayer.isMultiplayer) {
+							// Хост запускает игру
+							if (Multiplayer.Players.allReady()) {
+								startGame();
+							} else {
+								Game.scene().addToFront(new WndMessage("Waiting for all players to be ready..."));
+							}
+						} else {
+							NetworkManager.getInstance().startServer();
+						}
+						break;
 				}
 			}
 		};
@@ -286,6 +314,36 @@ public class HeroSelectScene extends PixelScene {
 		startBtn.textColor(Window.TITLE_COLOR);
 		add(startBtn);
 		startBtn.visible = startBtn.active = false;
+		
+		// Кнопка Ready (для мультиплеера)
+		readyBtn = new StyledButton(Chrome.Type.GREY_BUTTON_TR, Messages.get(this, "ready")){
+			@Override
+			protected void onClick() {
+				super.onClick();
+				if (!Multiplayer.isMultiplayer) return;
+				if (GamesInProgress.selectedClass == null) {
+					Game.scene().addToFront(new WndMessage("Select a hero first!"));
+					return;
+				}
+				
+				localPlayerReady = !localPlayerReady;
+				
+				// Отправляем на сервер
+				network.handlers.server.PlayerReadyHandler.sendReady(localPlayerReady);
+				
+				// Обновляем UI
+				if (localPlayerReady) {
+					text(Messages.get(HeroSelectScene.this, "not_ready"));
+					icon(Icons.get(Icons.CHALLENGE_GREY));
+				} else {
+					text(Messages.get(HeroSelectScene.this, "ready"));
+					icon(Icons.get(Icons.CHALLENGE_COLOR));
+				}
+			}
+		};
+		readyBtn.setSize(60, 21);
+		readyBtn.visible = readyBtn.active = false;
+		add(readyBtn);
 
 		infoButton = new IconButton(Icons.get(Icons.INFO)){
 			@Override
@@ -416,6 +474,10 @@ public class HeroSelectScene extends PixelScene {
 			startBtn.setSize(startBtn.reqWidth()+8, 21);
 			startBtn.setPos(insets.left + (leftArea - startBtn.width())/2f, title.top() + uiHeight - startBtn.height());
 			align(startBtn);
+			
+			// Позиционируем readyBtn справа от startBtn
+			readyBtn.setPos(startBtn.right() + 5, startBtn.top());
+			align(readyBtn);
 
 			btnFade = new IconButton(Icons.CHEVRON.get()){
 				@Override
@@ -516,9 +578,10 @@ public class HeroSelectScene extends PixelScene {
 		}
 		// ТЕПЕРЬ heroBtns уже заполнены и имеют корректные координаты
 		// Можно безопасно вычислять позицию списка игроков
+		float centerY = (Camera.main.height) / 2f;
 		if (landscape()) {
 			playerListX = heroBtns.get(heroBtns.size() - 1).right() + 15;
-			playerListY = heroBtns.get(0).top();
+			playerListY = centerY;
 		} else {
 			playerListX = insets.left + 2;
 			playerListY = heroBtns.get(0).top() - 25;
@@ -618,6 +681,26 @@ public class HeroSelectScene extends PixelScene {
 			playerListUpdateTimer = 0;
 			updatePlayerList();
 		}
+		
+		// Обновление видимости кнопок для мультиплеера
+		boolean isMP = Multiplayer.isMultiplayer;
+		readyBtn.visible = readyBtn.active = isMP;
+		if (isMP) {
+			// Обновляем текст кнопки ready
+			if (localPlayerReady) {
+				readyBtn.text(Messages.get(this, "not_ready"));
+			} else {
+				readyBtn.text(Messages.get(this, "ready"));
+			}
+			
+			// Для хоста - кнопка Start Game активна когда все готовы
+			if (Multiplayer.isHost) {
+				startBtn.visible = startBtn.active = true;
+				startBtn.text(Messages.get(this, "start_game"));
+				startBtn.enable(Multiplayer.Players.allReady());
+			}
+		}
+		
 		if (SPDSettings.intro() && Rankings.INSTANCE.totalNumber > 0){
 			SPDSettings.intro(false);
 		}
@@ -705,12 +788,17 @@ public class HeroSelectScene extends PixelScene {
 		}
 
 		public void setHero(HeroClass cl, boolean ready) {
-			// Берём иконку из спрайта героя (так же, как в HeroBtn)
-			heroIcon.copy(new Image(cl.spritesheet(), 0, 90, 12, 15));
-			if (ready) {
-				heroIcon.hardlight(0x00FF00); // зелёный
+			if (cl != null) {
+				// Берём иконку из спрайта героя (так же, как в HeroBtn)
+				heroIcon.copy(new Image(cl.spritesheet(), 0, 90, 12, 15));
 			} else {
-				heroIcon.resetColor(); // обычный цвет
+				// Если класс ещё не выбран --placeholder
+				heroIcon.copy(new Image());
+			}
+			if (ready) {
+				heroIcon.hardlight(0x00FF00); // зелёный - готов
+			} else {
+				heroIcon.hardlight(0xFFAA00); // оранжевый - не готов
 			}
 		}
 
