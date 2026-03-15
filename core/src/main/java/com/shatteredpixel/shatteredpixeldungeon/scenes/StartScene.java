@@ -241,47 +241,55 @@ public class StartScene extends PixelScene {
 					}
 				}
 
-				long diff = Game.realTime - info.lastPlayed;
-				if (diff > 99L * 30 * 24 * 60 * 60_000){
-					lastPlayed.text(" "); //show no text for >99 months ago
-				} else if (diff < 60_000){
-					lastPlayed.text(Messages.get(StartScene.class, "one_minute_ago"));
-				} else if (diff < 2 * 60 * 60_000){
-					lastPlayed.text(Messages.get(StartScene.class, "minutes_ago", diff / 60_000));
-				} else if (diff < 2 * 24 * 60 * 60_000){
-					lastPlayed.text(Messages.get(StartScene.class, "hours_ago", diff / (60 * 60_000)));
-				} else if (diff < 2L * 30 * 24 * 60 * 60_000){
-					lastPlayed.text(Messages.get(StartScene.class, "days_ago", diff / (24 * 60 * 60_000)));
-				} else {
-					lastPlayed.text(Messages.get(StartScene.class, "months_ago", diff / (30L * 24 * 60 * 60_000)));
+				if (info.lastPlayed > 0) {
+					long diff = Game.realTime - info.lastPlayed;
+					if (diff > 99L * 30 * 24 * 60 * 60_000){
+						lastPlayed.text(" "); //show no text for >99 months ago
+					} else if (diff < 60_000){
+						lastPlayed.text(Messages.get(StartScene.class, "one_minute_ago"));
+					} else if (diff < 2 * 60 * 60_000){
+						lastPlayed.text(Messages.get(StartScene.class, "minutes_ago", diff / 60_000));
+					} else if (diff < 2 * 24 * 60 * 60_000){
+						lastPlayed.text(Messages.get(StartScene.class, "hours_ago", diff / (60 * 60_000)));
+					} else if (diff < 2L * 30 * 24 * 60 * 60_000){
+						lastPlayed.text(Messages.get(StartScene.class, "days_ago", diff / (24 * 60 * 60_000)));
+					} else {
+						lastPlayed.text(Messages.get(StartScene.class, "months_ago", diff / (30L * 24 * 60 * 60_000)));
+					}
 				}
 				
-				depth.text(Integer.toString(info.depth));
-				depth.measure();
+				if (depth != null) {
+					depth.text(Integer.toString(info.depth));
+					depth.measure();
+				}
 				
-				level.text(Integer.toString(info.level));
-				level.measure();
+				if (level != null) {
+					level.text(Integer.toString(info.level));
+					level.measure();
+				}
 				
 				if (info.challenges > 0){
 					name.hardlight(Window.TITLE_COLOR);
 					lastPlayed.hardlight(Window.TITLE_COLOR);
-					depth.hardlight(Window.TITLE_COLOR);
-					level.hardlight(Window.TITLE_COLOR);
+					if (depth != null) depth.hardlight(Window.TITLE_COLOR);
+					if (level != null) level.hardlight(Window.TITLE_COLOR);
 				} else {
 					name.resetColor();
 					lastPlayed.resetColor();
-					depth.resetColor();
-					level.resetColor();
+					if (depth != null) depth.resetColor();
+					if (level != null) level.resetColor();
 				}
 
 				if (info.daily){
-					if (info.dailyReplay){
-						steps.hardlight(1f, 0.5f, 2f);
-					} else {
-						steps.hardlight(0.5f, 1f, 2f);
+					if (steps != null) {
+						if (info.dailyReplay){
+							steps.hardlight(1f, 0.5f, 2f);
+						} else {
+							steps.hardlight(0.5f, 1f, 2f);
+						}
 					}
-				} else if (!info.customSeed.isEmpty()){
-					steps.hardlight(1f, 1.5f, 0.67f);
+				} else if (info.customSeed != null && !info.customSeed.isEmpty()){
+					if (steps != null) steps.hardlight(1f, 1.5f, 0.67f);
 				}
 				
 			}
