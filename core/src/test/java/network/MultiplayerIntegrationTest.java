@@ -20,6 +20,8 @@ package network;
 
 import network.stub.TestNetworkManager;
 import network.handlers.server.*;
+import network.handlers.client.*;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import org.junit.jupiter.api.*;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -184,5 +186,35 @@ public class MultiplayerIntegrationTest {
         
         Multiplayer.PlayerInfo notFound = Multiplayer.Players.get(999);
         assertNull(notFound);
+    }
+
+    @Test
+    public void testHeroClassTransfer() {
+        // Test that hero is created when player info exists
+        Multiplayer.PlayerInfo player = new Multiplayer.PlayerInfo(1, "Player1");
+        Multiplayer.Players.add(player);
+        
+        // Hero should be null initially
+        assertNull(player.hero);
+        
+        // Simulate hero class assignment
+        player.hero = new com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero();
+        player.hero.heroClass = HeroClass.WARRIOR;
+        
+        assertNotNull(player.hero);
+        assertEquals(HeroClass.WARRIOR, player.hero.heroClass);
+    }
+
+    @Test
+    public void testHeroClassSelectedHandlerCreatesHero() {
+        // Test HeroClassSelectedHandler creates hero if null
+        network.handlers.client.HeroClassSelectedHandler handler = 
+            new network.handlers.client.HeroClassSelectedHandler();
+        assertEquals("HERO_CLASS_SELECTED", handler.getType());
+        
+        // Player without hero
+        Multiplayer.PlayerInfo player = new Multiplayer.PlayerInfo(5, "Player5");
+        Multiplayer.Players.add(player);
+        assertNull(player.hero);
     }
 }

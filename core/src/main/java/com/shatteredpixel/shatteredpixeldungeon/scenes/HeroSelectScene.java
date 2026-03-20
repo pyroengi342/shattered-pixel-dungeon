@@ -661,11 +661,15 @@ public class HeroSelectScene extends PixelScene {
         // CLIENT should have a Ready button; host should not
         readyBtn.visible = readyBtn.active = (isMP && !Multiplayer.isHost);
         if (isMP) {
-			// Обновляем текст кнопки ready
+			// Обновляем текст и цвет кнопки ready
 			if (localPlayerReady) {
 				readyBtn.text(Messages.get(this, "not_ready"));
+				// Зеленый цвет когда готов
+				readyBtn.textColor(0x00FF00);
 			} else {
 				readyBtn.text(Messages.get(this, "ready"));
+				// Оранжевый цвет когда не готов
+				readyBtn.textColor(0xFFAA00);
 			}
 			
             // Для хоста - кнопка Start Game активна когда все готовы

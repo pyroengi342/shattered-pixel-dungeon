@@ -6,6 +6,7 @@ import com.watabou.utils.Bundle;
 import network.Multiplayer;
 import network.handlers.MessageHandler;
 import network.NetworkManager;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 
 /** Client-side handler for HERO_CLASS_SELECTED */
@@ -21,9 +22,17 @@ public class HeroClassSelectedHandler implements MessageHandler {
             HeroClass heroClass = HeroClass.valueOf(className);
 
             Multiplayer.PlayerInfo player = Multiplayer.Players.get(playerId);
-            if (player != null && player.hero != null) {
-                player.hero.heroClass = heroClass;
+            if (player == null) {
+                // Create new player info if doesn't exist
+                player = new Multiplayer.PlayerInfo(playerId, "Player" + playerId);
+                Multiplayer.Players.add(player);
             }
+
+            // Create hero object if doesn't exist
+            if (player.hero == null) {
+                player.hero = new Hero();
+            }
+            player.hero.heroClass = heroClass;
         });
     }
 }
