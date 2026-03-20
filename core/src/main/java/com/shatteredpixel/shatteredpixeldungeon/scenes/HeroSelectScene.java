@@ -96,8 +96,8 @@ public class HeroSelectScene extends PixelScene {
 	private final ArrayList<StyledButton> heroBtns = new ArrayList<>();
 	private RenderedTextBlock heroName; //only on landscape
 	private RenderedTextBlock heroDesc; //only on landscape
-	private StyledButton startBtn;
-	private StyledButton readyBtn; // Кнопка "Готов" для MP
+    private StyledButton startBtn;
+    private StyledButton readyBtn; // Кнопка "Готов" для MP (CLIENT)
 	private IconButton infoButton;
 	private IconButton btnOptions;
 	private GameOptions optionsPane;
@@ -260,84 +260,64 @@ public class HeroSelectScene extends PixelScene {
 			});
 		});
 
-		startBtn = new StyledButton(Chrome.Type.GREY_BUTTON_TR, ""){
+        startBtn = new StyledButton(Chrome.Type.GREY_BUTTON_TR, ""){
             protected void onClick() {
-				super.onClick();
-
-				switch (NetworkManager.getMode()) {
-					case LOCALHOST:
-						if (Multiplayer.localHero() == null) {
-							Game.scene().addToFront(new WndMessage("Hero not sent..."));
-							return;
-						}
-						if (NetworkManager.getLocalPlayerId() == -1) {
-							Game.scene().addToFront(new WndMessage("Waiting for player ID..."));
-							return;
-						}
-						if (!clientSM.isSeedReceived()) {
-							Game.scene().addToFront(new WndMessage("Waiting for seed from server..."));
-							return;
-						}
-						Game.scene().addToFront(new WndMessage("Ready for game!"));
-						break;
-					case NONE:
-						if (Multiplayer.isMultiplayer) {
-							// Хост запускает игру
-							if (Multiplayer.Players.allReady()) {
-								startGame();
-							} else {
-								Game.scene().addToFront(new WndMessage("Waiting for all players to be ready..."));
-							}
-						} else {
-							NetworkManager.getInstance().startServer();
-						}
-						break;
-					case CLIENT:
-						// Переключение готовности
-						localPlayerReady = !localPlayerReady;
-						network.handlers.server.PlayerReadyHandler.sendReady(localPlayerReady);
-						break;
-					case SERVER:
-						// Сервер без клиента – пока не используется
-						break;
-				}
-			}
-		};
+                super.onClick();
+                // Delegate start logic based on mode
+                switch (NetworkManager.getMode()) {
+                    case LOCALHOST:
+                        // Single player - start immediately once hero is selected
+                        if (GamesInProgress.selectedClass == null) {
+                            Game.scene().addToFront(new WndMessage("Select a hero first!"));
+                            return;
+                        }
+                        startGame();
+                        
+                        break;
+                    case NONE:
+                        if (Multiplayer.isMultiplayer) {
+                            // Хост запускает игру
+                            if (Multiplayer.Players.allReady()) {
+                                startGame();
+                            } else {
+                                Game.scene().addToFront(new WndMessage("Waiting for all players to be ready..."));
+                            }
+                        } else {
+                            NetworkManager.getInstance().startServer();
+                        }
+                        break;
+                    case CLIENT:
+                        // CLIENT should not start the game; ready state is controlled by readyBtn
+                        break;
+                    case SERVER:
+                        // HOST in server-only mode - start when all ready
+                        if (Multiplayer.Players.allReady()) {
+                            startGame();
+                        } else {
+                            Game.scene().addToFront(new WndMessage("Waiting for all players to be ready..."));
+                        }
+                        break;
+                }
+            }
+        };
 		startBtn.icon(Icons.get(Icons.ENTER));
 		startBtn.setSize(80, 21);
 		startBtn.textColor(Window.TITLE_COLOR);
 		add(startBtn);
 		startBtn.visible = startBtn.active = false;
 		
-		// Кнопка Ready (для мультиплеера)
-		readyBtn = new StyledButton(Chrome.Type.GREY_BUTTON_TR, Messages.get(this, "ready")){
-			@Override
-			protected void onClick() {
-				super.onClick();
-				if (!Multiplayer.isMultiplayer) return;
-				if (GamesInProgress.selectedClass == null) {
-					Game.scene().addToFront(new WndMessage("Select a hero first!"));
-					return;
-				}
-				
-				localPlayerReady = !localPlayerReady;
-				
-				// Отправляем на сервер
-				network.handlers.server.PlayerReadyHandler.sendReady(localPlayerReady);
-				
-				// Обновляем UI
-				if (localPlayerReady) {
-					text(Messages.get(HeroSelectScene.this, "not_ready"));
-					icon(Icons.get(Icons.CHALLENGE_GREY));
-				} else {
-					text(Messages.get(HeroSelectScene.this, "ready"));
-					icon(Icons.get(Icons.CHALLENGE_COLOR));
-				}
-			}
-		};
-		readyBtn.setSize(60, 21);
-		readyBtn.visible = readyBtn.active = false;
-		add(readyBtn);
+        // Кнопка Ready (для клиента)
+        readyBtn = new StyledButton(Chrome.Type.GREY_BUTTON_TR, Messages.get(this, "ready")){
+            @Override
+            protected void onClick() {
+                // Ready toggle is handled by server via PlayerReadyHandler on the client side
+                // No local toggle here; visibility/state controlled by multiplayer system
+            }
+        };
+        readyBtn.setSize(60, 21);
+        // Show readyBtn only in CLIENT mode and after hero is selected
+        readyBtn.visible = readyBtn.active = false;
+        add(readyBtn);
 
 		infoButton = new IconButton(Icons.get(Icons.INFO)){
 			@Override
@@ -676,10 +656,11 @@ public class HeroSelectScene extends PixelScene {
 			updatePlayerList();
 		}
 		
-		// Обновление видимости кнопок для мультиплеера
-		boolean isMP = Multiplayer.isMultiplayer;
-		readyBtn.visible = readyBtn.active = isMP;
-		if (isMP) {
+        // Обновление видимости кнопок для мультиплеера
+        boolean isMP = Multiplayer.isMultiplayer;
+        // CLIENT should have a Ready button; host should not
+        readyBtn.visible = readyBtn.active = (isMP && !Multiplayer.isHost);
+        if (isMP) {
 			// Обновляем текст кнопки ready
 			if (localPlayerReady) {
 				readyBtn.text(Messages.get(this, "not_ready"));
@@ -687,12 +668,18 @@ public class HeroSelectScene extends PixelScene {
 				readyBtn.text(Messages.get(this, "ready"));
 			}
 			
-			// Для хоста - кнопка Start Game активна когда все готовы
-			if (Multiplayer.isHost) {
-				startBtn.visible = startBtn.active = true;
-				startBtn.text(Messages.get(this, "start_game"));
-				startBtn.enable(Multiplayer.Players.allReady());
-			}
+            // Для хоста - кнопка Start Game активна когда все готовы
+            if (Multiplayer.isHost) {
+                startBtn.visible = startBtn.active = true;
+                startBtn.text(Messages.get(this, "start_game"));
+                startBtn.enable(Multiplayer.Players.allReady());
+            }
+            // LOCALHOST: single-player start
+            if (!Multiplayer.isMultiplayer) {
+                startBtn.visible = startBtn.active = true;
+                startBtn.text(Messages.get(this, "start_game"));
+                startBtn.enable(GamesInProgress.selectedClass != null);
+            }
 		}
 		
 		if (SPDSettings.intro() && Rankings.INSTANCE.totalNumber > 0){
@@ -808,7 +795,7 @@ public class HeroSelectScene extends PixelScene {
 			}
 		}
 	}
-	private class HeroBtn extends StyledButton {
+    private class HeroBtn extends StyledButton {
 
 		private final HeroClass cl;
 
@@ -838,22 +825,31 @@ public class HeroSelectScene extends PixelScene {
 			}
 		}
 
-		@Override
-		protected void onClick() {
-			super.onClick();
+        @Override
+        protected void onClick() {
+            super.onClick();
 
-			if( !cl.isUnlocked() ){
-				ShatteredPixelDungeon.scene().addToFront( new WndMessage(cl.unlockMsg()));
-			} else if (GamesInProgress.selectedClass == cl) {
-				Window w = new WndHeroInfo(cl);
-				if (landscape()){
-					w.offset(Camera.main.width/6, 0);
-				}
-				ShatteredPixelDungeon.scene().addToFront(w);
-			} else {
-				setSelectedHero(cl);
-			}
-		}
+            if( !cl.isUnlocked() ){
+                ShatteredPixelDungeon.scene().addToFront( new WndMessage(cl.unlockMsg()));
+            } else if (GamesInProgress.selectedClass == cl) {
+                Window w = new WndHeroInfo(cl);
+                if (landscape()){
+                    w.offset(Camera.main.width/6, 0);
+                }
+                ShatteredPixelDungeon.scene().addToFront(w);
+            } else {
+                // Check availability in multiplayer before selecting
+                if (isAvailableForSelection(cl)) {
+                    setSelectedHero(cl);
+                    // Notify server if in MP
+                    if (network.Multiplayer.isMultiplayer) {
+                        network.handlers.server.HeroClassHandler.sendToServer(cl);
+                    }
+                } else {
+                    ShatteredPixelDungeon.scene().addToFront(new WndMessage(Messages.get(HeroSelectScene.class, "class_taken")));
+                }
+            }
+        }
 
 		@Override
 		protected void layout() {
@@ -1291,6 +1287,21 @@ public class HeroSelectScene extends PixelScene {
 		}
 
 
+	}
+
+	// Helpers for class availability in multiplayer
+	private boolean isClassAvailable(HeroClass cls) {
+		if (!Multiplayer.isMultiplayer) return true;
+		for (Multiplayer.PlayerInfo p : Multiplayer.Players.getAll()) {
+			if (p.hero != null && p.hero.heroClass == cls) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private boolean isAvailableForSelection(HeroClass cls) {
+		return isClassAvailable(cls);
 	}
 
 }

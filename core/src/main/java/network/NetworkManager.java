@@ -17,6 +17,7 @@ import network.SMTH.MultiplayerServer;
 import network.handlers.server.HeroClassHandler;
 import network.handlers.server.PlayerKickHandler;
 import network.handlers.client.HeroCreatedHandler;
+import network.handlers.client.HeroClassSelectedHandler;
 import network.handlers.client.ClientPlayerReadyHandler;
 import network.handlers.client.KickNotifyHandler;
 import network.handlers.client.PlayerAssignHandler;
@@ -104,6 +105,8 @@ public class NetworkManager {
         messageDispatcher.registerHandler(new AbilityHandler());
         messageDispatcher.registerHandler(new BlacksmithHandler());
         messageDispatcher.registerHandler(new HeroCreatedHandler());
+        // Client-side hero class selection response
+        messageDispatcher.registerHandler(new HeroClassSelectedHandler());
     }
 
     public ClientAgent getClientCallflow() {

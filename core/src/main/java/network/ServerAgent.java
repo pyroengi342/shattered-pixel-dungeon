@@ -1,6 +1,7 @@
 package network;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.watabou.utils.Bundle;
 import network.handlers.client.PlayerAssignHandler;
 import network.handlers.client.PlayerJoinHandler;
 import network.handlers.client.SeedInitHandler;
@@ -89,19 +90,19 @@ public class ServerAgent {
     }
 
     public void onClientStateChanged(ClientSessionState session) {
-        checkAllPlayersReady();
+        // checkAllPlayersReady() is now handled by PlayerReadyHandler
         checkPlayerProgress(session);
     }
 
     public void onServerStateChanged(ServerStateMachine.State newState) {
-        // Опционально
+        // Optional: handle server state changes
     }
 
     private void checkPlayerProgress(ClientSessionState session) {
         if (session.ctx == null || !session.ctx.channel().isActive()) return;
 
         for (PlayerStateMachine.RequiredData data : PlayerStateMachine.RequiredData.values()) {
-            // Пропускаем CONNECTION_ID, так как он всегда есть после подключения
+            // Skip CONNECTION_ID as it's always present after connection
             if (data == PlayerStateMachine.RequiredData.CONNECTION_ID) continue;
 
             if (!session.hasData(data) && !session.isRequestSent(data)) {
@@ -115,20 +116,48 @@ public class ServerAgent {
         }
     }
 
-    private void checkAllPlayersReady() {
-        if (serverState.getCurrentState() != ServerStateMachine.State.LOBBY) return;
-
-        for (ClientSessionState session : connectedClients.values()) {
-            if (session.stateMachine.getCurrentState() != PlayerStateMachine.State.GAME_READY) {
-                return;
-            }
+    /**
+     * Host initiates game start. Called when host presses "Start Game" button.
+     * All players must be ready (verified by PlayerReadyHandler).
+     */
+    public void requestGameStart() {
+        if (!Multiplayer.isHost) {
+            System.err.println("Only host can start the game!");
+            return;
         }
-        startGame();
+
+        ServerStateMachine.State currentState = serverState.getCurrentState();
+        if (currentState != ServerStateMachine.State.LOBBY
+                && currentState != ServerStateMachine.State.LOBBY_GAME_READY) {
+            System.err.println("Cannot start game from state: " + currentState);
+            return;
+        }
+
+        if (!Multiplayer.Players.allReady()) {
+            NetworkManager.getInstance().showMessage("Not all players are ready!");
+            return;
+        }
+
+        // Transition to IN_GAME state
+        serverState.onGameStarted();
+
+        // Broadcast game start to all clients
+        broadcastGameStart();
     }
 
-    private void startGame() {
-        // serverState.setState(ServerStateMachine.State.IN_GAME);
-        // Рассылка стартовых пакетов, инициализация подземелья и т.д.
+    private void broadcastGameStart() {
+        Bundle bundle = new Bundle();
+        bundle.put("seed", Dungeon.seed);
+        // Add any other necessary game initialization data
+
+        NetworkManager.BundleMessage msg = new NetworkManager.BundleMessage("GAME_START", -1);
+        msg.bundleData = bundle.toString();
+
+        // Send to all connected clients
+        NetworkManager.broadcastMessageServer(msg, null);
+
+        // Also notify local client
+        NetworkManager.getInstance().showMessage("Game starting!");
     }
 
     public void onGlobalSeedSet() {

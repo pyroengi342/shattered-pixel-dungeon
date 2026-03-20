@@ -18,4 +18,19 @@ dependencies {
     implementation "io.netty:netty-all:$nettyVersion" // Сетевой фреймворк
     implementation "com.esotericsoftware:kryo:$kryoVersion"
     implementation 'org.jetbrains:annotations:15.0'// Сериализация
+
+    // Testing dependencies and headless backend for tests
+    testImplementation "org.junit.jupiter:junit-jupiter:5.10.0"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+    testImplementation "com.badlogicgames.gdx:gdx-backend-headless:$gdxVersion"
+    testImplementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
+    testRuntimeOnly "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+}
+
+test {
+    useJUnitPlatform()
+    testLogging {
+        events "passed", "skipped", "failed"
+        showStandardStreams = true
+    }
 }

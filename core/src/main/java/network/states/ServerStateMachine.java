@@ -79,6 +79,19 @@ public class ServerStateMachine {
     public void onServerStarted() {
         setState(State.LOBBY);
     }
+
+    public void onAllPlayersReady() {
+        if (currentState == State.LOBBY) {
+            setState(State.LOBBY_GAME_READY);
+        }
+    }
+
+    public void onPlayerNotReady() {
+        if (currentState == State.LOBBY_GAME_READY) {
+            setState(State.LOBBY);
+        }
+    }
+
     public void onGameStarted() {
         setState(State.IN_GAME);
     }
