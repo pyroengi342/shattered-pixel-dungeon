@@ -1,0 +1,17 @@
+# Airtest Project Configuration
+# This file marks the directory as an Airtest project
+
+[Airtest]
+version=1.4.3
+project_root=.
+log_dir=./logs
+deviceplatform=Windows
+
+[Poco]
+poco_version=1.12.0
+
+[Unity]
+engine=Unity
+
+[Android]
+adb=adb

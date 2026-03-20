@@ -1304,4 +1304,70 @@ public class HeroSelectScene extends PixelScene {
 		return isClassAvailable(cls);
 	}
 
+	// ==================== Static helpers for UI testing ====================
+	
+	/**
+	 * Tests if a hero class is available for selection.
+	 * Static version for unit testing.
+	 */
+	public static boolean isClassAvailableLogic(HeroClass cls) {
+		if (!network.Multiplayer.isMultiplayer) return true;
+		for (network.Multiplayer.PlayerInfo p : network.Multiplayer.Players.getAll()) {
+			if (p.hero != null && p.hero.heroClass == cls) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Tests if the Ready button should be shown.
+	 * Ready button is shown for clients (non-host) in multiplayer.
+	 */
+	public static boolean shouldShowReadyButton() {
+		return network.Multiplayer.isMultiplayer && !network.Multiplayer.isHost;
+	}
+
+	/**
+	 * Tests if the Start button should be shown.
+	 * Start button is shown for host in multiplayer, or for single player.
+	 */
+	public static boolean shouldShowStartButton() {
+		return network.Multiplayer.isHost || !network.Multiplayer.isMultiplayer;
+	}
+
+	/**
+	 * Tests if the Start button should be enabled.
+	 * Enabled when all players are ready (for host) or when hero is selected (for single player).
+	 */
+	public static boolean shouldEnableStartButton() {
+		if (!network.Multiplayer.isMultiplayer) {
+			// Single player - enabled when hero is selected
+			return com.shatteredpixel.shatteredpixeldungeon.GamesInProgress.selectedClass != null;
+		}
+		if (network.Multiplayer.isHost) {
+			// Host in multiplayer - enabled when all players ready
+			return network.Multiplayer.Players.allReady();
+		}
+		// Client - cannot start game
+		return false;
+	}
+
+	/**
+	 * Tests if the player list should be shown.
+	 * Shown only in multiplayer mode.
+	 */
+	public static boolean shouldShowPlayerList() {
+		return network.Multiplayer.isMultiplayer;
+	}
+
+	/**
+	 * Returns the appropriate text for the ready button.
+	 * @param isReady true if player is ready, false otherwise
+	 * @return message key for the button text
+	 */
+	public static String getReadyButtonText(boolean isReady) {
+		return isReady ? "not_ready" : "ready";
+	}
+
 }

@@ -53,11 +53,20 @@ public class WndGameInProgress extends Window {
 		
 		final GamesInProgress.Info info = GamesInProgress.check(slot);
 		
-		String className = null;
-		if (info.subClass != HeroSubClass.NONE){
+		// Handle multiplayer sessions or corrupted save data
+		if (info == null || info.heroClass == null) {
+			// Show error and close
+			hide();
+			return;
+		}
+		
+		String className;
+		if (info.subClass != null && info.subClass != HeroSubClass.NONE){
 			className = info.subClass.title();
-		} else {
+		} else if (info.heroClass != null) {
 			className = info.heroClass.title();
+		} else {
+			className = "Unknown";
 		}
 		
 		IconTitle title = new IconTitle();
