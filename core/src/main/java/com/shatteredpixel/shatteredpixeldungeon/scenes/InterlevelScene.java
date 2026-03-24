@@ -638,8 +638,7 @@ public class InterlevelScene extends PixelScene {
 
 	private void descend() throws IOException {
 
-		// Only use multiplayer GameStart logic when actually in multiplayer mode
-		if (Multiplayer.isMultiplayer && Multiplayer.GameStart) {
+		if (Multiplayer.GameStart) {
 			Multiplayer.GameStart = false;
 			Mob.clearHeldAllies();
 			Dungeon.init();

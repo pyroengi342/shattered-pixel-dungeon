@@ -280,18 +280,10 @@ public class Dungeon {
 		Blacksmith.Quest.reset();
 		Imp.Quest.reset();
 
-		// Only process players in multiplayer mode - otherwise use single-player logic
-		if (Multiplayer.isMultiplayer) {
-			boolean hasValidPlayer = false;
-			for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
-				if (player.hero != null && player.hero.heroClass != null) {
-					player.hero.live();
-					GamesInProgress.selectedClass.initHero(player.hero);
-					hasValidPlayer = true;
-				}
-			}
-			if (!hasValidPlayer) {
-				throw new RuntimeException("No valid players found for multiplayer game");
+		for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
+			if (player.hero != null) {
+				player.hero.live();
+				GamesInProgress.selectedClass.initHero(player.hero);
 			}
 		}
 
