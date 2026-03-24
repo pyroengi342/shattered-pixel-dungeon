@@ -107,6 +107,16 @@ public class MultiplayerServer {
             }
         }
     }
+    
+    // Overloaded method to support GameMessage
+    public void broadcast(Object msg, ChannelHandlerContext ignore) {
+        for (ClientSessionState session : connectedClients.values()) {
+            ChannelHandlerContext ctx = session.ctx;
+            if (ctx != ignore && ctx.channel().isActive()) {
+                ctx.writeAndFlush(msg);
+            }
+        }
+    }
 
     public ClientSessionState getSession(int playerId) {
         return connectedClients.get(playerId);

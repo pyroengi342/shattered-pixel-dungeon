@@ -6,6 +6,7 @@ import com.watabou.utils.Bundle;
 import network.Multiplayer;
 import network.handlers.MessageHandler;
 import network.NetworkManager;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.HeroSelectScene;
 
 public class ClientPlayerReadyHandler implements MessageHandler {
     @Override
@@ -19,7 +20,10 @@ public class ClientPlayerReadyHandler implements MessageHandler {
             
             Multiplayer.Players.setReady(playerId, ready);
             
-            // Обновление UI будет вызвано через updatePlayerList в HeroSelectScene
+            // Update local player ready state in HeroSelectScene
+            if (playerId == NetworkManager.getLocalPlayerId()) {
+                HeroSelectScene.setLocalPlayerReady(ready);
+            }
         });
     }
 }

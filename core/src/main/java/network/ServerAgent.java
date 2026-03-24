@@ -1,7 +1,9 @@
 package network;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.watabou.utils.Bundle;
+import network.handlers.client.HeroClassSelectedHandler;
 import network.handlers.client.PlayerAssignHandler;
 import network.handlers.client.PlayerJoinHandler;
 import network.handlers.client.SeedInitHandler;
@@ -81,10 +83,16 @@ public class ServerAgent {
             }
         }
 
-        // Сообщаем клиенту о других
+        // Сообщаем клиенту о других игроках И ИХ ГЕРОЯХ
         for (ClientSessionState other : connectedClients.values()) {
             if (other.getPlayerId() != session.getPlayerId()) {
                 PlayerJoinHandler.send(session.ctx, other.getPlayerId(), other.getName());
+                
+                // ОТПРАВЛЯЕМ КЛАСС ГЕРОЯ ЕСЛИ ВЫБРАН
+                Multiplayer.PlayerInfo otherPlayer = Multiplayer.Players.get(other.getPlayerId());
+                if (otherPlayer != null && otherPlayer.hero != null && otherPlayer.hero.heroClass != null) {
+                    HeroClassSelectedHandler.sendHeroClass(session.ctx, other.getPlayerId(), otherPlayer.hero.heroClass);
+                }
             }
         }
     }

@@ -104,6 +104,7 @@ public class HeroSelectScene extends PixelScene {
 	private IconButton btnExit;
 	
 	private boolean localPlayerReady = false; // Статус локального игрока
+	private static boolean staticLocalPlayerReady = false; // Static for cross-class access
 
 	private final ArrayList<StyledButton> playerBtns = new ArrayList<>();
 	private float playerListUpdateTimer = 0;
@@ -310,8 +311,10 @@ public class HeroSelectScene extends PixelScene {
         readyBtn = new StyledButton(Chrome.Type.GREY_BUTTON_TR, Messages.get(this, "ready")){
             @Override
             protected void onClick() {
-                // Ready toggle is handled by server via PlayerReadyHandler on the client side
-                // No local toggle here; visibility/state controlled by multiplayer system
+                // Toggle local ready state and send to server
+                localPlayerReady = !localPlayerReady;
+                staticLocalPlayerReady = localPlayerReady;
+                network.handlers.server.PlayerReadyHandler.sendReady(localPlayerReady);
             }
         };
         readyBtn.setSize(60, 21);
@@ -661,6 +664,8 @@ public class HeroSelectScene extends PixelScene {
         // CLIENT should have a Ready button; host should not
         readyBtn.visible = readyBtn.active = (isMP && !Multiplayer.isHost);
         if (isMP) {
+			// Sync instance variable with static (in case it was set from ClientPlayerReadyHandler)
+			localPlayerReady = staticLocalPlayerReady;
 			// Обновляем текст и цвет кнопки ready
 			if (localPlayerReady) {
 				readyBtn.text(Messages.get(this, "not_ready"));
@@ -1330,6 +1335,14 @@ public class HeroSelectScene extends PixelScene {
 	 */
 	public static boolean shouldShowReadyButton() {
 		return network.Multiplayer.isMultiplayer && !network.Multiplayer.isHost;
+	}
+
+	/**
+	 * Sets the local player's ready state.
+	 * Called by ClientPlayerReadyHandler when receiving broadcast from server.
+	 */
+	public static void setLocalPlayerReady(boolean ready) {
+		staticLocalPlayerReady = ready;
 	}
 
 	/**

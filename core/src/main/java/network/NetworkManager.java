@@ -19,6 +19,8 @@ import network.handlers.server.PlayerKickHandler;
 import network.handlers.client.HeroCreatedHandler;
 import network.handlers.client.HeroClassSelectedHandler;
 import network.handlers.client.ClientPlayerReadyHandler;
+import network.handlers.client.PlayerMoveHandler;
+import network.handlers.client.PlayerAttackHandler;
 import network.handlers.client.KickNotifyHandler;
 import network.handlers.client.PlayerAssignHandler;
 import network.handlers.client.PlayerJoinHandler;
@@ -51,6 +53,18 @@ public class NetworkManager {
             this.playerId = playerId;
         }
     }
+    
+    // Flag to enable new Kryo-based serialization (opt-in)
+    // Set to true after testing to enable by default
+    private static boolean useKryoSerialization = false;
+    
+    public static void setKryoSerializationEnabled(boolean enabled) {
+        useKryoSerialization = enabled;
+    }
+    
+    public static boolean isKryoSerializationEnabled() {
+        return useKryoSerialization;
+    }
     private static NetworkManager instance;
 
     public enum Mode { NONE, CLIENT, SERVER, LOCALHOST }
@@ -67,6 +81,7 @@ public class NetworkManager {
         kryo = new Kryo();
         setupKryo();
         messageDispatcher = new MessageDispatcher();
+        messageDispatcher.setKryo(kryo);  // Enable efficient Kryo deserialization
         initHandlers();
     }
 
@@ -77,6 +92,7 @@ public class NetworkManager {
 
     private void setupKryo() {
         kryo.register(BundleMessage.class);
+        kryo.register(GameMessage.class);
         kryo.register(String.class);
         kryo.register(int.class);
         kryo.register(Multiplayer.PlayerInfo.class);
@@ -107,6 +123,18 @@ public class NetworkManager {
         messageDispatcher.registerHandler(new HeroCreatedHandler());
         // Client-side hero class selection response
         messageDispatcher.registerHandler(new HeroClassSelectedHandler());
+        
+        // Game action handlers
+        // Client-side
+        messageDispatcher.registerHandler(new network.handlers.client.PlayerMoveHandler());
+        messageDispatcher.registerHandler(new network.handlers.client.PlayerAttackHandler());
+        // Server-side (using full path to avoid naming conflict)
+        messageDispatcher.registerHandler(new network.handlers.server.PlayerMoveHandler());
+        messageDispatcher.registerHandler(new network.handlers.server.PlayerAttackHandler());
+        
+        // Turn management handlers
+        messageDispatcher.registerHandler(new network.states.TurnManager.TurnChangeHandler());
+        messageDispatcher.registerHandler(new network.states.TurnManager.GameOverHandler());
     }
 
     public ClientAgent getClientCallflow() {
@@ -163,12 +191,24 @@ public class NetworkManager {
 
     // --- Отправка сообщений ---
     public void sendMessageImpl(String type, Bundle bundle) {
-        BundleMessage msg = new BundleMessage(type, getLocalPlayerId());
-        msg.bundleData = bundle.toString();
-        if (client != null && client.isConnected()) {
-            client.send(msg);
-        } else if (server != null) {
-            server.broadcast(msg, null);
+        if (useKryoSerialization) {
+            // New efficient Kryo-based serialization
+            GameMessage msg = new GameMessage(type, getLocalPlayerId());
+            msg.data = GameMessage.serializeBundle(bundle, kryo);
+            if (client != null && client.isConnected()) {
+                client.send(msg);
+            } else if (server != null) {
+                server.broadcast(msg, null);
+            }
+        } else {
+            // Legacy Bundle→String serialization (backward compatible)
+            BundleMessage msg = new BundleMessage(type, getLocalPlayerId());
+            msg.bundleData = bundle.toString();
+            if (client != null && client.isConnected()) {
+                client.send(msg);
+            } else if (server != null) {
+                server.broadcast(msg, null);
+            }
         }
     }
 

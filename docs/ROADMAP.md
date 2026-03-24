@@ -14,31 +14,38 @@ Java: 11+
 - [x] Анализ текущего кода → docs/NETWORK_ARCH.md
 - [x] Best practices исследование → docs/NETCODE.md (секция "Исследование")
 
-## Фаза 2: Реализация (в очереди)
+## Фаза 2: Реализация (выполнено)
+
+### ✅ Приоритет 1: Лобби (в основном выполнено)
+- [x] PlayerReadyHandler - работает
+- [x] Синхронизация выбора класса - HeroClassHandler + HeroClassSelectedHandler
+- [x] Кнопка "Начать игру" - в HeroSelectScene
+- [x] Отображение статуса игроков - PlayerBtn показывает класс и готовность
+
+### ✅ Приоритет 2: GameState синхронизация (выполнено)
+- [x] Event-based синхронизация - ServerStateMachine/ClientStateMachine
+- [x] Turn-based протокол - TurnManager
+- [x] MOVE action handler - PlayerMoveHandler (server + client)
+- [x] ATTACK action handler - PlayerAttackHandler (server + client)
+- [x] ITEM_USE handler - существующий ItemUseHandler
+
+### ✅ Приоритет 3: Надёжность (базово)
+- [x] TurnManager с таймаутами
+
+## Фаза 3: Улучшения (в очереди)
 
 ### Приоритет 1: Улучшение сериализации
 1. Перейти с Bundle→String на прямое Kryo
 2. Создать структуры сообщений с type ID
 
-### Приоритет 2: Лобби
-1. Доработать PlayerReadyHandler
-2. Синхронизация выбора класса
-3. Кнопка "Начать игру" для хоста
-4. Отображение статуса игроков
+### Приоритет 2: AI и окружение
+1. Enemy AI синхронизация
+2. Level changes (переходы между уровнями)
 
-### Приоритет 3: GameState синхронизация
-1. Event-based синхронизация (не full-state)
-2. Turn-based протокол
-3. ActionHandler
-
-### Приоритет 4: Надёжность (опционально)
+### Приоритет 3: Надёжность (опционально)
 1. Sequence numbers для сообщений
 2. Application-level ACK
 3. Hash verification
-
-### Приоритет 5: AI и окружение
-1. Enemy AI синхронизация
-2. Level changes
 
 ## Долгосрочные задачи
 - P2P соединение (STUN/TURN)

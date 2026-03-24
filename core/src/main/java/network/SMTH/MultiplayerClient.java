@@ -99,6 +99,13 @@ public class MultiplayerClient {
             clientChannel.writeAndFlush(msg);
         }
     }
+    
+    // Overloaded method to support GameMessage
+    public void send(Object msg) {
+        if (isConnected()) {
+            clientChannel.writeAndFlush(msg);
+        }
+    }
 
     private class ClientHandler extends SimpleChannelInboundHandler<NetworkManager.BundleMessage> {
         @Override

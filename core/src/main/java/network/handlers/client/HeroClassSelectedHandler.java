@@ -3,6 +3,7 @@ package network.handlers.client;
 import com.watabou.noosa.Game;
 import com.watabou.utils.Bundle;
 
+import io.netty.channel.ChannelHandlerContext;
 import network.Multiplayer;
 import network.handlers.MessageHandler;
 import network.NetworkManager;
@@ -34,5 +35,16 @@ public class HeroClassSelectedHandler implements MessageHandler {
             }
             player.hero.heroClass = heroClass;
         });
+    }
+
+    /// SERVER METHODS: Send hero class to a specific client
+    public static void sendHeroClass(ChannelHandlerContext ctx, int playerId, HeroClass heroClass) {
+        Bundle bundle = new Bundle();
+        bundle.put("playerId", playerId);
+        bundle.put("heroClass", heroClass.name());
+
+        NetworkManager.BundleMessage msg = new NetworkManager.BundleMessage("HERO_CLASS_SELECTED", playerId);
+        msg.bundleData = bundle.toString();
+        ctx.writeAndFlush(msg);
     }
 }
