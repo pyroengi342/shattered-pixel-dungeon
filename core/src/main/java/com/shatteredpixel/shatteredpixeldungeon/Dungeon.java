@@ -281,8 +281,10 @@ public class Dungeon {
 		Imp.Quest.reset();
 
 		for (Multiplayer.PlayerInfo player : Multiplayer.Players.getAll()) {
-			player.hero.live();
-			GamesInProgress.selectedClass.initHero(player.hero);
+			if (player.hero != null) {
+				player.hero.live();
+				GamesInProgress.selectedClass.initHero(player.hero);
+			}
 		}
 
         Badges.reset();
