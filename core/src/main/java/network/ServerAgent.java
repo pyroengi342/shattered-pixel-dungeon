@@ -148,6 +148,9 @@ public class ServerAgent {
 
         // Transition to IN_GAME state
         serverState.onGameStarted();
+        
+        // Set GameStart flag for local initialization
+        Multiplayer.GameStart = true;
 
         // Broadcast game start to all clients
         broadcastGameStart();

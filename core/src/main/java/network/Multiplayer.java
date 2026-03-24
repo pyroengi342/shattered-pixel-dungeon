@@ -17,7 +17,7 @@ import java.util.Map;
 public class Multiplayer {
     public static boolean isMultiplayer = false;
     public static boolean isHost = false;
-    public static boolean GameStart = true;
+    public static boolean GameStart = false;
     private static final PlayerContainer playerContainer = new PlayerContainer();
     public static class PlayerInfo {
         public int connectionID;
