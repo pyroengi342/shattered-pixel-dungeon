@@ -665,7 +665,11 @@ public class InterlevelScene extends PixelScene {
 			Level level = Dungeon.newLevel();
 			Dungeon.switchLevel( level, -1 );
 		} else {
-			if (curTransition.destBranch != Dungeon.branch && Dungeon.depth >= 16 && Dungeon.depth <= 20) {
+			// Guard against null curTransition - use defaults for initial descent
+			int destDepth = (curTransition != null) ? curTransition.destDepth : Dungeon.depth + 1;
+			int destBranch = (curTransition != null) ? curTransition.destBranch : 0;
+			
+			if (destBranch != Dungeon.branch && Dungeon.depth >= 16 && Dungeon.depth <= 20) {
 				//FIXME avoids holding allies when entering city quest area, this is very sloppy though
 				// perhaps holding allies could be a property of the transition?
 			} else {
@@ -674,8 +678,8 @@ public class InterlevelScene extends PixelScene {
 			Dungeon.saveAll();
 
 			Level level;
-			Dungeon.depth = curTransition.destDepth;
-			Dungeon.branch = curTransition.destBranch;
+			Dungeon.depth = destDepth;
+			Dungeon.branch = destBranch;
 
 			if (Dungeon.levelHasBeenGenerated(Dungeon.depth, Dungeon.branch)) {
 				level = Dungeon.loadLevel( GamesInProgress.curSlot );
@@ -683,7 +687,8 @@ public class InterlevelScene extends PixelScene {
 				level = Dungeon.newLevel();
 			}
 
-			LevelTransition destTransition = level.getTransition(curTransition.destType);
+			LevelTransition.Type transType = (curTransition != null) ? curTransition.destType : LevelTransition.Type.REGULAR_ENTRANCE;
+			LevelTransition destTransition = level.getTransition(transType);
 			curTransition = null;
 			Dungeon.switchLevel( level, destTransition.cell() );
 		}
@@ -709,7 +714,11 @@ public class InterlevelScene extends PixelScene {
 	}
 
 	private void ascend() throws IOException {
-		if (curTransition.destBranch != Dungeon.branch && Dungeon.depth >= 16 && Dungeon.depth <= 20) {
+		// Guard against null curTransition
+		int destDepth = (curTransition != null) ? curTransition.destDepth : Dungeon.depth - 1;
+		int destBranch = (curTransition != null) ? curTransition.destBranch : 0;
+		
+		if (destBranch != Dungeon.branch && Dungeon.depth >= 16 && Dungeon.depth <= 20) {
 			//FIXME avoids holding allies when entering city quest area, this is very sloppy though
 			// perhaps holding allies could be a property of the transition?
 		} else {
@@ -718,8 +727,8 @@ public class InterlevelScene extends PixelScene {
 		Dungeon.saveAll();
 
 		Level level;
-		Dungeon.depth = curTransition.destDepth;
-		Dungeon.branch = curTransition.destBranch;
+		Dungeon.depth = destDepth;
+		Dungeon.branch = destBranch;
 
 		if (Dungeon.levelHasBeenGenerated(Dungeon.depth, Dungeon.branch)) {
 			level = Dungeon.loadLevel( GamesInProgress.curSlot );
@@ -727,7 +736,8 @@ public class InterlevelScene extends PixelScene {
 			level = Dungeon.newLevel();
 		}
 
-		LevelTransition destTransition = level.getTransition(curTransition.destType);
+		LevelTransition.Type transType = (curTransition != null) ? curTransition.destType : LevelTransition.Type.REGULAR_EXIT;
+		LevelTransition destTransition = level.getTransition(transType);
 		curTransition = null;
 		Dungeon.switchLevel( level, destTransition.cell() );
 	}
