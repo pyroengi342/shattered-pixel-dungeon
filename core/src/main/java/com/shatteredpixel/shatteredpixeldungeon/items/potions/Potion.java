@@ -157,7 +157,9 @@ public class Potion extends Item {
 	}
 	
 	public static void save( Bundle bundle ) {
-		handler.save( bundle );
+		if (handler != null) {
+			handler.save( bundle );
+		}
 	}
 
 	public static void saveSelectively( Bundle bundle, ArrayList<Item> items ) {
