@@ -552,7 +552,9 @@ public class Notes {
 	protected static int nextCustomID = 0;
 
 	public static void storeInBundle( Bundle bundle ) {
-		bundle.put( RECORDS, records );
+		if (records != null) {
+			bundle.put( RECORDS, records );
+		}
 		bundle.put( NEXT_CUSTOM_ID, nextCustomID );
 	}
 	

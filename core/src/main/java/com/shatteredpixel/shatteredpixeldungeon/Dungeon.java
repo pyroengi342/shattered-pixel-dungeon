@@ -688,11 +688,13 @@ public class Dungeon {
 			Notes.storeInBundle( bundle );
 			Generator.storeInBundle( bundle );
 
-			int[] bundleArr = new int[generatedLevels.size()];
-			for (int i = 0; i < generatedLevels.size(); i++){
-				bundleArr[i] = generatedLevels.get(i);
+			if (generatedLevels != null) {
+				int[] bundleArr = new int[generatedLevels.size()];
+				for (int i = 0; i < generatedLevels.size(); i++){
+					bundleArr[i] = generatedLevels.get(i);
+				}
+				bundle.put( GENERATED_LEVELS, bundleArr);
 			}
-			bundle.put( GENERATED_LEVELS, bundleArr);
 			
 			Scroll.save( bundle );
 			Potion.save( bundle );
