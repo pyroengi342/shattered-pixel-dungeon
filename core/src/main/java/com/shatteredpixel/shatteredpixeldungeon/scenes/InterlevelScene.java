@@ -672,7 +672,7 @@ public class InterlevelScene extends PixelScene {
 			if (destBranch != Dungeon.branch && Dungeon.depth >= 16 && Dungeon.depth <= 20) {
 				//FIXME avoids holding allies when entering city quest area, this is very sloppy though
 				// perhaps holding allies could be a property of the transition?
-			} else {
+			} else if (Dungeon.level != null) {
 				Mob.holdAllies(Dungeon.level, Multiplayer.localHero());
 			}
 			Dungeon.saveAll();
@@ -698,7 +698,9 @@ public class InterlevelScene extends PixelScene {
 	//TODO atm falling always just increments depth by 1, do we eventually want to roll it into the transition system?
 	private void fall() throws IOException {
 		
-		Mob.holdAllies( Dungeon.level, Multiplayer.localHero());
+		if (Dungeon.level != null) {
+			Mob.holdAllies( Dungeon.level, Multiplayer.localHero());
+		}
 		
 		Buff.affect( Multiplayer.localHero(), Chasm.Falling.class, this);
 		Dungeon.saveAll();
@@ -721,7 +723,7 @@ public class InterlevelScene extends PixelScene {
 		if (destBranch != Dungeon.branch && Dungeon.depth >= 16 && Dungeon.depth <= 20) {
 			//FIXME avoids holding allies when entering city quest area, this is very sloppy though
 			// perhaps holding allies could be a property of the transition?
-		} else {
+		} else if (Dungeon.level != null) {
 			Mob.holdAllies(Dungeon.level, Multiplayer.localHero());
 		}
 		Dungeon.saveAll();
@@ -743,7 +745,9 @@ public class InterlevelScene extends PixelScene {
 	}
 	
 	private void returnTo() throws IOException {
-		Mob.holdAllies( Dungeon.level, Multiplayer.localHero());
+		if (Dungeon.level != null) {
+			Mob.holdAllies( Dungeon.level, Multiplayer.localHero());
+		}
 		Dungeon.saveAll();
 
 		Level level;
@@ -776,7 +780,9 @@ public class InterlevelScene extends PixelScene {
 	
 	private void resurrect() {
 		
-		Mob.holdAllies( Dungeon.level, Multiplayer.localHero() );
+		if (Dungeon.level != null) {
+			Mob.holdAllies( Dungeon.level, Multiplayer.localHero() );
+		}
 
 		Level level;
 		if (Dungeon.level.locked) {
@@ -831,7 +837,9 @@ public class InterlevelScene extends PixelScene {
 
 	private void reset() throws IOException {
 		
-		Mob.holdAllies( Dungeon.level, Multiplayer.localHero() );
+		if (Dungeon.level != null) {
+			Mob.holdAllies( Dungeon.level, Multiplayer.localHero() );
+		}
 
 		SpecialRoom.resetPitRoom(Dungeon.depth+1);
 
