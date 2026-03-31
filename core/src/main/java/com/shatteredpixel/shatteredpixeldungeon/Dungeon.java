@@ -653,8 +653,10 @@ public class Dungeon {
 			bundle.put( GOLD, gold );
 			bundle.put( ENERGY, energy );
 
-			for (int d : droppedItems.keyArray()) {
-				bundle.put(Messages.format(DROPPED, d), droppedItems.get(d));
+			if (droppedItems != null) {
+				for (int d : droppedItems.keyArray()) {
+					bundle.put(Messages.format(DROPPED, d), droppedItems.get(d));
+				}
 			}
 
 			// quickslot.storePlaceholders( bundle );
@@ -663,12 +665,14 @@ public class Dungeon {
 			LimitedDrops.store( limDrops );
 			bundle.put ( LIMDROPS, limDrops );
 			
-			int count = 0;
-			int[] ids = new int[chapters.size()];
-			for (Integer id : chapters) {
-				ids[count++] = id;
+			if (chapters != null) {
+				int count = 0;
+				int[] ids = new int[chapters.size()];
+				for (Integer id : chapters) {
+					ids[count++] = id;
+				}
+				bundle.put( CHAPTERS, ids );
 			}
-			bundle.put( CHAPTERS, ids );
 			
 			Bundle quests = new Bundle();
 			Ghost		.Quest.storeInBundle( quests );
