@@ -130,6 +130,9 @@ public abstract class SpecialRoom extends Room {
 	}
 	
 	public static void initForFloor(){
+		if (runSpecials.isEmpty()) {
+			initForRun();
+		}
 		floorSpecials = (ArrayList<Class<?extends Room>>) runSpecials.clone();
 		
 		//laboratory rooms spawn on floor 3 or 4 each chapter
@@ -178,8 +181,12 @@ public abstract class SpecialRoom extends Room {
 			if (index < 0 || index >= floorSpecials.size()) {
 				if (floorSpecials.isEmpty()) {
 					ShatteredPixelDungeon.reportException(new RuntimeException("floorSpecials is empty - Random or SpecialRoom may not be initialized"));
+					return null;
 				}
-				index = Math.max(0, floorSpecials.size() - 1);
+				index = Random.chances(new float[]{6, 3, 1});
+				if (index < 0 || index >= floorSpecials.size()) {
+					index = floorSpecials.size() - 1;
+				}
 			}
 
 			Room r = Reflection.newInstance(floorSpecials.get( index ));
