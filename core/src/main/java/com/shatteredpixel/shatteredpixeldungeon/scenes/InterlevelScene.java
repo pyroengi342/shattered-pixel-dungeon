@@ -665,6 +665,9 @@ public class InterlevelScene extends PixelScene {
 			Level level = Dungeon.newLevel();
 			Dungeon.switchLevel( level, -1 );
 		} else {
+			if (Dungeon.depth <= 0) {
+				Dungeon.init();
+			}
 			// Guard against null curTransition - use defaults for initial descent
 			int destDepth = (curTransition != null) ? curTransition.destDepth : Dungeon.depth + 1;
 			int destBranch = (curTransition != null) ? curTransition.destBranch : 0;
