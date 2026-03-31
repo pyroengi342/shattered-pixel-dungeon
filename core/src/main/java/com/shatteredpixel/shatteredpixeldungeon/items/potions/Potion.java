@@ -23,6 +23,7 @@ package com.shatteredpixel.shatteredpixeldungeon.items.potions;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Fire;
@@ -157,7 +158,9 @@ public class Potion extends Item {
 	}
 	
 	public static void save( Bundle bundle ) {
-		if (handler != null) {
+		if (handler == null) {
+			ShatteredPixelDungeon.reportException(new RuntimeException("Potion.handler is null - Dungeon not initialized"));
+		} else {
 			handler.save( bundle );
 		}
 	}

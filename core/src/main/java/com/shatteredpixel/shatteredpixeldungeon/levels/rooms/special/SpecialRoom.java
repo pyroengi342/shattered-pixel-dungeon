@@ -176,6 +176,9 @@ public abstract class SpecialRoom extends Room {
 
 			int index = Random.chances(new float[]{6, 3, 1});
 			if (index < 0 || index >= floorSpecials.size()) {
+				if (floorSpecials.isEmpty()) {
+					ShatteredPixelDungeon.reportException(new RuntimeException("floorSpecials is empty - Random or SpecialRoom may not be initialized"));
+				}
 				index = Math.max(0, floorSpecials.size() - 1);
 			}
 

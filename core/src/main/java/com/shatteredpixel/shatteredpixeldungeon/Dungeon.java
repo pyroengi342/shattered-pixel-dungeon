@@ -653,7 +653,9 @@ public class Dungeon {
 			bundle.put( GOLD, gold );
 			bundle.put( ENERGY, energy );
 
-			if (droppedItems != null) {
+			if (droppedItems == null) {
+				ShatteredPixelDungeon.reportException(new RuntimeException("droppedItems is null - Dungeon not initialized"));
+			} else {
 				for (int d : droppedItems.keyArray()) {
 					bundle.put(Messages.format(DROPPED, d), droppedItems.get(d));
 				}

@@ -1,6 +1,8 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.rings;
 
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.EnhancedRings;
@@ -63,7 +65,9 @@ public class Ring extends KindofMisc {
 	}
 
 	public static void save( Bundle bundle ) {
-		if (handler != null) {
+		if (handler == null) {
+			ShatteredPixelDungeon.reportException(new RuntimeException("Ring.handler is null - Dungeon not initialized"));
+		} else {
 			handler.save( bundle );
 		}
 	}

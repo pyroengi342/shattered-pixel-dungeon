@@ -23,6 +23,7 @@ package com.shatteredpixel.shatteredpixeldungeon.journal;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Foliage;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.SacrificialFire;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.WaterOfAwareness;
@@ -552,7 +553,9 @@ public class Notes {
 	protected static int nextCustomID = 0;
 
 	public static void storeInBundle( Bundle bundle ) {
-		if (records != null) {
+		if (records == null) {
+			ShatteredPixelDungeon.reportException(new RuntimeException("Notes.records is null - Dungeon not initialized"));
+		} else {
 			bundle.put( RECORDS, records );
 		}
 		bundle.put( NEXT_CUSTOM_ID, nextCustomID );

@@ -110,7 +110,9 @@ public abstract class Scroll extends Item {
 	}
 	
 	public static void save( Bundle bundle ) {
-		if (handler != null) {
+		if (handler == null) {
+			ShatteredPixelDungeon.reportException(new RuntimeException("Scroll.handler is null - Dungeon not initialized"));
+		} else {
 			handler.save( bundle );
 		}
 	}
