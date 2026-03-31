@@ -33,6 +33,14 @@ public class PlayerReadyHandler implements MessageHandler {
         }
 
         boolean plrReady = bundle.getBoolean("player_ready");
+        
+        // Require player to have hero before allowing ready state
+        Multiplayer.PlayerInfo player = Multiplayer.Players.get(senderId);
+        if (player == null || player.hero == null) {
+            // Cannot be ready without hero - ignore the request
+            return;
+        }
+        
         session.setReady(plrReady);
 
         // Update PlayerInfo
