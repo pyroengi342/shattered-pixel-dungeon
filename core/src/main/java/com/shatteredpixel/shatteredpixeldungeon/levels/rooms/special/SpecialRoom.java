@@ -174,9 +174,10 @@ public abstract class SpecialRoom extends Room {
 				floorSpecials.remove(WeakFloorRoom.class);
 			}
 
-			//60% chance for front of queue, 30% chance for next, 10% for one after that
 			int index = Random.chances(new float[]{6, 3, 1});
-			while (index >= floorSpecials.size()) index--;
+			if (index < 0 || index >= floorSpecials.size()) {
+				index = Math.max(0, floorSpecials.size() - 1);
+			}
 
 			Room r = Reflection.newInstance(floorSpecials.get( index ));
 
